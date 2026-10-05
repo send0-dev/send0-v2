@@ -1,0 +1,134 @@
+---
+import Legal from "../layouts/Legal.astro";
+import { site } from "../site";
+---
+
+<Legal
+  title="Privacy Policy"
+  description="What personal data send0 collects, why, who processes it, and how to exercise your rights."
+  summary="We collect as little as we can. This website uses no tracking cookies and no third-party analytics. Join the waitlist and we store your email to tell you when the beta opens, nothing more. We never sell personal data or use your mail to train AI models."
+>
+  <h2 id="who">1. Who we are</h2>
+  <p>
+    send0 is operated by {site.operator}, an individual based in {site.country} ("we", "us"). We are responsible
+    for the personal data described in this policy. You can reach us at
+    <a href={`mailto:${site.email.privacy}`}>{site.email.privacy}</a>.
+  </p>
+
+  <h2 id="collect">2. What we collect</h2>
+  <h3>When you visit send0.dev</h3>
+  <ul>
+    <li>
+      <strong>Technical logs.</strong> Our hosting provider, Cloudflare, processes your IP address, browser user agent and
+      the pages you request in order to serve the site and protect it from attacks. We use these logs only for security
+      and troubleshooting.
+    </li>
+    <li>
+      <strong>A theme preference.</strong> If you switch between light and dark mode, your choice is kept in your own
+      browser's local storage. It never leaves your device.
+    </li>
+  </ul>
+  <p>We don't use advertising, tracking cookies or third-party analytics on this website.</p>
+
+  <h3>When you join the waitlist</h3>
+  <ul>
+    <li>Your email address</li>
+    <li>The country your request came from, as reported by Cloudflare (not your precise location)</li>
+    <li>Which form you used, and when</li>
+  </ul>
+
+  <h3>When you use send0 Cloud (from the beta)</h3>
+  <ul>
+    <li><strong>Account data:</strong> your name, email address and profile picture from the GitHub or Google account you sign in with</li>
+    <li><strong>Mail data:</strong> the messages, attachments and metadata your inboxes send and receive</li>
+    <li><strong>Usage data:</strong> API requests, sending volumes, bounces and complaints, used to run the service, bill you and prevent abuse</li>
+    <li><strong>Billing data:</strong> handled by our payment provider. We don't store card numbers.</li>
+  </ul>
+
+  <h2 id="why">3. Why we use it</h2>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Purpose</th><th>Data</th><th>Basis</th></tr></thead>
+      <tbody>
+        <tr><td>Telling you when the beta opens</td><td>Waitlist email</td><td>Your consent, given when you join</td></tr>
+        <tr><td>Running the service you signed up for</td><td>Account, mail and usage data</td><td>Providing the service under our Terms</td></tr>
+        <tr><td>Preventing spam, fraud and abuse</td><td>Logs, usage data, message metadata</td><td>Legitimate uses permitted by law, and our legal obligations</td></tr>
+        <tr><td>Answering your emails and support requests</td><td>Whatever you send us</td><td>Your request</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="mail">4. Your agents' mail</h2>
+  <p>
+    The messages your inboxes send and receive belong to you. We process them only to deliver the service: storing,
+    parsing, threading, scanning for spam and prompt injection, and delivering them where you tell us to. We don't read
+    message content except when you ask us to for support, when needed to investigate abuse reported to us, or when
+    the law requires it. <strong>We don't sell your data, and we don't use your mail or data to train AI models.</strong>
+  </p>
+  <p>
+    Mail your inboxes receive often contains personal data about other people. When you use send0 Cloud, you decide
+    what happens to that data and we process it on your behalf. You're responsible for having a lawful basis to do so.
+  </p>
+
+  <h2 id="processors">5. Who processes data for us</h2>
+  <p>We use a small number of providers to run send0. Each is bound by its own data-protection terms.</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Provider</th><th>What for</th></tr></thead>
+      <tbody>
+        <tr><td>Cloudflare, Inc.</td><td>Website hosting, DNS, receiving mail, file storage, queues, security</td></tr>
+        <tr><td>Amazon Web Services, Inc.</td><td>Sending mail (Amazon SES), and receiving mail for custom domains</td></tr>
+        <tr><td>Neon, Inc.</td><td>Postgres database for send0 Cloud</td></tr>
+        <tr><td>GitHub and Google</td><td>Signing in to send0 Cloud, if you choose them</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    These providers may process data outside India, including in the United States and the European Union. We'll
+    update this list before adding a provider that handles your personal data.
+  </p>
+
+  <h2 id="retention">6. How long we keep it</h2>
+  <ul>
+    <li><strong>Waitlist emails:</strong> until we've invited you to the beta, then for 90 days, unless you create an account. You can ask us to delete yours at any time.</li>
+    <li><strong>Mail in send0 Cloud:</strong> for the retention period set on each inbox, then deleted. Deleting an inbox or your account deletes its mail.</li>
+    <li><strong>Account and billing records:</strong> while your account is open, then as long as tax and accounting law requires.</li>
+    <li><strong>Security logs:</strong> no longer than 90 days, unless needed to investigate a specific incident.</li>
+  </ul>
+
+  <h2 id="rights">7. Your rights</h2>
+  <p>
+    Under India's Digital Personal Data Protection Act, 2023 and similar laws where you live, you can ask to access,
+    correct, update or delete your personal data, withdraw consent you've given, and nominate someone to exercise these
+    rights for you. Email <a href={`mailto:${site.email.privacy}`}>{site.email.privacy}</a> and we'll respond within 30
+    days. Withdrawing consent doesn't affect anything we did before you withdrew it.
+  </p>
+  <p>
+    <strong>Grievances.</strong> If you have a complaint about how we handle your data, contact our grievance officer,
+    {site.operator}, at <a href={`mailto:${site.email.privacy}`}>{site.email.privacy}</a>. If you're not satisfied with
+    our response, you may complain to the Data Protection Board of India or your local data-protection authority.
+  </p>
+
+  <h2 id="security">8. Security</h2>
+  <p>
+    Data is encrypted in transit with TLS and at rest by our storage providers. API keys are stored only as hashes,
+    access to production systems is limited and logged, and each customer's data is separated in the database. No
+    system is perfectly secure. If a breach affects your personal data, we'll notify you and the relevant authorities as
+    the law requires. Report vulnerabilities to <a href={`mailto:${site.email.security}`}>{site.email.security}</a>.
+  </p>
+
+  <h2 id="children">9. Children</h2>
+  <p>send0 is a developer tool for adults. It isn't intended for anyone under 18, and we don't knowingly collect their data.</p>
+
+  <h2 id="self-host">10. Self-hosted send0</h2>
+  <p>
+    If you run the open-source edition yourself, we never receive the data it handles. You're the one responsible for
+    it, and this policy doesn't apply to your instance.
+  </p>
+
+  <h2 id="changes">11. Changes</h2>
+  <p>
+    We'll post any changes here and update the date at the top. If a change materially affects how we use your data,
+    we'll email you before it takes effect.
+  </p>
+</Legal>

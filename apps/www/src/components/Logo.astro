@@ -1,0 +1,30 @@
+---
+interface Props {
+  size?: number;
+  wordmark?: boolean;
+}
+const { size = 24, wordmark = true } = Astro.props;
+---
+
+<span class="logo">
+  <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+    <rect x="1" y="1" width="30" height="30" rx="8" fill="currentColor"></rect>
+    <ellipse cx="16" cy="16.5" rx="6.2" ry="8" fill="none" stroke="var(--bg)" stroke-width="3.2"></ellipse>
+    <circle cx="25.5" cy="6.5" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"></circle>
+  </svg>
+  {wordmark && <span class="word">send0</span>}
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--fg);
+  }
+  .word {
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.035em;
+  }
+</style>

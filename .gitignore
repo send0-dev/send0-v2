@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.turbo/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+worker-configuration.d.ts

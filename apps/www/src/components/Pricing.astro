@@ -1,0 +1,209 @@
+---
+import { site } from "../site";
+
+const selfHost = [
+  "The full server, AGPL-3.0",
+  "Same REST API, SDKs and MCP server as the cloud",
+  "Amazon SES or any SMTP relay for sending",
+  "Postgres, S3-compatible storage, no Redis",
+  "Unlimited inboxes, domains and messages",
+  "Community support on GitHub",
+];
+
+const cloud = [
+  "Everything in the open-source edition, run for you",
+  "Addresses on send0.email, ready in seconds",
+  "A free tier with webhooks and real-time included",
+  "Custom domains, drafts and approvals on paid plans",
+  "Managed deliverability, warm-up and suppression",
+  "Email support from the people who build it",
+];
+---
+
+<section class="section" id="pricing" aria-labelledby="pricing-title">
+  <div class="section-head center reveal">
+    <span class="eyebrow">Pricing</span>
+    <h2 id="pricing-title" class="h2">
+      Free to run yourself. <span class="dim">Simple when we run it.</span>
+    </h2>
+    <p class="lede">
+      Self-hosting costs you nothing but your servers and sending fees. Cloud
+      pricing will be published before the beta opens, and every plan will
+      include webhooks.
+    </p>
+  </div>
+
+  <div class="plans">
+    <article class="plan reveal">
+      <header>
+        <h3>Self-host</h3>
+        <p>The whole platform, on your infrastructure.</p>
+      </header>
+      <div class="price">
+        <span class="amount">$0</span>
+        <span class="per mono">forever</span>
+      </div>
+      {
+        site.repoPublic ? (
+          <a class="btn btn-secondary" href={site.github} rel="noopener">
+            View on GitHub
+          </a>
+        ) : (
+          <a class="btn btn-secondary" href="#waitlist">
+            Notify me when the code opens
+          </a>
+        )
+      }
+      <ul>
+        {selfHost.map((f) => <li>{f}</li>)}
+      </ul>
+    </article>
+
+    <article class="plan featured reveal">
+      <span class="badge mono">Join the waitlist</span>
+      <header>
+        <h3>send0 Cloud</h3>
+        <p>Same API. We run the servers and look after deliverability.</p>
+      </header>
+      <div class="price">
+        <span class="amount soon">Coming soon</span>
+      </div>
+      <a class="btn btn-accent" href="#waitlist">Get early access</a>
+      <ul>
+        {cloud.map((f) => <li>{f}</li>)}
+      </ul>
+    </article>
+  </div>
+
+  <p class="foot reveal">
+    Self-hosted? You pay your cloud provider and Amazon SES, about $0.10 per
+    1,000 emails sent. You pay send0 nothing. Questions? <a
+      href={`mailto:${site.email.hello}`}>{site.email.hello}</a
+    >
+  </p>
+</section>
+
+<style>
+  .center {
+    margin-inline: auto;
+    text-align: center;
+  }
+  .center .lede {
+    margin-inline: auto;
+  }
+  .center .eyebrow {
+    justify-content: center;
+  }
+  .plans {
+    display: grid;
+    gap: 20px;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  @media (min-width: 800px) {
+    .plans {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .plan {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 32px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  .featured {
+    border-color: var(--fg);
+    box-shadow: var(--shadow);
+  }
+  .badge {
+    position: absolute;
+    top: -11px;
+    left: 32px;
+    height: 22px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  h3 {
+    font-size: 20px;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    margin-top: 6px;
+    font-size: 14.5px;
+    color: var(--fg-muted);
+  }
+  .price {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-height: 56px;
+  }
+  .amount {
+    font-size: 48px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .amount.soon {
+    font-size: 32px;
+    color: var(--fg-muted);
+  }
+  .per {
+    font-size: 13px;
+    color: var(--fg-faint);
+  }
+  .plan .btn {
+    width: 100%;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--border);
+    display: grid;
+    gap: 12px;
+  }
+  li {
+    position: relative;
+    padding-left: 26px;
+    font-size: 14.5px;
+    color: var(--fg-muted);
+  }
+  li::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 7px;
+    width: 10px;
+    height: 6px;
+    border-left: 1.6px solid var(--fg);
+    border-bottom: 1.6px solid var(--fg);
+    transform: rotate(-45deg);
+  }
+  .featured li::before {
+    border-color: var(--accent);
+  }
+  .foot {
+    max-width: 640px;
+    margin: 32px auto 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--fg-faint);
+  }
+  .foot a {
+    color: var(--fg-muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--border-strong);
+  }
+</style>

@@ -1,0 +1,16 @@
+{
+  "name": "send0",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "check": "turbo run check"
+  },
+  "devDependencies": {
+    "turbo": "^2.11.7"
+  }
+}

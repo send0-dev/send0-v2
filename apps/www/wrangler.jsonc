@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "send0-www",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "routes": [
+    { "pattern": "send0.dev", "custom_domain": true }
+  ],
+  "d1_databases": [
+    {
+      "binding": "WAITLIST_DB",
+      "database_name": "send0-waitlist",
+      "database_id": "45eadab8-324d-496a-b339-7d7920dc6803",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": { "enabled": true }
+}

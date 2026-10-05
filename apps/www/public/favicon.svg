@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .bg { fill: #0c0c0d; } .ring { stroke: #fbfbfa; } .dot-stroke { stroke: #fbfbfa; }
+    @media (prefers-color-scheme: dark) { .bg { fill: #f4f4f5; } .ring { stroke: #09090a; } .dot-stroke { stroke: #09090a; } }
+  </style>
+  <rect class="bg" x="1" y="1" width="30" height="30" rx="8"/>
+  <ellipse class="ring" cx="16" cy="16.5" rx="6.2" ry="8" fill="none" stroke-width="3.2"/>
+  <circle class="dot-stroke" cx="25.5" cy="6.5" r="5" fill="#ff4f00" stroke-width="2"/>
+</svg>

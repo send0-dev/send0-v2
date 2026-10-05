@@ -1,0 +1,156 @@
+---
+const frameworks = [
+  "MCP",
+  "Claude Agent SDK",
+  "OpenAI Agents SDK",
+  "Vercel AI SDK",
+  "LangGraph",
+  "Mastra",
+  "CrewAI",
+  "browser-use",
+  "OpenClaw",
+];
+
+const cases = [
+  {
+    label: "Sign up and verify",
+    title: "Get past the email wall",
+    body: "Most services won't let anyone in without a verified address. Your agent fills in the form with its own send0 address, waits for the email, and gets the one-time code and magic link already extracted.",
+    detail: "wait → extracted.otp",
+  },
+  {
+    label: "Run conversations",
+    title: "Hold real threads with people",
+    body: "Support, sales-ops, collections and procurement agents need to send, get a reply, and pick up where they left off. Replies thread correctly in Gmail and Outlook, and your agent reads only the new text, not the quoted history.",
+    detail: "reply → In-Reply-To, References",
+  },
+  {
+    label: "Stay in control",
+    title: "Put a human in the loop",
+    body: "Switch an inbox to approval mode and every outgoing message becomes a draft. A person reviews it and sends it, or edits it first. Tighten or loosen the policy per inbox as you build trust.",
+    detail: "send_policy: approval",
+  },
+  {
+    label: "Test email flows",
+    title: "Make sign-up tests boring",
+    body: "Create a throwaway inbox per test run, trigger your own sign-up or password-reset email, and assert on the result. Sandbox inboxes only receive, so nothing leaks to real people from CI.",
+    detail: "mode: sandbox",
+  },
+];
+---
+
+<section class="section" aria-labelledby="usecases-title">
+  <div class="strip reveal">
+    <p class="mono">Works with any agent framework, through REST, the SDK or MCP</p>
+    <ul>
+      {frameworks.map((f) => <li>{f}</li>)}
+    </ul>
+  </div>
+
+  <div class="section-head reveal">
+    <span class="eyebrow">Use cases</span>
+    <h2 id="usecases-title" class="h2">Email is still how the world says yes. <span class="dim">Agents need in.</span></h2>
+    <p class="lede">
+      Verification codes, purchase orders, support tickets, invoices. Much of the work you want agents to do
+      arrives by email. send0 gives each agent a real address it can read, write and reason about.
+    </p>
+  </div>
+
+  <div class="grid">
+    {
+      cases.map((c, i) => (
+        <article class="case reveal">
+          <span class="num mono">0{i + 1}</span>
+          <span class="label mono">{c.label}</span>
+          <h3>{c.title}</h3>
+          <p>{c.body}</p>
+          <code class="detail">{c.detail}</code>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .strip {
+    display: grid;
+    gap: 18px;
+    padding-bottom: 72px;
+    margin-bottom: 72px;
+    border-bottom: 1px dashed var(--border);
+    text-align: center;
+  }
+  .strip p {
+    font-size: 12.5px;
+    color: var(--fg-faint);
+  }
+  .strip ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 28px;
+  }
+  .strip li {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--fg-muted);
+  }
+  .grid {
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .case {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 32px 28px;
+    background: var(--surface);
+  }
+  .num {
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    font-size: 12px;
+    color: var(--fg-faint);
+  }
+  .label {
+    font-size: 12px;
+    color: var(--accent-ink);
+  }
+  h3 {
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin-top: 4px;
+  }
+  p {
+    color: var(--fg-muted);
+    font-size: 15.5px;
+  }
+  .detail {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 4px 8px;
+    border-radius: 5px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--fg-muted);
+  }
+  p + .detail {
+    margin-top: 12px;
+  }
+</style>

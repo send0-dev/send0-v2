@@ -1,0 +1,101 @@
+---
+import WaitlistForm from "./WaitlistForm.astro";
+import GithubIcon from "./GithubIcon.astro";
+import { site } from "../site";
+---
+
+<section class="section cta" id="waitlist" aria-labelledby="cta-title">
+  <div class="glow-clip" aria-hidden="true"><div class="glow"></div></div>
+  <div class="inner reveal">
+    <span class="eyebrow">Early access</span>
+    <h2 id="cta-title">Your agent's inbox is <br /><span class="dim">one API call away.</span></h2>
+    <p>
+      Join the waitlist for the hosted beta. We'll email you once when it opens.
+      {
+        site.repoPublic
+          ? "Prefer to run it yourself? Star the repo and follow along."
+          : "The source code opens with it, so you can self-host from day one."
+      }
+    </p>
+    <div class="ctas">
+      <WaitlistForm source="footer-cta" />
+      {
+        site.repoPublic ? (
+          <a class="btn btn-secondary gh" href={site.github} rel="noopener">
+            <GithubIcon />
+            Star on GitHub
+          </a>
+        ) : (
+          <a class="btn btn-secondary gh" href={`mailto:${site.email.hello}`}>
+            Talk to the founder
+          </a>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta {
+    text-align: center;
+  }
+  .glow-clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .glow {
+    position: absolute;
+    left: 50%;
+    bottom: -320px;
+    width: 900px;
+    height: 520px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 22%, transparent), transparent);
+    pointer-events: none;
+  }
+  .inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .eyebrow {
+    justify-content: center;
+  }
+  h2 {
+    font-size: clamp(36px, 6vw, 64px);
+    letter-spacing: -0.045em;
+    line-height: 1.02;
+  }
+  .dim {
+    color: var(--fg-faint);
+  }
+  p {
+    max-width: 520px;
+    margin-top: 20px;
+    font-size: 18px;
+    color: var(--fg-muted);
+  }
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    margin-top: 36px;
+  }
+  .gh {
+    height: 54px;
+    padding: 0 20px;
+    border-radius: 12px;
+  }
+  @media (max-width: 479px) {
+    .gh {
+      width: 100%;
+      max-width: 460px;
+    }
+  }
+</style>

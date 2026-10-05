@@ -1,0 +1,439 @@
+---
+// Animated walkthrough of the core agent loop: create an inbox, use it, wait for mail, read the code.
+---
+
+<div class="demo" data-demo data-step="0">
+  <div class="pane code-pane">
+    <div class="bar">
+      <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="file mono">agent.ts</span>
+    </div>
+    <pre class="code mono" aria-label="Example agent code using the send0 SDK"><code><span class="ln"><span class="k">import</span> {"{"} Send0 {"}"} <span class="k">from</span> <span class="s">"@send0/sdk"</span>;</span>
+<span class="ln"><span class="k">const</span> send0 = <span class="k">new</span> <span class="f">Send0</span>(process.env.SEND0_API_KEY);</span>
+<span class="ln"> </span>
+<span class="ln" data-s="1"><span class="c">// 1. Give the agent its own address</span></span>
+<span class="ln" data-s="1"><span class="k">const</span> inbox = <span class="k">await</span> send0.inboxes.<span class="f">create</span>({"{"} name: <span class="s">"signup-agent"</span> {"}"});</span>
+<span class="ln"> </span>
+<span class="ln" data-s="2"><span class="c">// 2. Use it the way a person would</span></span>
+<span class="ln" data-s="2"><span class="k">await</span> browser.<span class="f">fill</span>(<span class="s">"#email"</span>, inbox.address);</span>
+<span class="ln" data-s="2"><span class="k">await</span> browser.<span class="f">click</span>(<span class="s">"Create account"</span>);</span>
+<span class="ln"> </span>
+<span class="ln" data-s="3"><span class="c">// 3. Block until the verification email lands</span></span>
+<span class="ln" data-s="3"><span class="k">const</span> msg = <span class="k">await</span> send0.inboxes.<span class="f">wait</span>(inbox.id, {"{"}</span>
+<span class="ln" data-s="3">  from: <span class="s">"*@acme.dev"</span>, timeout: <span class="n">60</span>,</span>
+<span class="ln" data-s="3">{"}"});</span>
+<span class="ln"> </span>
+<span class="ln" data-s="5"><span class="c">// 4. The code is already extracted</span></span>
+<span class="ln" data-s="5"><span class="k">await</span> browser.<span class="f">fill</span>(<span class="s">"#code"</span>, msg.extracted.otp);</span></code></pre>
+  </div>
+
+  <div class="pane inbox-pane" aria-live="off">
+    <div class="bar">
+      <span class="addr mono">
+        <span class="live" aria-hidden="true"></span>
+        <span class="addr-text">signup-agent@send0.email</span>
+      </span>
+      <span class="tag count">0 messages</span>
+    </div>
+
+    <div class="body">
+      <div class="state empty">
+        <span class="mono hint">POST /v1/inboxes</span>
+        <p>Creating inbox…</p>
+      </div>
+
+      <ul class="events mono">
+        <li data-s="1"><span class="t">00.00s</span> inbox.created <span class="v">ibx_7Hc2</span></li>
+        <li data-s="2"><span class="t">00.41s</span> address used on <span class="v">acme.dev/signup</span></li>
+        <li data-s="3"><span class="t">00.42s</span> waiting for <span class="v">*@acme.dev</span><span class="spinner" aria-hidden="true"></span></li>
+        <li data-s="4"><span class="t">03.17s</span> message.received <span class="v">msg_9Kd2</span></li>
+      </ul>
+
+      <article class="mail" data-s="4">
+        <header>
+          <span class="avatar" aria-hidden="true">A</span>
+          <div>
+            <strong>Acme</strong> <span class="from mono">noreply@acme.dev</span>
+            <p class="subject">Your Acme verification code</p>
+          </div>
+        </header>
+        <div class="checks">
+          <span class="chk">SPF pass</span>
+          <span class="chk">DKIM pass</span>
+          <span class="chk">DMARC pass</span>
+          <span class="chk neutral">injection: none</span>
+        </div>
+        <div class="extracted mono">
+          <div class="row"><span class="key">extracted.otp</span><span class="otp">482913</span></div>
+          <div class="row"><span class="key">extracted.links</span><span class="link">acme.dev/verify?t=…</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<script>
+  const demos = document.querySelectorAll<HTMLElement>("[data-demo]");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  demos.forEach((demo) => {
+    const count = demo.querySelector<HTMLElement>(".count")!;
+    const set = (step: number) => {
+      demo.dataset.step = String(step);
+      count.textContent = step >= 4 ? "1 message" : "0 messages";
+    };
+
+    const frozen = new URLSearchParams(location.search).get("demo");
+    if (reduce || frozen) {
+      set(frozen ? Number(frozen) : 5);
+      return;
+    }
+
+    // [step, time it stays on screen in ms]
+    const timeline: [number, number][] = [
+      [0, 900],
+      [1, 1500],
+      [2, 1500],
+      [3, 2200],
+      [4, 1400],
+      [5, 4200],
+    ];
+    let i = 0;
+    let timer: number | undefined;
+    let running = false;
+
+    const tick = () => {
+      const [step, ms] = timeline[i]!;
+      set(step);
+      i = (i + 1) % timeline.length;
+      timer = window.setTimeout(tick, ms);
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting && !running) {
+        running = true;
+        tick();
+      } else if (!entry?.isIntersecting && running) {
+        running = false;
+        window.clearTimeout(timer);
+      }
+    });
+    io.observe(demo);
+  });
+</script>
+
+<style>
+  .demo {
+    display: grid;
+    gap: 12px;
+    text-align: left;
+  }
+  @media (min-width: 960px) {
+    .demo {
+      grid-template-columns: 1.15fr 1fr;
+      gap: 0;
+    }
+    .code-pane {
+      border-radius: var(--radius) 0 0 var(--radius);
+    }
+    .inbox-pane {
+      border-left: 0 !important;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+  }
+
+  .pane {
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 44px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-subtle);
+  }
+  .lights {
+    display: flex;
+    gap: 6px;
+  }
+  .lights i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+  .file {
+    font-size: 12px;
+    color: var(--fg-faint);
+    margin-right: auto;
+    margin-left: 6px;
+  }
+
+  /* Code */
+  .code {
+    margin: 0;
+    padding: 18px 0;
+    font-size: 12.5px;
+    line-height: 1.75;
+    overflow-x: auto;
+    color: var(--fg);
+    white-space: normal;
+  }
+  .code code {
+    display: block;
+    min-width: max-content;
+  }
+  .ln {
+    display: block;
+    white-space: pre;
+    padding: 0 18px;
+    border-left: 2px solid transparent;
+    transition: background-color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+  }
+  .k { color: #c2410c; }
+  .s { color: #15803d; }
+  .f { color: #1d4ed8; }
+  .n { color: #9333ea; }
+  .c { color: var(--fg-faint); }
+  :global(:root[data-theme="dark"]) .k { color: #fb923c; }
+  :global(:root[data-theme="dark"]) .s { color: #86efac; }
+  :global(:root[data-theme="dark"]) .f { color: #93c5fd; }
+  :global(:root[data-theme="dark"]) .n { color: #d8b4fe; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .k { color: #fb923c; }
+    :global(:root:not([data-theme="light"])) .s { color: #86efac; }
+    :global(:root:not([data-theme="light"])) .f { color: #93c5fd; }
+    :global(:root:not([data-theme="light"])) .n { color: #d8b4fe; }
+  }
+
+  .demo[data-step="1"] .ln[data-s="1"],
+  .demo[data-step="2"] .ln[data-s="2"],
+  .demo[data-step="3"] .ln[data-s="3"],
+  .demo[data-step="4"] .ln[data-s="3"],
+  .demo[data-step="5"] .ln[data-s="5"] {
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+  }
+
+  /* Inbox */
+  .addr {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: 12.5px;
+    color: var(--fg);
+  }
+  .addr-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.7s steps(24, end);
+  }
+  .demo:not([data-step="0"]) .addr-text {
+    clip-path: inset(0 0 0 0);
+  }
+  .live {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--fg-faint);
+    transition: background-color 0.3s ease;
+  }
+  .demo:not([data-step="0"]) .live {
+    background: var(--ok);
+    box-shadow: 0 0 0 3px var(--ok-soft);
+  }
+
+  .body {
+    position: relative;
+    padding: 16px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .state.empty {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 6px;
+    min-height: 120px;
+    color: var(--fg-faint);
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+  }
+  .hint {
+    font-size: 11.5px;
+    padding: 2px 8px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 5px;
+  }
+  .demo:not([data-step="0"]) .state.empty {
+    display: none;
+  }
+
+  .events {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--fg-muted);
+  }
+  .events li {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    animation: rise 0.35s ease both;
+  }
+  .events .t {
+    color: var(--fg-faint);
+  }
+  .events .v {
+    color: var(--fg);
+  }
+  .demo[data-step="1"] .events li[data-s="1"],
+  .demo[data-step="2"] .events li:is([data-s="1"], [data-s="2"]),
+  .demo[data-step="3"] .events li:is([data-s="1"], [data-s="2"], [data-s="3"]),
+  .demo:is([data-step="4"], [data-step="5"]) .events li {
+    display: flex;
+  }
+  .spinner {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-strong);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  .demo:is([data-step="4"], [data-step="5"]) .spinner {
+    display: none;
+  }
+
+  .mail {
+    display: none;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg);
+    animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .demo:is([data-step="4"], [data-step="5"]) .mail {
+    display: block;
+  }
+  .mail header {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    border-radius: 8px;
+    background: var(--fg);
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .mail strong {
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .from {
+    font-size: 11.5px;
+    color: var(--fg-faint);
+  }
+  .subject {
+    font-size: 13.5px;
+    color: var(--fg-muted);
+    margin-top: 1px;
+  }
+  .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 12px 0;
+  }
+  .chk {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 5px;
+    background: var(--ok-soft);
+    color: var(--ok);
+    font: 500 11px/1 var(--font-mono);
+  }
+  .chk::before {
+    content: "✓";
+  }
+  .chk.neutral {
+    background: var(--bg-subtle);
+    color: var(--fg-muted);
+  }
+  .extracted {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 7px;
+    background: var(--bg-subtle);
+    font-size: 11.5px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .key {
+    color: var(--fg-faint);
+  }
+  .link {
+    color: var(--fg-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .otp {
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--fg);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .demo[data-step="5"] .otp {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

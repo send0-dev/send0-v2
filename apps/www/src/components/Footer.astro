@@ -1,0 +1,153 @@
+---
+import Logo from "./Logo.astro";
+import { site } from "../site";
+
+const year = new Date().getFullYear();
+
+const groups = [
+  {
+    title: "Product",
+    links: [
+      { href: "/#features", label: "Features" },
+      { href: "/#how-it-works", label: "How it works" },
+      { href: "/#pricing", label: "Pricing" },
+      { href: "/#faq", label: "FAQ" },
+      { href: "/#waitlist", label: "Waitlist" },
+    ],
+  },
+  {
+    title: "Open source",
+    links: [
+      ...(site.repoPublic ? [{ href: site.github, label: "GitHub" }] : []),
+      { href: "/#self-host", label: "Self-hosting" },
+      ...(site.repoPublic
+        ? [{ href: `${site.github}/blob/main/LICENSE`, label: "License (AGPL-3.0)" }]
+        : [{ href: "/#faq", label: "Licensing" }]),
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/terms", label: "Terms" },
+      { href: "/privacy", label: "Privacy" },
+      { href: "/acceptable-use", label: "Acceptable use" },
+    ],
+  },
+  {
+    title: "Contact",
+    links: [
+      { href: `mailto:${site.email.hello}`, label: site.email.hello },
+      { href: `mailto:${site.email.support}`, label: site.email.support },
+      { href: `mailto:${site.email.abuse}`, label: site.email.abuse },
+    ],
+  },
+];
+---
+
+<footer class="footer">
+  <div class="column">
+    <div class="top">
+      <div class="about">
+        <Logo />
+        <p>Email inboxes for AI agents. Open source, self-hostable, webhooks on every plan.</p>
+        <span class="pill"><span class="dot"></span>In development · beta soon</span>
+      </div>
+      <div class="groups">
+        {
+          groups.map((g) => (
+            <div>
+              <h3>{g.title}</h3>
+              <ul>
+                {g.links.map((l) => (
+                  <li>
+                    <a href={l.href}>{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+    <div class="bottom">
+      <span>© {year} {site.operator}. send0 {site.repoPublic ? "is" : "will be"} open source under AGPL-3.0.</span>
+      <span class="mono">Made in {site.country}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--rail);
+  }
+  .top {
+    display: grid;
+    gap: 48px;
+    padding: 64px var(--gutter) 48px;
+  }
+  @media (min-width: 900px) {
+    .top {
+      grid-template-columns: 1fr 2fr;
+      padding: 72px 48px 56px;
+    }
+  }
+  .about {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .about p {
+    max-width: 300px;
+    color: var(--fg-muted);
+    font-size: 14px;
+  }
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 24px;
+  }
+  @media (min-width: 640px) {
+    .groups {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  h3 {
+    font: 500 12px/1 var(--font-mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    margin-bottom: 16px;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  li a {
+    font-size: 14px;
+    color: var(--fg-muted);
+    overflow-wrap: anywhere;
+    transition: color 0.15s ease;
+  }
+  li a:hover {
+    color: var(--fg);
+  }
+  .bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding: 20px var(--gutter) 32px;
+    border-top: 1px solid var(--rail);
+    font-size: 13px;
+    color: var(--fg-faint);
+  }
+  @media (min-width: 900px) {
+    .bottom {
+      padding: 20px 48px 32px;
+    }
+  }
+</style>

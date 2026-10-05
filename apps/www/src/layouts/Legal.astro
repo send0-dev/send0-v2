@@ -1,0 +1,183 @@
+---
+import Base from "./Base.astro";
+import { site } from "../site";
+
+interface Props {
+  title: string;
+  description: string;
+  summary: string;
+}
+
+const { title, description, summary } = Astro.props;
+
+const pages = [
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/acceptable-use", label: "Acceptable Use Policy" },
+];
+const path = Astro.url.pathname.replace(/\.html$/, "");
+---
+
+<Base title={title} description={description}>
+  <div class="column">
+    <section class="section legal">
+      <header class="head">
+        <span class="eyebrow">Legal</span>
+        <h1>{title}</h1>
+        <p class="updated mono">Last updated {site.legalUpdated}</p>
+        <p class="summary">{summary}</p>
+      </header>
+
+      <div class="layout">
+        <nav class="side" aria-label="Legal pages">
+          {
+            pages.map((p) => (
+              <a href={p.href} aria-current={path === p.href ? "page" : undefined}>
+                {p.label}
+              </a>
+            ))
+          }
+        </nav>
+        <article class="prose">
+          <slot />
+        </article>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .head {
+    max-width: 720px;
+    margin-bottom: 56px;
+  }
+  h1 {
+    font-size: clamp(36px, 5vw, 52px);
+    letter-spacing: -0.04em;
+  }
+  .updated {
+    margin-top: 16px;
+    font-size: 12.5px;
+    color: var(--fg-faint);
+  }
+  .summary {
+    margin-top: 24px;
+    padding: 16px 20px;
+    border-left: 2px solid var(--accent);
+    background: var(--bg-subtle);
+    border-radius: 0 8px 8px 0;
+    font-size: 15.5px;
+    color: var(--fg-muted);
+  }
+  .layout {
+    display: grid;
+    gap: 40px;
+  }
+  @media (min-width: 900px) {
+    .layout {
+      grid-template-columns: 220px 1fr;
+      gap: 64px;
+    }
+    .side {
+      position: sticky;
+      top: 100px;
+      align-self: start;
+    }
+  }
+  .side {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  @media (min-width: 900px) {
+    .side {
+      flex-direction: column;
+    }
+  }
+  .side a {
+    padding: 8px 12px;
+    border-radius: 7px;
+    font-size: 14px;
+    color: var(--fg-muted);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .side a:hover {
+    background: var(--bg-subtle);
+    color: var(--fg);
+  }
+  .side a[aria-current="page"] {
+    background: var(--bg-subtle);
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .prose {
+    max-width: 720px;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--fg-muted);
+  }
+  .prose :global(h2) {
+    margin: 48px 0 14px;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    scroll-margin-top: 90px;
+  }
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .prose :global(h3) {
+    margin: 28px 0 10px;
+    font-size: 17px;
+    color: var(--fg);
+  }
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0 0 16px;
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 22px;
+  }
+  .prose :global(li) {
+    margin-bottom: 8px;
+  }
+  .prose :global(li::marker) {
+    color: var(--fg-faint);
+  }
+  .prose :global(strong) {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .prose :global(a) {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--border-strong);
+  }
+  .prose :global(a:hover) {
+    text-decoration-color: var(--accent);
+  }
+  .prose :global(table) {
+    width: 100%;
+    margin: 0 0 20px;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  .prose :global(th) {
+    background: var(--bg-subtle);
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .prose :global(.table-scroll) {
+    overflow-x: auto;
+  }
+</style>

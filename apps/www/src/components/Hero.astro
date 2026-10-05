@@ -1,0 +1,154 @@
+---
+import WaitlistForm from "./WaitlistForm.astro";
+import HeroDemo from "./HeroDemo.astro";
+import GithubIcon from "./GithubIcon.astro";
+import { site } from "../site";
+---
+
+<section class="hero">
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="copy">
+    <a class="pill" href={site.repoPublic ? site.github : "/#self-host"} rel={site.repoPublic ? "noopener" : undefined}>
+      <span class="dot"></span>
+      {site.repoPublic ? "Open source · Building in public" : "Open source · Beta coming soon"}
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg>
+    </a>
+
+    <h1>Give your agent<br /> <span class="accent">an email address.</span></h1>
+
+    <p class="sub">
+      send0 is an open-source email API for AI agents. One API call creates a real inbox that sends, receives
+      and threads mail. Webhooks and real-time events come with every plan, and you can run the whole thing on
+      your own servers.
+    </p>
+
+    <div class="ctas">
+      <WaitlistForm source="hero" />
+      {
+        site.repoPublic ? (
+          <a class="btn btn-secondary gh" href={site.github} rel="noopener">
+            <GithubIcon />
+            Star on GitHub
+          </a>
+        ) : (
+          <a class="btn btn-secondary gh" href="#how-it-works">
+            See how it works
+          </a>
+        )
+      }
+    </div>
+
+    <ul class="facts mono">
+      <li>AGPL-3.0 server</li>
+      <li>MIT SDK and MCP server</li>
+      <li>Cloudflare or your own server</li>
+    </ul>
+  </div>
+
+  <div class="demo-wrap">
+    <HeroDemo />
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding: 72px var(--gutter) 64px;
+    overflow: hidden;
+  }
+  @media (min-width: 768px) {
+    .hero {
+      padding: 104px 48px 80px;
+    }
+  }
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--rail) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rail) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: -1px -1px;
+    mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 30%, transparent 75%);
+    pointer-events: none;
+  }
+  .copy {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .pill {
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .pill:hover {
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+  h1 {
+    margin-top: 28px;
+    font-size: clamp(42px, 8vw, 80px);
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  .accent {
+    color: var(--fg-faint);
+  }
+  .sub {
+    margin-top: 24px;
+    max-width: 620px;
+    font-size: clamp(17px, 2vw, 19px);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+  .ctas {
+    margin-top: 36px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+  }
+  .gh {
+    height: 54px;
+    padding: 0 20px;
+    border-radius: 12px;
+  }
+  @media (max-width: 479px) {
+    .gh {
+      width: 100%;
+      max-width: 460px;
+    }
+  }
+  .facts {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 20px;
+    font-size: 12.5px;
+    color: var(--fg-faint);
+  }
+  .facts li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .facts li::before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--fg-faint);
+  }
+  .demo-wrap {
+    position: relative;
+    margin-top: 64px;
+  }
+</style>
