@@ -1,0 +1,25 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=acme.dev header.s=s1 header.b=abc123;
+ dmarc=pass header.from=acme.dev policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@acme.dev designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@acme.dev
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 04:31:17 +0000
+Message-ID: <0100019a2b3c4d5e-verify@email.amazonses.com>
+Subject: Your Acme verification code
+From: Acme <noreply@acme.dev>
+To: signup-agent@send0.email
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html><html><head><style>.code{font-size:32px}</style></head><body>
+<table><tr><td><p>Hi there,</p>
+<p>Enter this code to verify your email address:</p>
+<div class=3D"code" style=3D"font-size:32px;letter-spacing:6px">482913</div>
+<p>This code expires in 10 minutes. If you didn&#39;t sign up, you can ignore =
+this email.</p>
+<p><a href=3D"https://acme.dev/verify?token=3Dt0k3n&amp;email=3Dsignup-agen=
+t%40send0.email">Or verify with one click</a></p>
+<p style=3D"color:#999">Acme Inc. &middot; 2026 &middot; 548 Market St #1234=
+5, San Francisco, CA 94104</p>
+<p><a href=3D"https://acme.dev/unsubscribe?u=3D123">Unsubscribe</a></p>
+</td></tr></table></body></html>

@@ -1,0 +1,39 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=gmail.com header.s=s1 header.b=abc123;
+ dmarc=pass header.from=gmail.com policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@gmail.com designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@gmail.com
+Authentication-Results: mx.cloudflare.net; spf=fail smtp.mailfrom=forged@example.com
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 10:14:03 +0530
+Message-ID: <CAF7xQm2pLr8=Yt@mail.gmail.com>
+In-Reply-To: <msg_4Tq1aB9cD8eF7gH6@send0.email>
+References: <msg_4Tq1aB9cD8eF7gH6@send0.email>
+Subject: Re: PO #4471 delivery date
+From: Dana Rivera <dana@gmail.com>
+To: procurement-agent <procurement-agent@send0.email>
+Content-Type: multipart/alternative; boundary="000000000000b1c2d3e4f5"
+
+--000000000000b1c2d3e4f5
+Content-Type: text/plain; charset="UTF-8"
+
+Can you confirm Thursday instead? Our dock is closed Wednesday.
+
+Thanks,
+Dana
+
+On Mon, Oct 5, 2026 at 9:41 AM procurement-agent <procurement-agent@send0.email>
+wrote:
+
+> Hi Dana,
+>
+> Could you confirm delivery for PO #4471 on Wednesday, Oct 7?
+>
+> Thanks
+>
+
+--000000000000b1c2d3e4f5
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="ltr">Can you confirm Thursday instead? Our dock is closed Wednesday.<div><br></div><div>Thanks,</div><div>Dana</div></div><br><div class="gmail_quote"><div dir="ltr" class="gmail_attr">On Mon, Oct 5, 2026 at 9:41 AM procurement-agent &lt;<a href="mailto:procurement-agent@send0.email">procurement-agent@send0.email</a>&gt; wrote:<br></div><blockquote class="gmail_quote">Hi Dana,<br><br>Could you confirm delivery for PO #4471 on Wednesday, Oct 7?<br><br>Thanks</blockquote></div>
+
+--000000000000b1c2d3e4f5--

@@ -1,0 +1,29 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=acme.dev header.s=s1 header.b=abc123;
+ dmarc=pass header.from=acme.dev policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@acme.dev designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@acme.dev
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 04:45:00 +0000
+Message-ID: <magic-1@acme.dev>
+Subject: Sign in to Acme
+From: Acme <noreply@acme.dev>
+To: signup-agent@send0.email
+Content-Type: multipart/alternative; boundary="b1"
+
+--b1
+Content-Type: text/plain; charset=UTF-8
+
+Click the link below to sign in. Your account number is 556677.
+
+https://acme.dev/auth/magic?token=AbC123xYz
+
+Questions? Call us at +1 415 555 0134.
+https://acme.dev/help
+--b1
+Content-Type: text/html; charset=UTF-8
+
+<p>Click the link below to sign in. Your account number is 556677.</p>
+<p><a href="https://acme.dev/auth/magic?token=AbC123xYz">Sign in to Acme</a></p>
+<p><a href="https://acme.dev/help">Help</a> · <a href="https://acme.dev/email-preferences">Email preferences</a></p>
+<img src="https://acme.dev/track/open?id=1" width="1" height="1">
+--b1--

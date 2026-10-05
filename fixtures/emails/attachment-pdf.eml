@@ -1,0 +1,23 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=fail header.d=supplier.example; dmarc=fail header.from=supplier.example policy.dmarc=none;
+ spf=softfail smtp.mailfrom=sales@supplier.example
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 08:30:00 +0000
+Message-ID: <pdf-1@supplier.example>
+Subject: Updated price list
+From: Sales <sales@supplier.example>
+To: procurement-agent@send0.email
+Content-Type: multipart/mixed; boundary="m2"
+
+--m2
+Content-Type: text/plain; charset=UTF-8
+
+Attached is our updated price list. Use promo code SAVE20 for 20% off your next order.
+
+--m2
+Content-Type: application/pdf; name="price-list.pdf"
+Content-Disposition: attachment; filename="price-list.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKMSAwIG9iajw8Pj5lbmRvYmoKdHJhaWxlcjw8Pj4KJSVFT0YK
+--m2--

@@ -1,0 +1,17 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=linear.app header.s=s1 header.b=abc123;
+ dmarc=pass header.from=linear.app policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@linear.app designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@linear.app
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 04:40:00 +0000
+Message-ID: <abc-login-code@linear.app>
+Subject: 731 902 is your Linear login code
+From: Linear <login@linear.app>
+To: signup-agent@send0.email
+Content-Type: text/plain; charset=UTF-8
+
+Use the code below to sign in to Linear.
+
+731 902
+
+The code is valid for 15 minutes. Requested from 203.0.113.4 at 04:40 UTC.

@@ -1,12 +1,42 @@
+# Dependencies
 node_modules/
+
+# Build output and tool caches
 dist/
 .astro/
 .turbo/
 .wrangler/
+*.tsbuildinfo
+coverage/
+
+# Generated Worker types (run `wrangler types`)
+worker-configuration.d.ts
+
+# Secrets and local env
 .dev.vars
+.dev.vars.*
 .env
 .env.*
 !.env.example
-.DS_Store
+*.pem
+.secrets*
+
+# Internal planning and AI-assistant context (kept locally, not published)
+CLAUDE.md
+AGENTS.md
+docs/
+
+# Logs
 *.log
-worker-configuration.d.ts
+npm-debug.log*
+pnpm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~

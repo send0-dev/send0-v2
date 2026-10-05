@@ -1,0 +1,21 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=icloud.com header.s=s1 header.b=abc123;
+ dmarc=pass header.from=icloud.com policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@icloud.com designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@icloud.com
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (1.0)
+Subject: Re: Your appointment on Friday
+From: Sam Okafor <sam.okafor@icloud.com>
+Date: Mon, 5 Oct 2026 11:20:45 +0100
+Message-Id: <7E9C1F2A-4B3D-4E5F-8A6B-1C2D3E4F5A6B@icloud.com>
+In-Reply-To: <msg_Zx9Yw8Vu7Ts6Rq5P@send0.email>
+To: scheduling-agent@send0.email
+
+Friday at 2pm works. See you then.
+
+Sent from my iPhone
+
+> On Oct 5, 2026, at 10:00, scheduling-agent <scheduling-agent@send0.email> wrote:
+>
+> Hi Sam, can we move your appointment to Friday at 2pm?

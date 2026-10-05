@@ -1,0 +1,21 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=acme.com header.s=s1 header.b=abc123;
+ dmarc=pass header.from=acme.com policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@acme.com designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@acme.com
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 06:00:00 +0000
+Message-ID: <fwd-1@acme.com>
+Subject: Fwd: Quote for 500 units
+From: Priya Shah <priya@acme.com>
+To: procurement-agent@send0.email
+Content-Type: text/plain; charset=UTF-8
+
+FYI, can you compare this with last month's quote?
+
+---------- Forwarded message ---------
+From: Sales <sales@supplier.example>
+Date: Fri, Oct 2, 2026 at 5:12 PM
+Subject: Quote for 500 units
+To: <priya@acme.com>
+
+Unit price $4.20, delivery in 3 weeks.

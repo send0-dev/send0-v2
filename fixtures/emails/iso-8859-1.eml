@@ -1,0 +1,18 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=exemple.fr header.s=s1 header.b=abc123;
+ dmarc=pass header.from=exemple.fr policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@exemple.fr designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@exemple.fr
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 09:30:00 +0200
+Message-ID: <fr-1@exemple.fr>
+In-Reply-To: <msg_Fr1Fr2Fr3Fr4Fr5F@send0.email>
+Subject: =?ISO-8859-1?Q?Re=A0:_R=E9union_demain?=
+From: =?ISO-8859-1?Q?Am=E9lie_Durand?= <amelie@exemple.fr>
+To: assistant@send0.email
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Bonjour, la r=E9union est d=E9plac=E9e =E0 15h.
+
+Le lun. 5 oct. 2026 =E0 09:00, assistant <assistant@send0.email> a =E9crit :
+> Bonjour Am=E9lie, la r=E9union de demain tient toujours ?

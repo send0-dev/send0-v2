@@ -1,0 +1,40 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=contoso.com header.s=s1 header.b=abc123;
+ dmarc=pass header.from=contoso.com policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@contoso.com designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@contoso.com
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 05:02:11 +0000
+Message-ID: <SN6PR11MB2718A1B2C3D4E5F6@SN6PR11MB2718.namprd11.prod.outlook.com>
+In-Reply-To: <msg_7Hc2kL0mN9pQ8rS7@send0.email>
+References: <msg_1Ab2Cd3Ef4Gh5Ij6@send0.email> <msg_7Hc2kL0mN9pQ8rS7@send0.email>
+Subject: RE: Invoice 88213 =?Windows-1252?Q?=96_payment_date?=
+From: "Lee, Morgan" <morgan.lee@contoso.com>
+To: "collections-agent@send0.email" <collections-agent@send0.email>
+Content-Type: multipart/alternative; boundary="_000_SN6PR11MB2718_"
+
+--_000_SN6PR11MB2718_
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+We=92ll pay on the 15th. Our finance team runs payments twice a month.
+
+Morgan
+
+Get Outlook for iOS<https://aka.ms/o0ukef>
+________________________________
+From: collections-agent <collections-agent@send0.email>
+Sent: Monday, October 5, 2026 4:30 AM
+To: Lee, Morgan <morgan.lee@contoso.com>
+Subject: Invoice 88213 =96 payment date
+
+Hello Morgan, invoice 88213 was due on Oct 1. When can we expect payment?
+
+--_000_SN6PR11MB2718_
+Content-Type: text/html; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+<html><body><div>We=92ll pay on the 15th. Our finance team runs payments tw=
+ice a month.</div><div>Morgan</div><hr><div id=3D"divRplyFwdMsg"><b>From:</=
+b> collections-agent</div></body></html>
+
+--_000_SN6PR11MB2718_--

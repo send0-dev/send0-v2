@@ -1,0 +1,42 @@
+Authentication-Results: mx.cloudflare.net;
+ dkim=pass header.d=acme.com header.s=s1 header.b=abc123;
+ dmarc=pass header.from=acme.com policy.dmarc=reject;
+ spf=pass (mx.cloudflare.net: domain of bounce@acme.com designates 1.2.3.4 as permitted sender) smtp.mailfrom=bounce@acme.com
+MIME-Version: 1.0
+Date: Mon, 5 Oct 2026 07:00:00 +0000
+Message-ID: <cal-1@acme.com>
+Subject: Invitation: Supplier sync @ Thu Oct 8, 2026 10am (UTC)
+From: Priya Shah <priya@acme.com>
+To: procurement-agent@send0.email
+Content-Type: multipart/mixed; boundary="mixed1"
+
+--mixed1
+Content-Type: multipart/alternative; boundary="alt1"
+
+--alt1
+Content-Type: text/plain; charset=UTF-8
+
+You have been invited to Supplier sync on Thu Oct 8, 2026 10am (UTC).
+
+--alt1
+Content-Type: text/calendar; charset=UTF-8; method=REQUEST
+
+BEGIN:VCALENDAR
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:evt-1@acme.com
+DTSTART:20261008T100000Z
+DTEND:20261008T103000Z
+SUMMARY:Supplier sync
+END:VEVENT
+END:VCALENDAR
+
+--alt1--
+
+--mixed1
+Content-Type: application/ics; name="invite.ics"
+Content-Disposition: attachment; filename="invite.ics"
+Content-Transfer-Encoding: base64
+
+QkVHSU46VkNBTEVOREFSDQpNRVRIT0Q6UkVRVUVTVA0KQkVHSU46VkVWRU5UDQpVSUQ6ZXZ0LTFAYWNtZS5jb20NCkRUU1RBUlQ6MjAyNjEwMDhUMTAwMDAwWg0KRFRFTkQ6MjAyNjEwMDhUMTAzMDAwWg0KU1VNTUFSWTpTdXBwbGllciBzeW5jDQpFTkQ6VkVWRU5UDQpFTkQ6VkNBTEVOREFSDQo=
+--mixed1--
