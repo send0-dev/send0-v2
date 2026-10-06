@@ -1,0 +1,131 @@
+---
+title: Webhooks
+description: Signed HTTPS POSTs for new mail, deliveries, bounces and more. Available on every plan.
+---
+
+## Create a webhook
+
+```ts
+const hook = await send0.webhooks.create({
+  url: "https://example.com/hooks/send0",
+  events: ["message.received"],   // or ["*"] for everything (default)
+  inbox_ids: ["ibx_7Hc2…"],       // optional: only these inboxes
+});
+console.log(hook.secret); // whsec_…  shown once, store it
+```
+
+URLs must be public `https://`. Private, local and cloud-metadata addresses are refused. An account can have up to 20 webhooks. Managing webhooks needs an admin key that isn't limited to specific inboxes.
+
+## Events
+
+| Type | When |
+|---|---|
+| `message.received` | A new inbound message was stored |
+| `message.sent` | An outbound message was handed to our mail servers |
+| `message.delivered` | The recipient's server accepted it |
+| `message.bounced` | It bounced. Permanent bounces also suppress the address. |
+| `message.complained` | The recipient marked it as spam. The address is suppressed. |
+| `draft.created` | A message is waiting for approval |
+| `inbox.suspended` | Sending was paused for the account (complaint or bounce rate) |
+| `webhook.test` | Sent by `POST /v1/webhooks/{id}/test` |
+
+## The request
+
+```http
+POST /hooks/send0
+Content-Type: application/json
+send0-signature: t=1791190000,v1=5f2c…
+send0-event-id: evt_8Qw…
+send0-event-type: message.received
+send0-delivery-id: dlv_2Lk…
+```
+
+```json
+{
+  "id": "evt_8Qw…",
+  "object": "event",
+  "type": "message.received",
+  "created_at": "2026-10-06T10:14:03.000Z",
+  "inbox_id": "ibx_7Hc2…",
+  "data": {
+    "id": "msg_9Kd2…",
+    "thread_id": "thr_3Lp8…",
+    "from": { "name": "Dana", "email": "dana@acme.com" },
+    "subject": "Re: PO #4471 delivery date",
+    "extracted_text": "Can you confirm Thursday instead?",
+    "extracted": { "otp": null, "links": [], "action_link": null },
+    "auth": { "spf": "pass", "dkim": "pass", "dmarc": "pass" },
+    "safety": { "prompt_injection": "none", "reasons": [] },
+    …
+  }
+}
+```
+
+`data` is the full [message](/concepts/messages-and-threads) except `html`. Fetch the message if you need it.
+
+## Verify the signature
+
+Always verify before trusting a webhook. The scheme is the same as Stripe's: `v1` is the HMAC-SHA256 of `"{t}.{raw body}"` with your secret. Requests older than 5 minutes are rejected.
+
+<Tabs items={['TypeScript', 'Node (manual)', 'Python']}>
+  <Tab value="TypeScript">
+    ```ts
+    import { verifyWebhook } from "@send0/sdk";
+
+    export async function POST(req: Request) {
+      const body = await req.text(); // the raw body, before JSON.parse
+      if (!(await verifyWebhook(body, req.headers.get("send0-signature"), process.env.SEND0_WEBHOOK_SECRET!))) {
+        return new Response("bad signature", { status: 400 });
+      }
+      const event = JSON.parse(body);
+      // … handle event.type
+      return new Response("ok");
+    }
+    ```
+  </Tab>
+  <Tab value="Node (manual)">
+    ```ts
+    import { createHmac, timingSafeEqual } from "node:crypto";
+
+    function verify(body: string, header: string, secret: string) {
+      const parts = Object.fromEntries(header.split(",").map((p) => p.split("=")));
+      if (Math.abs(Date.now() / 1000 - Number(parts.t)) > 300) return false;
+      const expected = createHmac("sha256", secret).update(`${parts.t}.${body}`).digest("hex");
+      return timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1 ?? ""));
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import hmac, hashlib, time
+
+    def verify(body: bytes, header: str, secret: str) -> bool:
+        parts = dict(p.split("=", 1) for p in header.split(","))
+        if abs(time.time() - int(parts["t"])) > 300:
+            return False
+        expected = hmac.new(secret.encode(), f'{parts["t"]}.'.encode() + body, hashlib.sha256).hexdigest()
+        return hmac.compare_digest(expected, parts.get("v1", ""))
+    ```
+  </Tab>
+</Tabs>
+
+## Responding and retries
+
+Return any `2xx` within **10 seconds**. Anything else (a timeout, a `4xx` or `5xx`, a redirect) is retried with backoff: 30 s, 2 min, 10 min, 30 min, 1 h, 2 h, 4 h, 8 h, 8 h. That's about 24 hours in total, after which the delivery is marked `failed`.
+
+Deliveries can arrive more than once or out of order. Use `send0-event-id` to de-duplicate.
+
+## Delivery log, replay and testing
+
+```ts
+for await (const d of await send0.webhooks.deliveries(hook.id, { status: "failed" })) {
+  console.log(d.event_type, d.attempts, d.last_status_code, d.last_error);
+  await send0.webhooks.retryDelivery(hook.id, d.id); // replay
+}
+
+await send0.webhooks.test(hook.id);         // sends a webhook.test event
+await send0.webhooks.rotateSecret(hook.id); // new secret, shown once
+await send0.webhooks.update(hook.id, { status: "disabled" });
+```
+
+Every event is stored in the same transaction as the change that caused it, and a background sweep re-queues anything that didn't make it out. An event is never lost between our database and your endpoint.

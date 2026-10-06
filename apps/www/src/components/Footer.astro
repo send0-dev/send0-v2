@@ -12,6 +12,7 @@ const groups = [
       { href: "/#how-it-works", label: "How it works" },
       { href: "/#pricing", label: "Pricing" },
       { href: "/#faq", label: "FAQ" },
+      { href: "/docs/", label: "Docs" },
       { href: "/#waitlist", label: "Waitlist" },
     ],
   },
@@ -20,6 +21,7 @@ const groups = [
     links: [
       ...(site.repoPublic ? [{ href: site.github, label: "GitHub" }] : []),
       { href: "/#self-host", label: "Self-hosting" },
+      { href: "/docs/llms-full.txt", label: "Docs for LLMs" },
       ...(site.repoPublic
         ? [{ href: `${site.github}/blob/main/LICENSE`, label: "License (AGPL-3.0)" }]
         : [{ href: "/#faq", label: "Licensing" }]),

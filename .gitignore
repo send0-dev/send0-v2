@@ -23,9 +23,9 @@ worker-configuration.d.ts
 .secrets*
 
 # Internal planning and AI-assistant context (kept locally, not published)
-CLAUDE.md
-AGENTS.md
-docs/
+/CLAUDE.md
+/AGENTS.md
+/docs/
 
 # Logs
 *.log

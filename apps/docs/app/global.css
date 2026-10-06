@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/* send0 brand: monochrome with the orange signal accent from send0.dev */
+@theme {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --color-send0-accent: #ff4f00;
+}
+
+:root {
+  --color-fd-primary: #0c0c0d;
+  --color-fd-ring: #ff4f00;
+}
+
+.dark {
+  --color-fd-background: #09090a;
+  --color-fd-card: #0f0f11;
+  --color-fd-popover: #0f0f11;
+  --color-fd-primary: #f4f4f5;
+  --color-fd-ring: #ff6a26;
+  --color-send0-accent: #ff6a26;
+}
+
+/* Links in prose pick up the accent on hover, like the marketing site. */
+.prose a:hover {
+  text-decoration-color: var(--color-send0-accent);
+}
+
+/* Active sidebar item: a thin accent marker. */
+#nd-sidebar a[data-active='true'] {
+  box-shadow: inset 2px 0 0 var(--color-send0-accent);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}

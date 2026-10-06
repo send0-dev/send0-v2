@@ -1,0 +1,66 @@
+---
+title: MCP quickstart
+description: Give Claude Code, Claude Desktop, Cursor or any MCP client its own inbox.
+---
+
+The send0 MCP server gives your assistant tools to create inboxes, wait for email, read threads and reply.
+
+<Callout type="warn">
+  Give the assistant an API key limited to what it needs. A key with `read` and `send` scopes, restricted to one inbox, is the safest choice. See [API keys](/api-keys).
+</Callout>
+
+## Install
+
+<Tabs items={['Claude Code', 'Claude Desktop', 'Cursor']}>
+  <Tab value="Claude Code">
+    ```bash
+    claude mcp add send0 --env SEND0_API_KEY=s0_live_… -- npx -y @send0/mcp
+    ```
+  </Tab>
+  <Tab value="Claude Desktop">
+    Add this to `claude_desktop_config.json`, then restart Claude Desktop:
+
+    ```json
+    {
+      "mcpServers": {
+        "send0": {
+          "command": "npx",
+          "args": ["-y", "@send0/mcp"],
+          "env": { "SEND0_API_KEY": "s0_live_…" }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Cursor">
+    Add the same block to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in a project).
+  </Tab>
+</Tabs>
+
+Set `SEND0_INBOX_ID=ibx_…` as well if the assistant should always use one inbox. The tools then don't need an `inbox_id`.
+
+## Try it
+
+Ask your assistant:
+
+> Create a send0 inbox called **demo**. I'll email it from my own address. Wait for that email and summarize it, then reply saying thanks.
+
+It will call `create_inbox`, then `wait_for_email`, then `reply`. Email the address from your own mailbox while it waits.
+
+## What the assistant sees
+
+Message bodies come back wrapped as untrusted data, with the useful parts first:
+
+```text
+id: msg_9Kd2  thread: thr_3Lp8  direction: in  status: received
+from: Acme <noreply@acme.dev>
+subject: Your Acme verification code
+one-time code: 482913
+action link: https://acme.dev/verify?token=…
+sender auth: SPF pass, DKIM pass, DMARC pass
+<untrusted_email id="msg_9Kd2">
+Enter this code to verify your email address: 482913
+</untrusted_email>
+```
+
+Emails flagged for prompt injection carry a visible warning. See [Prompt-injection safety](/guides/prompt-injection) and the full [tool list](/reference/mcp-tools).

@@ -1,0 +1,94 @@
+---
+title: TypeScript quickstart
+description: Create an inbox, wait for a verification email, and reply in the same thread.
+---
+
+The SDK has no dependencies and runs on Node 18+, Bun, Deno, Cloudflare Workers and browsers.
+
+<Steps>
+<Step>
+
+### Install and set your key
+
+```bash
+npm install @send0/sdk
+export SEND0_API_KEY=s0_live_…
+```
+
+</Step>
+<Step>
+
+### Create an inbox
+
+```ts
+import { Send0 } from "@send0/sdk";
+
+const send0 = new Send0(); // reads SEND0_API_KEY
+const inbox = await send0.inboxes.create({ name: "signup-agent", display_name: "Signup Agent" });
+
+console.log(inbox.address); // signup-agent@send0.email
+```
+
+Omit `name` for a random address like `agent-x7k2q9@send0.email`. Addresses are unique and never reassigned, even after you delete the inbox.
+
+</Step>
+<Step>
+
+### Wait for the email
+
+Use the address somewhere (a sign-up form, a test email from your own mailbox), then wait:
+
+```ts
+const msg = await send0.inboxes.wait(inbox.id, {
+  from: "*@github.com", // exact address or wildcard
+  timeout: 60,          // seconds
+});
+
+if (!msg) throw new Error("No email within 60s");
+
+console.log(msg.extracted?.otp);         // "482913"
+console.log(msg.extracted?.action_link); // "https://github.com/verify?..."
+console.log(msg.extracted_text);         // the new text, without quoted history
+```
+
+`wait()` also returns a message that arrived up to a minute **before** you called it, so there's no race between triggering the email and starting to wait. See [Waiting for email](/concepts/waiting).
+
+</Step>
+<Step>
+
+### Reply in the thread
+
+```ts
+import { isDraft } from "@send0/sdk";
+
+const reply = await send0.messages.reply(msg.id, { text: "Thanks, confirmed." });
+
+if (isDraft(reply)) console.log("Waiting for human approval:", reply.id);
+else console.log("Sent", reply.id, "in thread", reply.thread_id);
+```
+
+The reply gets the right `In-Reply-To`, `References` and `Re:` subject, so it lands in the same conversation for the recipient.
+
+<Callout type="info">
+  Free accounts are **reply-only**: they can send to people who emailed the inbox first. That's exactly what a reply does. See [Sending](/concepts/sending).
+</Callout>
+
+</Step>
+<Step>
+
+### Read the conversation
+
+```ts
+const thread = await send0.threads.get(inbox.id, msg.thread_id);
+for (const m of thread.messages) console.log(m.direction, m.from?.email, m.extracted_text);
+```
+
+</Step>
+</Steps>
+
+## Next
+
+<Cards>
+  <Card title="Webhooks" href="/realtime/webhooks" description="React to new mail without keeping a connection open." />
+  <Card title="SDK reference" href="/reference/typescript-sdk" description="Every method, retries, errors and pagination." />
+</Cards>

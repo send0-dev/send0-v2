@@ -1,0 +1,69 @@
+---
+title: Errors & limits
+description: Error format and codes, idempotency, pagination and limits.
+---
+
+## Error format
+
+Every error has the same shape and a stable `code` to branch on:
+
+```json
+{
+  "error": {
+    "code": "recipient_not_allowed",
+    "message": "This inbox can only reply to people who emailed it first (free plan). Not allowed: stranger@example.com",
+    "param": "to",
+    "request_id": "8c1f…"
+  }
+}
+```
+
+Include `request_id` when you contact support. It's also in the `x-request-id` response header.
+
+## Codes
+
+| Status | Code | Meaning |
+|---|---|---|
+| 400 | `invalid_request` | A field is missing or invalid; `param` names it |
+| 401 | `unauthorized` | Missing, malformed, unknown or revoked API key |
+| 402 | `plan_limit_reached` | Inbox limit for your plan |
+| 403 | `forbidden` | The key lacks the scope, or the action isn't allowed for this key |
+| 403 | `recipient_not_allowed` | Reply-only inbox or free plan: the recipient never wrote first |
+| 403 | `sending_paused` | Sending paused (complaint or bounce rate); receiving still works |
+| 404 | `not_found` | Doesn't exist, or isn't visible to this key |
+| 404 | `route_not_found` | Wrong method or path |
+| 409 | `address_taken` | That address is in use (or was used before; addresses are never reused) |
+| 409 | `idempotency_in_progress` | A request with this Idempotency-Key is still running. Retry shortly. |
+| 422 | `recipient_suppressed` | The address bounced or complained before |
+| 422 | `idempotency_key_reused` | The same Idempotency-Key was used with a different request |
+| 429 | `daily_limit_reached` | Daily send limit (UTC) reached |
+| 502 | `send_failed` | The mail server rejected the message; the message is marked `failed` |
+| 503 | `send_temporarily_failed` | A temporary sending problem. Safe to retry. |
+| 500 | `internal_error` | Our fault. It's logged; retry with the same Idempotency-Key. |
+
+## Idempotency
+
+Send `Idempotency-Key: <unique string>` on every POST. A retry with the same key and the same body returns the stored response, with `Idempotent-Replayed: true`, instead of doing the work again. Keys last 24 hours and are scoped to your account. The SDK adds one automatically and reuses it across its own retries.
+
+## Pagination
+
+List endpoints return newest first:
+
+```json
+{ "object": "list", "data": [ … ], "next_cursor": "MjAyNi0xMC0wNlQx…" }
+```
+
+Pass `cursor=<next_cursor>` for the next page; `next_cursor` is `null` on the last one. `limit` is 1–100 (default 20). Cursors stay stable while new items arrive.
+
+## Limits
+
+| | Limit |
+|---|---|
+| Inboxes (free plan) | 5 |
+| Sends per day, new accounts | 50 (UTC day; rises with a clean record) |
+| Recipients per message | 50 |
+| Inbound message size | 25 MiB |
+| `wait` timeout | 120 s per request (the SDK chains requests for longer waits) |
+| Webhooks per account | 20 |
+| Webhook response timeout | 10 s |
+| Download links | 15 minutes |

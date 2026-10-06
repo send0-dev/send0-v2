@@ -1,0 +1,54 @@
+---
+title: API keys
+description: Live and test keys, scopes, and keys limited to specific inboxes.
+---
+
+Send the key as a bearer token on every request:
+
+```http
+Authorization: Bearer s0_live_7FqK…
+```
+
+## Live and test keys
+
+| Prefix | What it does |
+|---|---|
+| `s0_live_` | Real sending and receiving |
+| `s0_test_` | Goes through every check (policy, suppression, limits) and records the message as `sent`, but **never delivers it**. Use it in CI and staging. |
+
+## Scopes
+
+| Scope | Allows |
+|---|---|
+| `read` | List and read inboxes, threads, messages, attachments; `wait`; the event stream |
+| `send` | Create inboxes; send, reply, forward; update inboxes |
+| `admin` | Everything, plus API keys, webhooks, deleting inboxes, and approving or rejecting drafts |
+
+New keys default to `["read", "send"]`.
+
+## Keys limited to inboxes
+
+Give each agent a key that can only touch its own mailbox. A leaked key then exposes one inbox, not your whole account:
+
+```ts
+const key = await send0.apiKeys.create({
+  name: "support-agent",
+  scopes: ["read", "send"],
+  inbox_ids: ["ibx_7Hc2…"],
+});
+console.log(key.key); // shown once
+```
+
+An inbox-limited key:
+- sees only its inboxes. Every other inbox, thread or message returns `404`, so IDs can't be probed.
+- can't create inboxes or manage webhooks.
+- can't create a key with more reach than it has.
+
+## Managing keys
+
+```ts
+for await (const k of await send0.apiKeys.list()) console.log(k.prefix, k.scopes, k.last_used_at);
+await send0.apiKeys.revoke("key_…");
+```
+
+The full key is returned **once**, when it's created. send0 stores only a SHA-256 hash and shows the first characters (`prefix`) afterwards. Revoked keys stop working immediately.

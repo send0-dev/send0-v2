@@ -1,0 +1,46 @@
+---
+title: Sign up for a service
+description: The complete pattern for an agent that registers somewhere and confirms its email.
+---
+
+Many services won't let anyone in without a verified address. This is the full flow, with the details that make it reliable.
+
+```ts
+import { Send0 } from "@send0/sdk";
+
+const send0 = new Send0();
+
+// 1. One inbox per task keeps mail separate and easy to clean up.
+const inbox = await send0.inboxes.create({ name: `signup-${taskId}` });
+
+// 2. Use the address.
+await browser.goto("https://app.example.com/signup");
+await browser.fill("#email", inbox.address);
+await browser.click("text=Create account");
+
+// 3. Wait for the verification email. Filter by sender so marketing mail doesn't match.
+const msg = await send0.inboxes.wait(inbox.id, { from: "*@example.com", timeout: 120 });
+if (!msg) throw new Error("Verification email didn't arrive");
+
+// 4. Use whichever the email offers: a code or a link.
+if (msg.extracted?.otp) {
+  await browser.fill("#code", msg.extracted.otp);
+} else if (msg.extracted?.action_link) {
+  await browser.goto(msg.extracted.action_link);
+} else {
+  // Neither found: give the model the clean text and let it decide.
+  console.log(msg.extracted_text);
+}
+```
+
+## Tips
+
+- **Filter by sender.** `from: "*@example.com"` avoids picking up a welcome email or newsletter that arrives first.
+- **No race.** `wait()` also returns mail from the minute before the call, so it doesn't matter if the email lands before you start waiting.
+- **Second emails.** To wait for a *later* email (a 2FA code after sign-up), pass `since: new Date().toISOString()` just before triggering it.
+- **Plus-addressing.** One inbox can serve many tasks: sign up as `agent+run42@send0.email` and filter with `msg.tag === "run42"`.
+- **Check sender authentication.** For sensitive flows, require `msg.auth.dmarc === "pass"` before trusting a link.
+
+<Callout type="warn">
+  Many services ban automated sign-ups in their terms. Only automate accounts you're allowed to create.
+</Callout>

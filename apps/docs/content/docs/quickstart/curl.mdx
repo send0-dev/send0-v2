@@ -1,0 +1,76 @@
+---
+title: cURL quickstart
+description: The same flow with plain HTTP. Works from any language.
+---
+
+Base URL: `https://api.send0.dev`. Every request needs `Authorization: Bearer <key>`. Requests and responses are JSON.
+
+```bash
+export SEND0_API_KEY=s0_live_…
+```
+
+<Steps>
+<Step>
+
+### Create an inbox
+
+```bash
+curl https://api.send0.dev/v1/inboxes \
+  -H "Authorization: Bearer $SEND0_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{ "name": "research-agent" }'
+```
+
+```json
+{ "object": "inbox", "id": "ibx_7Hc2…", "address": "research-agent@send0.email", "send_policy": "reply_only", … }
+```
+
+</Step>
+<Step>
+
+### Wait for a message
+
+```bash
+curl "https://api.send0.dev/v1/inboxes/ibx_7Hc2…/messages/wait?from=*@acme.dev&timeout=60" \
+  -H "Authorization: Bearer $SEND0_API_KEY"
+```
+
+```json
+{
+  "object": "wait_result",
+  "timed_out": false,
+  "message": {
+    "id": "msg_9Kd2…",
+    "subject": "Your Acme verification code",
+    "extracted": { "otp": "482913", "links": ["https://acme.dev/verify?…"], "action_link": "https://acme.dev/verify?…" },
+    …
+  }
+}
+```
+
+On timeout you get `{"timed_out": true, "message": null}` with status 200. The longest single wait is 120 seconds.
+
+</Step>
+<Step>
+
+### Reply
+
+```bash
+curl https://api.send0.dev/v1/messages/msg_9Kd2…/reply \
+  -H "Authorization: Bearer $SEND0_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{ "text": "Thanks, confirmed." }'
+```
+
+`201` with the sent message, or `202` with a draft if the inbox requires approval.
+
+</Step>
+</Steps>
+
+<Callout type="info">
+  Send an `Idempotency-Key` with every POST. If the network drops and you retry with the same key and body, you get the original response back instead of a second email. Keys are remembered for 24 hours.
+</Callout>
+
+The full contract is in the [OpenAPI spec](https://api.send0.dev/openapi.json). See [REST API](/reference/api).

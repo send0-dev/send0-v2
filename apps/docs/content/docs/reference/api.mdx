@@ -1,0 +1,34 @@
+---
+title: REST API
+description: Endpoints, authentication and the OpenAPI 3.1 spec.
+---
+
+- **Base URL:** `https://api.send0.dev`
+- **Auth:** `Authorization: Bearer s0_live_…`
+- **Format:** JSON in, JSON out, snake_case fields, ISO 8601 timestamps
+- **Spec:** [OpenAPI 3.1](https://api.send0.dev/openapi.json), checked against the live API in our test suite. Use it to generate clients in any language.
+
+## Endpoints
+
+| Method | Path | Scope |
+|---|---|---|
+| `POST` | `/v1/inboxes` | send |
+| `GET` | `/v1/inboxes` · `/v1/inboxes/{inbox_id}` | read |
+| `PATCH` | `/v1/inboxes/{inbox_id}` | send |
+| `DELETE` | `/v1/inboxes/{inbox_id}` | admin |
+| `GET` | `/v1/inboxes/{inbox_id}/messages` | read |
+| `GET` | `/v1/inboxes/{inbox_id}/messages/wait` | read |
+| `POST` | `/v1/inboxes/{inbox_id}/messages` | send |
+| `GET` | `/v1/messages/{message_id}` · `/raw` · `/attachments/{attachment_id}` | read |
+| `POST` | `/v1/messages/{message_id}/reply` · `/forward` | send |
+| `GET` | `/v1/inboxes/{inbox_id}/threads` · `/threads/{thread_id}` | read |
+| `GET` | `/v1/inboxes/{inbox_id}/drafts` · `/v1/drafts/{draft_id}` | read |
+| `POST` | `/v1/drafts/{draft_id}/send` · `/reject` | admin |
+| `POST` `GET` `PATCH` `DELETE` | `/v1/webhooks[/{webhook_id}]` | admin |
+| `POST` | `/v1/webhooks/{webhook_id}/rotate-secret` · `/test` | admin |
+| `GET` | `/v1/webhooks/{webhook_id}/deliveries` | admin |
+| `POST` | `/v1/webhooks/{webhook_id}/deliveries/{delivery_id}/retry` | admin |
+| `GET` | `/v1/events/stream` | read |
+| `POST` `GET` | `/v1/api-keys` · `DELETE /v1/api-keys/{api_key_id}` | admin |
+
+Conventions: [errors, idempotency and pagination](/reference/errors).

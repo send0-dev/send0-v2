@@ -1,0 +1,22 @@
+---
+title: Deliverability
+description: How send0 keeps mail out of spam, and how you can help.
+---
+
+## What send0 handles
+
+- **Authentication.** Every message is DKIM-signed for `send0.email` and sent from an SPF-authorized bounce domain aligned for DMARC.
+- **Well-formed messages.** A unique `Message-ID` on our domain, correct threading headers, a sender name, a plain-text part alongside HTML, and quoted-printable encoding.
+- **List hygiene.** Hard bounces and complaints are suppressed automatically and never retried.
+- **Reputation guards.** Reply-only free accounts, daily caps and an automatic pause on high complaint or bounce rates protect the shared domain for everyone.
+
+## What you can do
+
+- **Reply rather than cold-send.** Replies to people who wrote first are the strongest positive signal, and they're what reply-only enforces.
+- **Set a real `display_name`** on each inbox, like "Acme Procurement" rather than an address alone.
+- **Write like a person.** Short, specific, no link-only messages, no URL shorteners.
+- **Expect a warm-up.** `send0.email` is a young sending domain. Mailbox providers, Gmail especially, trust new domains gradually. Recipients who reply, mark mail "Not spam" or add the address to contacts speed this up.
+
+## Custom domains
+
+For mail that has to reach the inbox from day one, send from **your own domain** (for example `agents.yourcompany.com`). It carries your domain's reputation instead of the shared one. Custom domains are coming to paid plans.

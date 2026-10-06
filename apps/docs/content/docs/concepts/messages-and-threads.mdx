@@ -1,0 +1,77 @@
+---
+title: Messages & threads
+description: What send0 extracts from every message, and how conversations are grouped.
+---
+
+## The message object
+
+Every inbound message is parsed when it arrives. The fields agents use most:
+
+```json
+{
+  "object": "message",
+  "id": "msg_9Kd2…",
+  "thread_id": "thr_3Lp8…",
+  "direction": "in",
+  "status": "received",
+  "from": { "name": "Dana Rivera", "email": "dana@acme.com" },
+  "subject": "Re: PO #4471 delivery date",
+  "extracted_text": "Can you confirm Thursday instead?",
+  "extracted": { "otp": null, "links": ["https://acme.com/po/4471"], "action_link": null },
+  "auth": { "spf": "pass", "dkim": "pass", "dmarc": "pass" },
+  "safety": { "prompt_injection": "none", "reasons": [] },
+  "attachments": [{ "id": "att_x1…", "filename": "po.pdf", "content_type": "application/pdf", "size": 84211, "inline": false, "content_id": null }],
+  "tag": null
+}
+```
+
+| Field | What it is |
+|---|---|
+| `text` / `html` | The full body. `html` is included when you fetch a single message. |
+| `extracted_text` | **Only the new text.** Quoted history, forwarded content and signatures are removed. Feed this to a model to save tokens. |
+| `extracted.otp` | The most likely one-time code (`482913`, `731 902` → `731902`, `K7Q2MZ`). Order numbers, phone numbers, years and promo codes are ignored. |
+| `extracted.action_link` | The most likely verify, sign-in, reset or confirm link. `links` lists all links, with unsubscribe and tracking links removed. |
+| `auth` | SPF, DKIM and DMARC results from our receiving server: `pass`, `fail`, `softfail`, `neutral`, `none`, … |
+| `safety.prompt_injection` | `none`, `suspected` or `likely`, with `reasons` such as `instruction_override` or `hidden_text`. See [Prompt-injection safety](/guides/prompt-injection). |
+| `status` | Inbound: `received`. Outbound: `queued` → `sent` → `delivered`, or `bounced`, `complained`, `failed`. |
+
+## Listing and searching
+
+```ts
+const page = await send0.messages.list(inbox.id, {
+  from: "*@acme.com",       // exact address or wildcard
+  subject: "invoice",        // case-insensitive substring
+  q: '"purchase order"',     // full-text search over subject and body
+  direction: "in",
+  since: "2026-10-01T00:00:00Z",
+  limit: 20,
+});
+
+for await (const m of page) { /* walks every page */ }
+```
+
+## Attachments and the original message
+
+```ts
+const att = await send0.messages.attachment(msg.id, msg.attachments[0].id);
+await fetch(att.download_url); // valid until att.expires_at (15 minutes)
+
+const rawUrl = await send0.messages.rawUrl(msg.id); // the original .eml, same 15-minute link
+```
+
+## Threads
+
+A thread is a conversation inside one inbox. send0 groups messages like a mail client does:
+
+1. **`In-Reply-To`**: the message it answers.
+2. **`References`**: any earlier message in the chain.
+3. **Fallback:** the same subject (ignoring `Re:`, `Fwd:`, `AW:`, `SV:` and similar) with at least one shared participant, within 14 days.
+
+Every message send0 sends has `Message-ID: <msg_…@send0.email>`, so replies to it map straight back to the right thread.
+
+```ts
+for await (const t of await send0.threads.list(inbox.id)) console.log(t.subject, t.message_count);
+
+const thread = await send0.threads.get(inbox.id, "thr_3Lp8…"); // messages oldest first
+const withHtml = await send0.threads.get(inbox.id, "thr_3Lp8…", { include_html: true });
+```

@@ -1,0 +1,48 @@
+---
+title: Waiting for email
+description: Block until the email you need arrives, with the code already extracted.
+---
+
+`wait` is the call agents use most: trigger an email (sign up, log in, reset a password), then wait for it.
+
+```ts
+const msg = await send0.inboxes.wait(inbox.id, {
+  from: "*@github.com",
+  subject: "verify",
+  timeout: 60,
+});
+```
+
+```http
+GET /v1/inboxes/{inbox_id}/messages/wait?from=*@github.com&subject=verify&timeout=60
+```
+
+## How it decides
+
+It returns the **first** message (oldest first) that matches all the filters and arrived **at or after `since`**:
+
+| Parameter | Default | |
+|---|---|---|
+| `from` | any | Exact address or wildcard: `*@github.com`, `noreply@*`. Case-insensitive. |
+| `subject` | any | Case-insensitive substring. |
+| `direction` | `in` | Set `out` to wait for your own sent messages. |
+| `since` | one minute before the call | ISO timestamp. Messages before it are ignored. |
+| `timeout` | `30` | Seconds, 1–120 per HTTP request. |
+
+The default `since` means a message that arrived **just before** you called `wait` is still returned. Trigger the email, then wait, with no race.
+
+To wait for the *next* email after one you've already handled, pass `since` as that message's `created_at`, or the time you triggered the new one.
+
+## Timeouts
+
+The REST endpoint holds the request for at most 120 seconds and then returns:
+
+```json
+{ "object": "wait_result", "timed_out": true, "message": null }
+```
+
+The SDK's `wait()` accepts longer timeouts and makes several requests with the same `since`, so nothing is missed between them. It returns `null` if nothing arrives.
+
+## How it's fast
+
+send0 checks for an existing match first. If there isn't one, the request waits on a live hub for that inbox and returns within milliseconds of the email being stored. No polling on either side.

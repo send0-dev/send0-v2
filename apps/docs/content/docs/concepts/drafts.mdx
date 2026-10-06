@@ -1,0 +1,34 @@
+---
+title: Drafts & approval
+description: Let agents write mail and have a person approve it before it goes out.
+---
+
+Set an inbox to `approval` and every send, reply or forward from it becomes a **draft** instead of an email:
+
+```ts
+await send0.inboxes.update(inbox.id, { send_policy: "approval" });
+
+const result = await send0.messages.reply(msg.id, { text: "We accept your offer." });
+// → 202, result.object === "draft", result.status === "pending"
+```
+
+A `draft.created` [event](/realtime/webhooks) fires, so you can notify a person in Slack, a dashboard or by email.
+
+## Approve or reject
+
+Approving needs an **admin** key, so an agent with a `send` key can't approve its own drafts:
+
+```ts
+const message = await send0.drafts.send("drf_…"); // runs every sending rule, then sends
+await send0.drafts.reject("drf_…");
+```
+
+## List drafts
+
+```ts
+for await (const d of await send0.drafts.list(inbox.id, { status: "pending" })) {
+  console.log(d.id, d.to, d.subject, d.text);
+}
+```
+
+Draft statuses: `pending`, `sent`, `rejected`. Each draft records who decided (`decided_by`) and when (`decided_at`).

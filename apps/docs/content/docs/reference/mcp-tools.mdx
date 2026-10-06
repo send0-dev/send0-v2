@@ -1,0 +1,38 @@
+---
+title: MCP tools
+description: "@send0/mcp: the tools, their arguments, and configuration."
+---
+
+Run with `npx -y @send0/mcp` over stdio. See the [MCP quickstart](/quickstart/mcp) for client setup.
+
+| Variable | |
+|---|---|
+| `SEND0_API_KEY` | Required. Prefer a `read`+`send` key limited to the agent's inbox. |
+| `SEND0_INBOX_ID` | Default inbox, so tools don't need `inbox_id` |
+| `SEND0_BASE_URL` | For self-hosted send0 |
+
+## Tools
+
+| Tool | Arguments | Notes |
+|---|---|---|
+| `create_inbox` | `name?`, `display_name?` | Returns the address and id |
+| `list_inboxes` | none | Inboxes this key can use |
+| `wait_for_email` | `inbox_id?`, `from?`, `subject?`, `timeout?` (s, default 60, max 600) | Returns the code and action link first. Read-only. |
+| `search_messages` | `inbox_id?`, `query?`, `from?`, `direction?`, `limit?` | One line per message. Read-only. |
+| `get_message` | `message_id`, `full_text?` | New text only unless `full_text`. Read-only. |
+| `list_threads` | `inbox_id?`, `limit?` | Read-only |
+| `get_thread` | `inbox_id?`, `thread_id`, `full_text?` | Oldest first. Read-only. |
+| `send_email` | `inbox_id?`, `to`, `subject`, `text`, `cc?` | New thread. Marked as acting on the outside world. |
+| `reply` | `message_id`, `text`, `reply_all?` | Same thread. Marked as acting on the outside world. |
+
+Read-only tools carry `readOnlyHint`. `send_email` and `reply` carry `openWorldHint`, so clients can ask before sending. API errors come back as tool errors the model can act on, for example `send0 error recipient_not_allowed: …`.
+
+## In your own server
+
+```ts
+import { createSend0Server } from "@send0/mcp";
+import { Send0 } from "@send0/sdk";
+
+const server = createSend0Server({ client: new Send0(apiKey), defaultInboxId: "ibx_…" });
+await server.connect(transport); // any MCP transport
+```

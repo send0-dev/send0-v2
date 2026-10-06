@@ -1,0 +1,59 @@
+---
+title: Inboxes
+description: Addresses, plus-addressing, send policies and lifecycle.
+---
+
+An inbox is one email address. Create as many as your plan allows: one per agent, per task or per customer.
+
+```ts
+const inbox = await send0.inboxes.create({
+  name: "procurement-agent",          // → procurement-agent@send0.email
+  display_name: "Procurement Agent",   // sender name recipients see
+  send_policy: "reply_only",           // open | reply_only | approval
+  metadata: { team: "ops", run: 42 },  // your own labels, up to 20 keys
+});
+```
+
+<TypeTable
+  type={{
+    name: { description: 'Local part: a-z, 0-9, dot, dash, underscore. Random if omitted.', type: 'string' },
+    domain: { description: 'send0.email by default, or a verified custom domain (coming soon).', type: 'string' },
+    display_name: { description: 'Sender name. If unset, one is derived from the name: procurement-agent → "Procurement Agent".', type: 'string | null' },
+    send_policy: { description: 'Who this inbox may email.', type: '"open" | "reply_only" | "approval"', default: '"reply_only"' },
+    metadata: { description: 'Up to 20 string/number/boolean values.', type: 'object' },
+    expires_at: { description: 'Optional ISO timestamp.', type: 'string' },
+  }}
+/>
+
+## Addresses
+
+- Addresses are case-insensitive: `Research-Agent@` and `research-agent@` are the same inbox.
+- **Plus-addressing:** mail to `procurement-agent+po4471@send0.email` lands in `procurement-agent` with `tag: "po4471"`. Use it to tell tasks apart without creating inboxes.
+- Reserved names can't be used: `postmaster`, `abuse`, `admin`, `support`, `noreply`, `security`, `billing` and similar.
+- Mail to an address that doesn't exist is refused while the sender's server is still connected (`550 5.1.1`), so senders get an immediate, clear bounce.
+
+## Send policies
+
+| Policy | Behaviour |
+|---|---|
+| `reply_only` | Can only send to addresses that have already emailed this inbox. **Free accounts are always reply-only.** |
+| `open` | Can send to anyone (paid plans, subject to limits and the acceptable use policy). |
+| `approval` | Every outgoing message becomes a [draft](/concepts/drafts) that a person approves. |
+
+Change it any time:
+
+```ts
+await send0.inboxes.update(inbox.id, { send_policy: "approval" });
+```
+
+## Deleting
+
+```ts
+await send0.inboxes.delete(inbox.id); // needs an admin key
+```
+
+Mail to a deleted inbox is refused from then on. The address is **never given to anyone else**, so a deleted agent's mail can't land with a stranger.
+
+## Limits
+
+The free plan includes 5 inboxes. Deleted inboxes don't count. Creating one more returns `402 plan_limit_reached`.

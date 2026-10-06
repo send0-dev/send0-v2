@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "send0-docs",
+  "compatibility_date": "2026-10-01",
+  // Static files only: dist/docs/** served at send0.dev/docs/**.
+  "assets": { "directory": "./dist", "html_handling": "auto-trailing-slash", "not_found_handling": "404-page" },
+  "routes": [{ "pattern": "send0.dev/docs*", "zone_name": "send0.dev" }],
+  "workers_dev": false,
+  "preview_urls": false
+}

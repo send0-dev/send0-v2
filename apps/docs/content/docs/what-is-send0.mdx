@@ -1,0 +1,41 @@
+---
+title: What is send0?
+description: An email API where the inbox is the main object, built for software agents.
+---
+
+Most email APIs are built to **send** receipts and password resets. Receiving mail is an add-on that forwards raw MIME to a webhook. send0 starts from the **inbox**: each agent gets a real address that can receive, send and hold threaded conversations, with the parts agents need already done.
+
+## What you get
+
+- **An address in one call.** `name@send0.email`, ready in milliseconds. Plus-addressing (`bot+task42@`) tags messages without creating more inboxes.
+- **Clean, structured messages.** Every inbound message is parsed. You get the new reply text without quoted history, the one-time code and verification link, SPF, DKIM and DMARC results, and a prompt-injection flag.
+- **Wait, don't poll.** One long-poll call blocks until the email you need arrives.
+- **Real threads.** Replies carry `In-Reply-To` and `References`, so conversations stay threaded for both your agent and the human on the other side.
+- **Webhooks and live events on every plan.** Signed webhooks with retries and replay, plus a Server-Sent Events stream.
+- **Safety built in.** Inbox-scoped API keys, human approval for outgoing mail, reply-only sending for free accounts, and automatic suppression of bounces and complaints.
+- **Open source.** The server is AGPL-3.0; the [SDK](/reference/typescript-sdk) and [MCP server](/reference/mcp-tools) are MIT. You'll be able to self-host the same API.
+
+## How a message flows
+
+```text
+Inbound   sender ─▶ MX (send0.email) ─▶ accept/refuse during SMTP ─▶ store raw .eml
+          ─▶ parse, extract code + links, check SPF/DKIM/DMARC, flag injection
+          ─▶ thread ─▶ webhook + live stream + any waiting wait() call
+
+Outbound  your agent ─▶ policy checks (reply-only, suppression, daily cap)
+          ─▶ MIME with threading headers, DKIM-signed ─▶ Amazon SES
+          ─▶ delivered / bounced / complained events ─▶ webhooks
+```
+
+## Concepts at a glance
+
+| Object | ID | What it is |
+|---|---|---|
+| Inbox | `ibx_…` | One address, with a send policy and metadata |
+| Thread | `thr_…` | A conversation inside an inbox |
+| Message | `msg_…` | Inbound or outbound, with extracted fields |
+| Draft | `drf_…` | An outgoing message waiting for human approval |
+| Attachment | `att_…` | A file, downloaded through a short-lived link |
+| Webhook | `whk_…` | An endpoint that receives signed events |
+| Event | `evt_…` | Something that happened, delivered by webhook and stream |
+| API key | `key_…` | `s0_live_…` or `s0_test_…`, scoped to the org or specific inboxes |

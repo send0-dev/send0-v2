@@ -1,0 +1,50 @@
+---
+title: Event stream
+description: Live events over Server-Sent Events, with resume, for one inbox or the whole account.
+---
+
+If your process stays running (an agent loop, a dashboard), you can listen for events directly instead of hosting a webhook endpoint.
+
+```ts
+for await (const event of send0.events.stream({ inboxId: inbox.id })) {
+  if (event.type === "message.received") {
+    console.log(event.data.subject, event.data.extracted_text);
+  }
+}
+```
+
+Leave out `inboxId` to stream every inbox in the account. That needs a key that isn't limited to specific inboxes. Events have the same shape as [webhooks](/realtime/webhooks).
+
+## Resume
+
+The SDK reconnects on its own and sends `Last-Event-ID`, so events that happened while it was disconnected are replayed first, up to 500. Stop with `break` or an `AbortSignal`:
+
+```ts
+const controller = new AbortController();
+for await (const e of send0.events.stream({ inboxId, signal: controller.signal })) { … }
+```
+
+## Raw HTTP
+
+```bash
+curl -N "https://api.send0.dev/v1/events/stream?inbox_id=ibx_7Hc2…" \
+  -H "Authorization: Bearer $SEND0_API_KEY" \
+  -H "Last-Event-ID: evt_8Qw…"
+```
+
+```text
+retry: 3000
+: connected to inbox:ibx_7Hc2…
+
+id: evt_9Rz…
+event: message.received
+data: {"id":"evt_9Rz…","object":"event","type":"message.received",…}
+
+: ping
+```
+
+A `: ping` comment every 25 seconds keeps proxies from closing the connection.
+
+<Callout type="info">
+  Use webhooks for anything that must not miss events while your process is down for longer than a few minutes. Webhooks retry for 24 hours.
+</Callout>

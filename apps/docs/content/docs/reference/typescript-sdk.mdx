@@ -1,0 +1,70 @@
+---
+title: TypeScript SDK
+description: "@send0/sdk: every method, plus configuration, errors, retries and pagination."
+---
+
+```bash
+npm install @send0/sdk
+```
+
+```ts
+import { Send0 } from "@send0/sdk";
+
+const send0 = new Send0({
+  apiKey: process.env.SEND0_API_KEY, // default: SEND0_API_KEY
+  baseUrl: "https://api.send0.dev",  // for self-hosted send0
+  maxRetries: 2,                      // network errors, 429 and 5xx
+  timeout: 60_000,                    // ms per request (wait/stream extend this)
+  fetch,                              // custom fetch, e.g. for proxies or tests
+});
+```
+
+No dependencies. Runs on Node 18+, Bun, Deno, Cloudflare Workers and browsers. Types are generated from the [OpenAPI spec](https://api.send0.dev/openapi.json).
+
+## Methods
+
+| | |
+|---|---|
+| **inboxes** | `create(params?)` · `list(params?)` · `get(id)` · `update(id, params)` · `delete(id)` · `wait(id, { from, subject, direction, since, timeout })` |
+| **messages** | `list(inboxId, { from, subject, q, direction, since, thread_id })` · `get(id)` · `send(inboxId, params)` · `reply(id, params)` · `forward(id, params)` · `attachment(id, attachmentId)` · `rawUrl(id)` |
+| **threads** | `list(inboxId)` · `get(inboxId, threadId, { include_html })` |
+| **drafts** | `list(inboxId, { status })` · `get(id)` · `send(id)` · `reject(id)` |
+| **webhooks** | `create` · `list` · `get` · `update` · `delete` · `rotateSecret` · `test` · `deliveries` · `retryDelivery` · `verify(rawBody, header, secret)` |
+| **apiKeys** | `create` · `list` · `revoke` |
+| **events** | `stream({ inboxId?, lastEventId?, signal? })`: an async iterable of events that reconnects and resumes on its own |
+
+Also exported: `verifyWebhook()`, `isDraft()`, `Send0Error`, `Page`, and types for every object (`Inbox`, `Message`, `Thread`, `Draft`, `Webhook`, `Event`, …).
+
+## Errors
+
+```ts
+import { Send0Error } from "@send0/sdk";
+
+try {
+  await send0.messages.send(inboxId, { to: "someone@example.com", subject: "Hi", text: "…" });
+} catch (err) {
+  if (err instanceof Send0Error && err.code === "recipient_not_allowed") {
+    // reply-only inbox: only reply to people who wrote first
+  }
+  throw err;
+}
+```
+
+`Send0Error` has `status` (0 for network errors and timeouts), `code`, `message`, `param` and `requestId`. See [Errors & limits](/reference/errors).
+
+## Retries and idempotency
+
+Network errors, `429` and `5xx` are retried with exponential backoff, honouring `Retry-After`. Every POST gets an `Idempotency-Key` that stays the same across retries, so a retried send never produces two emails. Pass your own with `{ idempotencyKey }` if you retry across process restarts.
+
+## Pagination
+
+`list()` methods return a `Page`:
+
+```ts
+const page = await send0.messages.list(inboxId, { limit: 50 });
+page.data;       // this page
+page.hasMore;    // more pages?
+await page.next(); // the next Page, or null
+
+for await (const m of page) { /* every message, fetching pages as needed */ }
+```
