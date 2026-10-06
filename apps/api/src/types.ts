@@ -14,6 +14,8 @@ export interface AuthContext {
   scopes: Scope[];
   /** null = every inbox in the org */
   inboxIds: string[] | null;
+  /** "user" when a signed-in person acts through the dashboard; API keys are "key" (the default) */
+  actor?: "key" | "user";
 }
 
 export interface AppDeps {

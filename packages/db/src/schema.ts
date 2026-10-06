@@ -46,6 +46,8 @@ export const orgs = pgTable("orgs", {
   /** Set when sending is paused (complaint/bounce thresholds or by hand). Receiving keeps working. */
   sendingPausedAt: timestamp({ withTimezone: true }),
   sendingPausedReason: text(),
+  /** Soft-deleted by its owner. Keys, webhooks and inboxes are shut off at once; data is purged after 30 days. */
+  deletedAt: timestamp({ withTimezone: true }),
   createdAt: createdAt(),
 });
 
@@ -83,6 +85,8 @@ export const members = pgTable(
   (t) => [
     primaryKey({ columns: [t.orgId, t.userId] }),
     index("members_user_idx").on(t.userId),
+    // Exactly one owner per workspace (transfers demote before they promote).
+    uniqueIndex("members_one_owner_idx").on(t.orgId).where(sql`${t.role} = 'owner'`),
   ]
 );
 
@@ -95,6 +99,8 @@ export const sessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     /** SHA-256 of the cookie value; the cookie itself is never stored */
     tokenHash: text().notNull(),
+    /** The workspace this session is looking at. Falls back to the user's oldest membership when null. */
+    orgId: text().references(() => orgs.id, { onDelete: "set null" }),
     expiresAt: timestamp({ withTimezone: true }).notNull(),
     lastSeenAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     ip: text(),
@@ -121,6 +127,32 @@ export const authTokens = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("auth_tokens_user_idx").on(t.userId, t.purpose)]
+);
+
+/** Invitations to join a workspace. Only the hash of the emailed token is stored. */
+export const invites = pgTable(
+  "invites",
+  {
+    id: text().primaryKey(), // inv_…
+    orgId: text()
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    email: text().notNull(),
+    role: text({ enum: ["admin", "member"] }).notNull(),
+    tokenHash: text().notNull(),
+    invitedBy: text().references(() => users.id, { onDelete: "set null" }),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    acceptedAt: timestamp({ withTimezone: true }),
+    revokedAt: timestamp({ withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("invites_token_idx").on(t.tokenHash),
+    // At most one open invite per address per workspace.
+    uniqueIndex("invites_open_idx")
+      .on(t.orgId, sql`lower(${t.email})`)
+      .where(sql`${t.acceptedAt} is null and ${t.revokedAt} is null`),
+  ]
 );
 
 /** Fixed-window counters for login, sign-up and email rate limits. */

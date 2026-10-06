@@ -4,8 +4,9 @@ import { createDb } from "@send0/db";
 import { publish, type QueueMessage } from "@send0/pipeline";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { createApp } from "./app";
-import type { AppDeps } from "./types";
+import type { AppDeps, Scope } from "./types";
 import { durableHubClient } from "./realtime/client";
+import { purgeDeletedOrgs } from "./maintenance";
 import { processQueueMessage, sweep } from "./webhooks/dispatch";
 
 export { Hub } from "./realtime/hub-do";
@@ -49,19 +50,10 @@ function makeDeps(env: Env, ctx: ExecutionContext): AppDeps {
  * The dashboard has already authenticated the user; requests run as an org admin.
  */
 export class DashboardGateway extends WorkerEntrypoint<Env> {
-  async handle(
-    request: Request,
-    orgId: string,
-    userId: string
-  ): Promise<Response> {
+  /** Runs the API as a dashboard member of `orgId`. The dashboard has already checked the member's role. */
+  async handle(request: Request, as: { orgId: string; userId: string; scopes: Scope[] }): Promise<Response> {
     const deps = makeDeps(this.env, this.ctx);
-    deps.presetAuth = {
-      orgId,
-      keyId: userId,
-      mode: "live",
-      scopes: ["admin"],
-      inboxIds: null,
-    };
+    deps.presetAuth = { orgId: as.orgId, keyId: as.userId, mode: "live", scopes: as.scopes, inboxIds: null, actor: "user" };
     return createApp(deps).fetch(request, this.env, this.ctx);
   }
 }
@@ -99,8 +91,11 @@ export default {
 
   // Hourly safety net for the outbox. Kept infrequent so Neon can scale to zero between runs.
   async scheduled(_controller, env) {
-    const swept = await sweep(db(env, 1), env.EVENTS, new Date());
+    const now = new Date();
+    const swept = await sweep(db(env, 1), env.EVENTS, now);
     if (swept.events || swept.deliveries)
       console.log(JSON.stringify({ event: "sweep", ...swept }));
+    const purged = await purgeDeletedOrgs(db(env, 1), now);
+    if (purged) console.log(JSON.stringify({ event: "orgs_purged", count: purged }));
   },
 } satisfies ExportedHandler<Env, QueueMessage>;

@@ -29,6 +29,41 @@ describe("client basics", () => {
     expect(m.calls[0]!.headers.get("user-agent")).toMatch(/^send0-sdk-js\//);
   });
 
+  it("sends no Authorization header with apiKey: null (cookie-authenticated proxies)", async () => {
+    const m = mockFetch([json({ object: "usage" })]);
+    await new Send0({ apiKey: null, baseUrl: "https://app.example/api", fetch: m.fetch }).usage.get();
+    expect(m.calls[0]!.url).toBe("https://app.example/api/v1/usage");
+    expect(m.calls[0]!.headers.get("authorization")).toBeNull();
+  });
+
+  it("covers org-wide lists and draft edits", async () => {
+    const m = mockFetch([json({ data: [], next_cursor: null }), json({ data: [], next_cursor: null }), json({ object: "draft", id: "drf_1" })]);
+    const s = new Send0({ apiKey: "k", baseUrl: "https://api.example", fetch: m.fetch });
+    await s.messages.listAll({ inbox_id: "ibx_1", status: "bounced" });
+    await s.drafts.listAll({ status: "pending" });
+    await s.drafts.update("drf_1", { text: "edited" });
+    expect(m.calls.map((c) => `${c.method} ${c.url}`)).toEqual([
+      "GET https://api.example/v1/messages?inbox_id=ibx_1&status=bounced",
+      "GET https://api.example/v1/drafts?status=pending",
+      "PATCH https://api.example/v1/drafts/drf_1",
+    ]);
+    expect(await m.calls[2]!.json()).toEqual({ text: "edited" });
+  });
+
+  it("uses a caller's idempotency key for sends, and passes an abort signal to wait", async () => {
+    const m = mockFetch([json({ object: "message", id: "msg_1" }, 201)]);
+    const s = new Send0({ apiKey: "k", fetch: m.fetch, maxRetries: 0 });
+    await s.messages.reply("msg_0", { text: "hi" }, { idempotencyKey: "reply-123" });
+    expect(m.calls[0]!.headers.get("idempotency-key")).toBe("reply-123");
+
+    // A long-poll that hangs until it's aborted.
+    const hang: typeof fetch = (_url, init) => new Promise((_res, rej) => init!.signal!.addEventListener("abort", () => rej(new DOMException("aborted", "AbortError"))));
+    const controller = new AbortController();
+    const waiting = new Send0({ apiKey: "k", fetch: hang, maxRetries: 0 }).inboxes.wait("ibx_1", { timeout: 60 }, { signal: controller.signal });
+    controller.abort();
+    await expect(waiting).rejects.toBeDefined();
+  });
+
   it("needs an API key", () => {
     expect(() => new Send0({ fetch: fetch })).toThrow(/Missing API key/);
   });

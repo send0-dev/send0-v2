@@ -72,3 +72,25 @@ export function passwordChangedEmail({
     ),
   };
 }
+
+export function inviteEmail({
+  inviter,
+  workspace,
+  role,
+  link,
+}: {
+  inviter: string;
+  workspace: string;
+  role: "admin" | "member";
+  link: string;
+}) {
+  const what = `${inviter} invited you to join ${workspace} on send0 as ${role === "admin" ? "an admin" : "a member"}.`;
+  return {
+    subject: `${inviter} invited you to ${workspace} on send0`,
+    text: `Hi,\n\n${what}\n\nAccept the invitation:\n\n${link}\n\nThe link works for 7 days. If you weren't expecting this, you can ignore this email.\n\nsend0`,
+    html: layout(
+      `${p("Hi,")}${p(esc(what))}${p("The link works for 7 days. If you weren't expecting this, you can ignore this email.")}`,
+      { label: "Accept invitation", href: link }
+    ),
+  };
+}

@@ -219,6 +219,25 @@ export const Event = reg(
   "Envelope for webhooks and the SSE stream",
 );
 
+export const Usage = reg(
+  "Usage",
+  z.strictObject({
+    object: z.literal("usage"),
+    plan: z.enum(["free", "pro", "scale"]),
+    inboxes: z.strictObject({ used: z.number().int(), limit: z.number().int() }),
+    sends_today: z.strictObject({
+      used: z.number().int(),
+      limit: z.number().int(),
+      resets_at: ts.describe("Midnight UTC, when the daily count starts over"),
+    }),
+    sending: z.strictObject({
+      paused: z.boolean(),
+      reason: z.string().nullable(),
+      paused_at: nts,
+    }),
+  }),
+);
+
 /** Paginated list of T. */
 export const list = <T extends z.ZodType>(id: string, item: T) =>
   reg(id, z.strictObject({ object: z.literal("list"), data: z.array(item), next_cursor: z.string().nullable() }));

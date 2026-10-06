@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import httpx
 import pytest
 import respx
@@ -156,3 +158,27 @@ async def test_async_client_matches():
         m = await client.inboxes.wait("ibx_1", timeout=5)
         assert m is not None and m.extracted is not None and m.extracted.otp == "482913"
         assert [x.id async for x in await client.messages.list("ibx_1")] == ["m1", "m2"]
+
+
+@respx.mock
+def test_org_wide_lists_draft_edit_and_usage(client):
+    msgs = respx.get(f"{BASE}/v1/messages").mock(return_value=httpx.Response(200, json={"object": "list", "data": [msg()], "next_cursor": None}))
+    edit = respx.patch(f"{BASE}/v1/drafts/drf_1").mock(
+        return_value=httpx.Response(200, json={
+            "object": "draft", "id": "drf_1", "inbox_id": "ibx_1", "thread_id": None, "status": "pending", "kind": "new",
+            "to": [], "cc": [], "bcc": [], "subject": "s", "text": "edited", "html": None,
+            "decided_by": None, "decided_at": None, "created_at": "2026-10-06T10:00:00Z",
+        })
+    )
+    respx.get(f"{BASE}/v1/usage").mock(
+        return_value=httpx.Response(200, json={
+            "object": "usage", "plan": "free", "inboxes": {"used": 1, "limit": 5},
+            "sends_today": {"used": 3, "limit": 50, "resets_at": "2026-10-07T00:00:00Z"},
+            "sending": {"paused": False, "reason": None, "paused_at": None},
+        })
+    )
+    assert [m.id for m in client.messages.list_all(inbox_id="ibx_1", status="received")] == ["msg_1"]
+    assert msgs.calls[0].request.url.params["status"] == "received"
+    assert client.drafts.update("drf_1", text="edited").text == "edited"
+    assert json.loads(edit.calls[0].request.read()) == {"text": "edited"}
+    assert client.usage.get().sends_today.limit == 50

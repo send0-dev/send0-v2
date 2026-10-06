@@ -3,10 +3,12 @@ import { listQuery } from "../pagination";
 import { apiKeyCreateBody } from "../routes/api-keys";
 import { streamQuery } from "../routes/events";
 import { inboxCreateBody, inboxUpdateBody } from "../routes/inboxes";
-import { messageListQuery, waitQuery } from "../routes/messages";
+import { messageListQuery, orgMessageListQuery, waitQuery } from "../routes/messages";
 import {
   draftListQuery,
+  draftUpdateBody,
   forwardBody,
+  orgDraftListQuery,
   replyBody,
   sendBody,
 } from "../routes/send";
@@ -142,6 +144,18 @@ export const operations: Operation[] = [
   },
   {
     method: "get",
+    path: "/v1/messages",
+    operationId: "listAllMessages",
+    tag: "Messages",
+    scope: "read",
+    summary: "List messages across inboxes",
+    description:
+      "Every inbox the key can see, newest first. Takes the same filters as an inbox's message list, plus `inbox_id` and `status`.",
+    query: orgMessageListQuery,
+    responses: { 200: "MessageList" },
+  },
+  {
+    method: "get",
     path: "/v1/messages/{message_id}",
     operationId: "getMessage",
     tag: "Messages",
@@ -232,6 +246,29 @@ export const operations: Operation[] = [
   },
   {
     method: "get",
+    path: "/v1/drafts",
+    operationId: "listAllDrafts",
+    tag: "Drafts",
+    scope: "read",
+    summary: "List drafts across inboxes",
+    description: "Every inbox the key can see, newest first. Pass `status=pending` for the approval queue.",
+    query: orgDraftListQuery,
+    responses: { 200: "DraftList" },
+  },
+  {
+    method: "patch",
+    path: "/v1/drafts/{draft_id}",
+    operationId: "updateDraft",
+    tag: "Drafts",
+    scope: "admin",
+    summary: "Edit a draft",
+    description:
+      "Changes the subject or body of a pending draft before it's approved. Needs an admin key (like approving), so an agent can't change a draft after a person has reviewed it. Decided drafts return 409.",
+    body: draftUpdateBody,
+    responses: { 200: "Draft" },
+  },
+  {
+    method: "get",
     path: "/v1/drafts/{draft_id}",
     operationId: "getDraft",
     tag: "Drafts",
@@ -245,6 +282,7 @@ export const operations: Operation[] = [
     operationId: "sendDraft",
     tag: "Drafts",
     scope: "admin",
+    description: "Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.",
     summary: "Approve and send a draft",
     responses: { 201: "Message" },
   },
@@ -254,6 +292,7 @@ export const operations: Operation[] = [
     operationId: "rejectDraft",
     tag: "Drafts",
     scope: "admin",
+    description: "Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.",
     summary: "Reject a draft",
     responses: { 200: "Draft" },
   },
@@ -380,6 +419,17 @@ export const operations: Operation[] = [
     summary: "List API keys",
     query: listQuery,
     responses: { 200: "ApiKeyList" },
+  },
+  // Usage
+  {
+    method: "get",
+    path: "/v1/usage",
+    operationId: "getUsage",
+    tag: "Usage",
+    scope: "read",
+    summary: "Get usage",
+    description: "Your plan, inboxes used, sends today against the daily limit (UTC), and whether sending is paused.",
+    responses: { 200: "Usage" },
   },
   {
     method: "delete",
@@ -550,6 +600,7 @@ export function buildOpenApi(
       "Webhooks",
       "Events",
       "API keys",
+      "Usage",
     ].map((name) => ({ name })),
     paths,
     components: {

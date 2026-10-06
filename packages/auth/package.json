@@ -3,8 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "test": "vitest run", "check": "tsc --noEmit" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./permissions": "./src/permissions.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "check": "tsc --noEmit"
+  },
   "dependencies": {
     "@send0/adapters": "workspace:*",
     "@send0/core": "workspace:*",

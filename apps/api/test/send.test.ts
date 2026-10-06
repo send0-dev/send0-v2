@@ -5,6 +5,7 @@ import { schema } from "@send0/db";
 import type { EventEnvelope } from "@send0/pipeline";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp } from "../src/app";
 import { handleSesEvent, PAUSE_RULES } from "../src/sending/ses-events";
 import { deliver, fixture, setup, type TestEnv } from "./helpers";
 
@@ -151,7 +152,67 @@ describe("approval", () => {
     expect(sent.body.status).toBe("sent");
     expect(outbox).toHaveLength(1);
     expect((await t.call("GET", `/v1/drafts/${r.body.id}`)).body.status).toBe("sent");
-    expect((await t.call("POST", `/v1/drafts/${r.body.id}/send`)).status).toBe(403);
+    expect((await t.call("POST", `/v1/drafts/${r.body.id}/send`)).body.error.code).toBe("draft_decided");
+    expect((await t.call("POST", `/v1/drafts/${r.body.id}/reject`)).status).toBe(409);
+  });
+
+  it("lists drafts across inboxes and edits pending ones", async () => {
+    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Draft me", text: "v1" } })).body;
+    const pending = (await t.call("GET", "/v1/drafts?status=pending")).body.data.map((x: any) => x.id);
+    expect(pending).toContain(d.id);
+    const otherInboxKey = await t.makeKey({ scopes: ["read"], inboxIds: [inboxId] });
+    expect((await t.call("GET", "/v1/drafts", { key: otherInboxKey })).body.data.map((x: any) => x.id)).not.toContain(d.id);
+
+    const edited = await t.call("PATCH", `/v1/drafts/${d.id}`, { body: { subject: "Edited", text: "v2" } });
+    expect(edited.status).toBe(200);
+    expect(edited.body).toMatchObject({ subject: "Edited", text: "v2", status: "pending" });
+    expect((await t.call("PATCH", `/v1/drafts/${d.id}`, { body: { text: "", html: null } })).status).toBe(400);
+    await t.call("POST", `/v1/drafts/${d.id}/send`);
+    expect((await parsed()).subject).toBe("Edited");
+    expect((await t.call("PATCH", `/v1/drafts/${d.id}`, { body: { text: "late" } })).status).toBe(409);
+  });
+
+  it("doesn't let an agent edit a draft waiting for review", async () => {
+    const agentKey = await t.makeKey({ scopes: ["read", "send"], inboxIds: [approvalInbox] });
+    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { key: agentKey, body: { to: "dana@gmail.com", subject: "Hi", text: "v1" } })).body;
+    expect((await t.call("PATCH", `/v1/drafts/${d.id}`, { key: agentKey, body: { text: "swapped after review" } })).status).toBe(403);
+    expect((await t.call("GET", `/v1/drafts/${d.id}`)).body.text).toBe("v1");
+  });
+
+  it("sends a draft once even when two people approve it at the same time", async () => {
+    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Once", text: "x" } })).body;
+    const [a, b] = await Promise.all([t.call("POST", `/v1/drafts/${d.id}/send`), t.call("POST", `/v1/drafts/${d.id}/send`)]);
+    expect([a.status, b.status].sort()).toEqual([201, 409]);
+    expect(outbox).toHaveLength(1);
+  });
+
+  it("puts a draft back in the queue when sending it fails", async () => {
+    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Retry me", text: "x" } })).body;
+    mailerFails = new MailerError("SES is down", 503, true, "ServiceUnavailable");
+    expect((await t.call("POST", `/v1/drafts/${d.id}/send`)).status).toBeGreaterThanOrEqual(500);
+    expect((await t.call("GET", `/v1/drafts/${d.id}`)).body).toMatchObject({ status: "pending", decided_by: null });
+    mailerFails = null;
+    expect((await t.call("POST", `/v1/drafts/${d.id}/send`)).status).toBe(201);
+  });
+
+  it("lets a signed-in member approve without an admin scope", async () => {
+    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Human ok", text: "x" } })).body;
+    const member = createApp({
+      db: t.db,
+      files: { signedGetUrl: async () => "x" },
+      mailer: { sendRaw: async (m) => (outbox.push(m), { providerMessageId: "ses-member" }) },
+      presetAuth: { orgId: t.orgId, keyId: "usr_member", mode: "live", scopes: ["read", "send"], inboxIds: null, actor: "user" },
+    });
+    const r = await member.request(`/v1/drafts/${d.id}/send`, { method: "POST" });
+    expect(r.status).toBe(201);
+    expect((await t.call("GET", `/v1/drafts/${d.id}`)).body).toMatchObject({ status: "sent", decided_by: "usr_member" });
+  });
+
+  it("refuses dashboard requests for a suspended workspace", async () => {
+    await t.db.update(schema.orgs).set({ status: "suspended" }).where(eq(schema.orgs.id, t.orgId));
+    const member = createApp({ db: t.db, files: { signedGetUrl: async () => "x" }, presetAuth: { orgId: t.orgId, keyId: "usr_x", mode: "live", scopes: ["admin"], inboxIds: null, actor: "user" } });
+    expect((await member.request("/v1/inboxes")).status).toBe(403);
+    await t.db.update(schema.orgs).set({ status: "active" }).where(eq(schema.orgs.id, t.orgId));
   });
 
   it("can reject drafts", async () => {

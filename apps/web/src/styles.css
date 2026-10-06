@@ -1,59 +1,128 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
-  --color-bg: #fbfbfa;
-  --color-subtle: #f3f3f1;
-  --color-surface: #ffffff;
-  --color-fg: #0c0c0d;
-  --color-muted: #57575e;
-  --color-faint: #8e8e95;
-  --color-line: #e6e6e3;
-  --color-line-strong: #d4d4d0;
-  --color-accent: #ff4f00;
-  --color-accent-ink: #d64200;
-  --color-accent-soft: #fff0e8;
-  --color-ok: #138a3e;
-  --color-ok-soft: #e7f6ec;
-  --color-warn: #a15c00;
-  --color-warn-soft: #fdf3e2;
-  --color-bad: #c42b1c;
-  --color-bad-soft: #fdecea;
+/*
+ * Tokens. Neutral and quiet: near-black on white, hairline borders, colour only for state.
+ * Orange is the brand, used sparingly (focus ring, one highlight). Dark mode swaps the values.
+ */
+:root {
+  --background: #fafafa;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f4f4f5;
+  --muted-foreground: #6b6b70;
+  --accent: #f1f1f2;
+  --accent-foreground: #0a0a0a;
+  --border: #e8e8ea;
+  --input: #e1e1e4;
+  --ring: #ff5a1f;
+  --brand: #ff4f00;
+  --destructive: #d92d20;
+  --destructive-soft: #fef1f0;
+  --success: #12804a;
+  --success-soft: #ecf8f1;
+  --warning: #a35f00;
+  --warning-soft: #fdf5e6;
+  --info: #2563eb;
+  --info-soft: #eef3fe;
+  --sidebar: #fafafa;
+  --radius: 0.5rem;
 }
 
 .dark {
-  --color-bg: #09090a;
-  --color-subtle: #111113;
-  --color-surface: #0f0f11;
-  --color-fg: #f4f4f5;
-  --color-muted: #a3a3ab;
-  --color-faint: #6c6c74;
-  --color-line: #ffffff17;
-  --color-line-strong: #ffffff29;
-  --color-accent: #ff6a26;
-  --color-accent-ink: #ff8a52;
-  --color-accent-soft: #2a1308;
-  --color-ok: #4ade80;
-  --color-ok-soft: #0f2a19;
-  --color-warn: #f0b85a;
-  --color-warn-soft: #2a2010;
-  --color-bad: #f87171;
-  --color-bad-soft: #2a1414;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #111111;
+  --card-foreground: #ededed;
+  --popover: #141414;
+  --popover-foreground: #ededed;
+  --primary: #ededed;
+  --primary-foreground: #0a0a0a;
+  --secondary: #1c1c1c;
+  --secondary-foreground: #ededed;
+  --muted: #1a1a1a;
+  --muted-foreground: #a0a0a0;
+  --accent: #1f1f1f;
+  --accent-foreground: #ededed;
+  --border: #242424;
+  --input: #2e2e2e;
+  --ring: #ff6a26;
+  --brand: #ff6a26;
+  --destructive: #f2665a;
+  --destructive-soft: #2a1311;
+  --success: #3ccf7f;
+  --success-soft: #0f2419;
+  --warning: #f0b453;
+  --warning-soft: #2a1f0e;
+  --info: #6c9cff;
+  --info-soft: #111c33;
+  --sidebar: #0a0a0a;
 }
 
-html, body, #root { height: 100%; }
-body {
-  background: var(--color-bg);
-  color: var(--color-fg);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+@theme inline {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-sidebar: var(--sidebar);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
 }
-::selection { background: var(--color-accent); color: #fff; }
+
 @layer base {
-  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground text-sm antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 25%, transparent);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 }

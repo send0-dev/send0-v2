@@ -15,6 +15,8 @@ import type {
   ForwardParams,
   Inbox,
   ListDeliveriesParams,
+  ListAllDraftsParams,
+  ListAllMessagesParams,
   ListDraftsParams,
   ListMessagesParams,
   ListParams,
@@ -24,8 +26,10 @@ import type {
   SendResult,
   Thread,
   ThreadWithMessages,
+  UpdateDraftParams,
   UpdateInboxParams,
   UpdateWebhookParams,
+  Usage,
   WaitParams,
   WaitResult,
   Webhook,
@@ -51,6 +55,14 @@ function pager<T, P extends { cursor?: string }>(
 }
 
 const enc = encodeURIComponent;
+
+/**
+ * Per-call options for sends. Pass the same `idempotencyKey` when retrying one logical send
+ * (e.g. after a network error) and the API returns the first result instead of sending twice.
+ */
+export interface SendOptions {
+  idempotencyKey?: string;
+}
 
 class Inboxes {
   constructor(private readonly http: Http) {}
@@ -82,7 +94,8 @@ class Inboxes {
    */
   async wait(
     inboxId: string,
-    params: WaitParams = {}
+    params: WaitParams = {},
+    opts: { signal?: AbortSignal } = {}
   ): Promise<Message | null> {
     let remaining = params.timeout ?? 30;
     // Keep the original look-back across split requests so nothing between them is missed.
@@ -98,6 +111,7 @@ class Inboxes {
         {
           query: { ...params, since, timeout },
           timeout: (timeout + 15) * 1000,
+          signal: opts.signal,
         }
       );
       if (!r.timed_out) return r.message;
@@ -115,24 +129,31 @@ class Messages {
   list(inboxId: string, params?: ListMessagesParams): Promise<Page<Message>> {
     return pager(this.http, `/v1/inboxes/${enc(inboxId)}/messages`, params);
   }
+  /** Every inbox the key can see, newest first. Filter with `inbox_id`, `status`, `direction`, `q`… */
+  listAll(params?: ListAllMessagesParams): Promise<Page<Message>> {
+    return pager(this.http, "/v1/messages", params);
+  }
   get(messageId: string): Promise<Message> {
     return this.http.request("GET", `/v1/messages/${enc(messageId)}`);
   }
   /** Sends a new message. Approval inboxes return a Draft instead: check with `isDraft()`. */
-  send(inboxId: string, params: SendMessageParams): Promise<SendResult> {
+  send(inboxId: string, params: SendMessageParams, opts: SendOptions = {}): Promise<SendResult> {
     return this.http.request("POST", `/v1/inboxes/${enc(inboxId)}/messages`, {
       body: params,
+      idempotencyKey: opts.idempotencyKey,
     });
   }
   /** Replies in the same thread with correct In-Reply-To and References. */
-  reply(messageId: string, params: ReplyParams): Promise<SendResult> {
+  reply(messageId: string, params: ReplyParams, opts: SendOptions = {}): Promise<SendResult> {
     return this.http.request("POST", `/v1/messages/${enc(messageId)}/reply`, {
       body: params,
+      idempotencyKey: opts.idempotencyKey,
     });
   }
-  forward(messageId: string, params: ForwardParams): Promise<SendResult> {
+  forward(messageId: string, params: ForwardParams, opts: SendOptions = {}): Promise<SendResult> {
     return this.http.request("POST", `/v1/messages/${enc(messageId)}/forward`, {
       body: params,
+      idempotencyKey: opts.idempotencyKey,
     });
   }
   /** A short-lived URL to download the original .eml. */
@@ -190,8 +211,16 @@ class Drafts {
   list(inboxId: string, params?: ListDraftsParams): Promise<Page<Draft>> {
     return pager(this.http, `/v1/inboxes/${enc(inboxId)}/drafts`, params);
   }
+  /** Drafts in every inbox the key can see. `{ status: "pending" }` is the approval queue. */
+  listAll(params?: ListAllDraftsParams): Promise<Page<Draft>> {
+    return pager(this.http, "/v1/drafts", params);
+  }
   get(draftId: string): Promise<Draft> {
     return this.http.request("GET", `/v1/drafts/${enc(draftId)}`);
+  }
+  /** Edit the subject or body of a pending draft (admin key, like approving). */
+  update(draftId: string, params: UpdateDraftParams): Promise<Draft> {
+    return this.http.request("PATCH", `/v1/drafts/${enc(draftId)}`, { body: params });
   }
   /** Approve and send (admin key). */
   send(draftId: string): Promise<Message> {
@@ -281,6 +310,15 @@ class ApiKeys {
   }
 }
 
+class UsageApi {
+  constructor(private readonly http: Http) {}
+
+  /** Plan, inboxes used, sends today against the daily limit, and whether sending is paused. */
+  get(): Promise<Usage> {
+    return this.http.request("GET", "/v1/usage");
+  }
+}
+
 class Events {
   constructor(private readonly http: Http) {}
 
@@ -335,6 +373,7 @@ export class Send0 {
   readonly webhooks: Webhooks;
   readonly apiKeys: ApiKeys;
   readonly events: Events;
+  readonly usage: UsageApi;
 
   constructor(options?: ClientOptions | string) {
     const http = new Http(options);
@@ -345,5 +384,6 @@ export class Send0 {
     this.webhooks = new Webhooks(http);
     this.apiKeys = new ApiKeys(http);
     this.events = new Events(http);
+    this.usage = new UsageApi(http);
   }
 }

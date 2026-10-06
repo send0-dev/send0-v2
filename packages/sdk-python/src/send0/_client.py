@@ -23,6 +23,7 @@ from ._models import (
     RevokedApiKey,
     Thread,
     ThreadWithMessages,
+    Usage,
     WaitResult,
     Webhook,
     WebhookTestResult,
@@ -217,6 +218,24 @@ class Messages:
         params = {"from": from_, "subject": subject, "q": q, "direction": direction, "since": since, "thread_id": thread_id, "limit": limit, "cursor": cursor}
         return self._http.page(Message, f"/v1/inboxes/{inbox_id}/messages", params)
 
+    def list_all(
+        self,
+        *,
+        inbox_id: str | None = None,
+        status: Literal["received", "queued", "sent", "delivered", "bounced", "complained", "failed"] | None = None,
+        from_: str | None = None,
+        subject: str | None = None,
+        q: str | None = None,
+        direction: Literal["in", "out"] | None = None,
+        since: str | None = None,
+        thread_id: str | None = None,
+        limit: int | None = None,
+        cursor: str | None = None,
+    ) -> Page[Message]:
+        """Every inbox the key can see, newest first."""
+        params = {"inbox_id": inbox_id, "status": status, "from": from_, "subject": subject, "q": q, "direction": direction, "since": since, "thread_id": thread_id, "limit": limit, "cursor": cursor}
+        return self._http.page(Message, "/v1/messages", params)
+
     def get(self, message_id: str) -> Message:
         return self._http.get(Message, f"/v1/messages/{message_id}")
 
@@ -297,8 +316,17 @@ class Drafts:
     def list(self, inbox_id: str, *, status: Literal["pending", "approved", "rejected", "sent"] | None = None, limit: int | None = None, cursor: str | None = None) -> Page[Draft]:
         return self._http.page(Draft, f"/v1/inboxes/{inbox_id}/drafts", {"status": status, "limit": limit, "cursor": cursor})
 
+    def list_all(self, *, inbox_id: str | None = None, status: Literal["pending", "approved", "rejected", "sent"] | None = None, limit: int | None = None, cursor: str | None = None) -> Page[Draft]:
+        """Drafts in every inbox the key can see. ``status="pending"`` is the approval queue."""
+        return self._http.page(Draft, "/v1/drafts", {"inbox_id": inbox_id, "status": status, "limit": limit, "cursor": cursor})
+
     def get(self, draft_id: str) -> Draft:
         return self._http.get(Draft, f"/v1/drafts/{draft_id}")
+
+    def update(self, draft_id: str, *, subject: str = NOT_GIVEN, text: str | None = NOT_GIVEN, html: str | None = NOT_GIVEN) -> Draft:
+        """Edit the subject or body of a pending draft (admin key, like approving)."""
+        body = _given(subject=subject, text=text, html=html)
+        return Draft.model_validate(self._http.request("PATCH", f"/v1/drafts/{draft_id}", body=body).json())
 
     def send(self, draft_id: str) -> Message:
         """Approve and send (admin key)."""
@@ -372,6 +400,15 @@ class ApiKeys:
         return RevokedApiKey.model_validate(self._http.request("DELETE", f"/v1/api-keys/{api_key_id}").json())
 
 
+class UsageApi:
+    def __init__(self, http: _Http) -> None:
+        self._http = http
+
+    def get(self) -> Usage:
+        """Plan, inboxes used, sends today against the daily limit, and whether sending is paused."""
+        return self._http.get(Usage, "/v1/usage")
+
+
 class Events:
     def __init__(self, http: _Http) -> None:
         self._http = http
@@ -437,6 +474,7 @@ class Send0:
         self.webhooks = Webhooks(self._http)
         self.api_keys = ApiKeys(self._http)
         self.events = Events(self._http)
+        self.usage = UsageApi(self._http)
 
     def close(self) -> None:
         self._http.client.close()

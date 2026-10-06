@@ -69,6 +69,46 @@ describe("messages", () => {
   });
 });
 
+describe("messages across inboxes", () => {
+  it("lists every inbox newest first, with inbox, status and search filters", async () => {
+    const all = (await t.call("GET", "/v1/messages")).body.data.map((m: any) => m.id);
+    expect(all).toHaveLength(5);
+    expect(all.slice(1)).toEqual([ids["forwarded.eml"], ids["attachment-pdf.eml"], ids["otp-html-only.eml"], ids["gmail-reply.eml"]]);
+    expect((await t.call("GET", `/v1/messages?inbox_id=${otherInboxId}`)).body.data).toHaveLength(1);
+    expect((await t.call("GET", "/v1/messages?status=received&direction=in")).body.data).toHaveLength(5);
+    expect((await t.call("GET", "/v1/messages?status=sent")).body.data).toHaveLength(0);
+    expect((await t.call("GET", "/v1/messages?q=invoice")).body.data.every((m: any) => m.inbox_id === inboxId)).toBe(true);
+  });
+
+  it("pages with a cursor", async () => {
+    const p1 = (await t.call("GET", "/v1/messages?limit=3")).body;
+    const p2 = (await t.call("GET", `/v1/messages?limit=3&cursor=${p1.next_cursor}`)).body;
+    expect(p1.data).toHaveLength(3);
+    expect(p2.data).toHaveLength(2);
+    expect(p2.next_cursor).toBeNull();
+  });
+
+  it("only shows inboxes an inbox-scoped key can see", async () => {
+    const key = await t.makeKey({ scopes: ["read"], inboxIds: [otherInboxId] });
+    expect((await t.call("GET", "/v1/messages", { key })).body.data.map((m: any) => m.inbox_id)).toEqual([otherInboxId]);
+    expect((await t.call("GET", `/v1/messages?inbox_id=${inboxId}`, { key })).status).toBe(404);
+  });
+});
+
+describe("usage", () => {
+  it("reports plan, inboxes, sends today and sending state", async () => {
+    const r = await t.call("GET", "/v1/usage");
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({
+      object: "usage",
+      plan: "free",
+      inboxes: { used: 2, limit: 5 },
+      sends_today: { used: 0, limit: 50 },
+      sending: { paused: false, reason: null, paused_at: null },
+    });
+  });
+});
+
 describe("threads", () => {
   it("lists threads by most recent activity and returns a thread oldest-first", async () => {
     const list = await t.call("GET", `/v1/inboxes/${inboxId}/threads`);

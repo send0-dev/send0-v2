@@ -80,17 +80,20 @@ Rules:
 
 1. Pages read route params, call feature hooks and lay out components. No fetching or business logic in components.
 2. One hook per query or mutation. Keys come from the feature's key factory. A mutation invalidates exactly the keys it affects. Revoke, enable/disable and approve/reject update optimistically and roll back on error.
-3. Forms: a zod schema is the single source of client validation. `toFormErrors(error, form)` puts a server error's `field` on the matching input; any other error becomes a toast. Submit is disabled while pending. POSTs send an `Idempotency-Key` generated once per form submission.
+3. Forms: a zod schema is the single source of client validation. `applyServerError(form, error)` puts a server error's `field` on the matching input; any other error becomes the form's root error (or a toast). Submit is disabled while pending. Forms that send mail reuse one `Idempotency-Key` per submission (kept across retries after a failure), so a retry can't send twice.
 4. URL holds view state: filters, selected thread, tabs.
 5. Live updates: the open inbox subscribes to `GET /v1/events/stream` and invalidates its thread and message queries for events on that inbox. The onboarding "Try it" step uses `wait`.
-6. Permissions: `lib/permissions.ts` maps an action to the roles allowed. The UI hides or disables what the role can't do; the server enforces it.
+6. Permissions: `packages/auth/src/permissions.ts` maps an action to the roles allowed; the Worker and the UI import the same table. The UI hides or disables what the role can't do; the server enforces it.
+7. Every request carries the workspace the page is showing (`x-send0-workspace`). If the session has moved to another workspace (another tab switched, or the person was removed), the Worker answers 409 `workspace_changed` and the app reloads the session and drops cached data.
 
 ## Backend changes
 
 ### API (public; added to OpenAPI, the TypeScript SDK and the Python SDK)
 
 - `GET /v1/messages`: messages across the org. Query: `inbox_id`, `direction`, `status`, `q`, `since`, `limit`, `cursor`. Same item shape as the per-inbox list. A key restricted to some inboxes sees only those inboxes.
-- `PATCH /v1/drafts/:id`: edit a pending draft's `subject`, `text` and `html` before approval. Only drafts in `pending` status; others return 409.
+- `PATCH /v1/drafts/:id`: edit a pending draft's `subject`, `text` and `html` before approval. Needs an admin key or a signed-in member (like approving), so an agent can't change a draft after review. Only drafts in `pending` status; others return 409.
+- Approving and rejecting claim the draft atomically (`pending` → `approved`), so two people can't both send it; a decided draft returns 409. A failed send puts the draft back to `pending`.
+- `GET /v1/drafts`: drafts across every inbox the key can see (the approval queue).
 - `GET /v1/usage`: `{ plan, inboxes: { used, limit }, sends_today: { used, limit }, sending: { paused, reason, paused_at } }`.
 
 ### Dashboard Worker and auth
@@ -107,13 +110,14 @@ Rules:
   - `GET /auth/invites/:token/preview` (workspace name, inviter, email; no login needed), `POST /auth/invites/:token/accept`.
 - `/api/*` checks the role against a method-and-path table before calling the gateway. The gateway gets `{ orgId, userId, role }` and sets API scopes: member gets `read` and `send`; admin and owner get `admin`.
 - The Worker drops any `Authorization` header from the browser; the cookie is the only credential.
+- Dashboard requests are refused for suspended or deleted orgs, the same as API keys.
 
 ### Data (migration 0003)
 
 - `invites`: `id` (`inv_`), `org_id`, `email`, `role` (`admin` or `member`), `token_hash`, `invited_by`, `expires_at` (7 days), `accepted_at`, `revoked_at`, `created_at`. At most one open invite per org and email.
 - `sessions.org_id`, nullable, references `orgs` with `ON DELETE SET NULL`.
 - `orgs.deleted_at`. A deleted org's keys stop authenticating, its webhooks stop firing and its inboxes reject mail. A cleanup job purges it after 30 days.
-- `members` already has `role` and a `(org_id, user_id)` primary key. Each org keeps exactly one owner; transfer swaps roles in one transaction.
+- `members` already has `role` and a `(org_id, user_id)` primary key. A partial unique index allows exactly one owner per org; transfer locks both rows and demotes before it promotes, in one transaction.
 
 ## Roles
 

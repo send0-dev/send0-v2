@@ -1,8 +1,11 @@
 import { Send0Error } from "./errors";
 
 export interface ClientOptions {
-  /** Your API key (s0_live_… or s0_test_…). Defaults to process.env.SEND0_API_KEY. */
-  apiKey?: string;
+  /**
+   * Your API key (s0_live_… or s0_test_…). Defaults to process.env.SEND0_API_KEY.
+   * Pass null to send no Authorization header, for proxies that authenticate another way (e.g. a session cookie).
+   */
+  apiKey?: string | null;
   /** Defaults to https://api.send0.dev */
   baseUrl?: string;
   /** Retries for network errors, 429 and 5xx. POSTs are retried safely with an Idempotency-Key. Default 2. */
@@ -36,7 +39,7 @@ function uuid(): string {
 
 export class Http {
   readonly baseUrl: string;
-  private readonly apiKey: string;
+  private readonly apiKey: string | null;
   private readonly maxRetries: number;
   private readonly timeout: number;
   private readonly fetchImpl: typeof fetch;
@@ -46,8 +49,8 @@ export class Http {
     // Read SEND0_API_KEY where an environment exists (Node, Bun, Deno with --allow-env) without requiring Node types.
     const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
     const envKey = env?.SEND0_API_KEY;
-    const apiKey = o.apiKey ?? envKey;
-    if (!apiKey) throw new Send0Error("Missing API key. Pass it to new Send0(…) or set SEND0_API_KEY.", 0, "missing_api_key");
+    const apiKey = o.apiKey === null ? null : (o.apiKey ?? envKey);
+    if (apiKey === undefined || apiKey === "") throw new Send0Error("Missing API key. Pass it to new Send0(…) or set SEND0_API_KEY.", 0, "missing_api_key");
     this.apiKey = apiKey;
     this.baseUrl = (o.baseUrl ?? "https://api.send0.dev").replace(/\/$/, "");
     this.maxRetries = o.maxRetries ?? 2;
@@ -63,7 +66,7 @@ export class Http {
 
   async request<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
     const headers: Record<string, string> = {
-      authorization: `Bearer ${this.apiKey}`,
+      ...(this.apiKey !== null ? { authorization: `Bearer ${this.apiKey}` } : {}),
       accept: "application/json",
       "user-agent": `send0-sdk-js/${VERSION}`,
     };

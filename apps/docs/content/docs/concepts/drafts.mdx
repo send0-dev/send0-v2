@@ -16,19 +16,31 @@ A `draft.created` [event](/realtime/webhooks) fires, so you can notify a person 
 
 ## Approve or reject
 
-Approving needs an **admin** key, so an agent with a `send` key can't approve its own drafts:
+Approving needs an **admin** key, so an agent with a `send` key can't approve its own drafts. Members of your workspace can also approve, edit or reject drafts on the dashboard's Drafts page.
 
 ```ts
 const message = await send0.drafts.send("drf_…"); // runs every sending rule, then sends
 await send0.drafts.reject("drf_…");
 ```
 
+## Edit before approving
+
+A pending draft's subject and body can be changed. Whatever is approved is what goes out:
+
+```ts
+await send0.drafts.update("drf_…", { text: "We accept your offer for 40 units." });
+```
+
 ## List drafts
 
 ```ts
-for await (const d of await send0.drafts.list(inbox.id, { status: "pending" })) {
-  console.log(d.id, d.to, d.subject, d.text);
+// The approval queue across every inbox
+for await (const d of await send0.drafts.listAll({ status: "pending" })) {
+  console.log(d.id, d.inbox_id, d.to, d.subject, d.text);
 }
+
+// One inbox
+const page = await send0.drafts.list(inbox.id, { status: "pending" });
 ```
 
 Draft statuses: `pending`, `sent`, `rejected`. Each draft records who decided (`decided_by`) and when (`decided_at`).

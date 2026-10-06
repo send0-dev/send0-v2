@@ -394,6 +394,46 @@ class Event(BaseModel):
     data: dict[str, Any]
 
 
+class Inboxes(BaseModel):
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    used: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    limit: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+
+
+class SendsToday(BaseModel):
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    used: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    limit: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    resets_at: AwareDatetime
+    """
+    Midnight UTC, when the daily count starts over
+    """
+
+
+class Sending(BaseModel):
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    paused: bool
+    reason: str | None
+    paused_at: AwareDatetime | None
+
+
+class Usage(BaseModel):
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    object: Literal['usage']
+    plan: Literal['free', 'pro', 'scale']
+    inboxes: Inboxes
+    sends_today: SendsToday
+    sending: Sending
+
+
 class InboxList(BaseModel):
     model_config = ConfigDict(
         extra='allow',

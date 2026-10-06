@@ -14,7 +14,8 @@ export type IdPrefix =
   | "key"
   | "dlv"
   | "usr"
-  | "ses";
+  | "ses"
+  | "inv";
 
 /** Random, URL-safe id such as `msg_4Tq1x9…`. 16 base62 chars ≈ 95 bits of entropy. */
 export function newId(prefix: IdPrefix, length = 16): string {

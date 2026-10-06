@@ -91,6 +91,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List messages across inboxes
+         * @description Every inbox the key can see, newest first. Takes the same filters as an inbox's message list, plus `inbox_id` and `status`.
+         */
+        get: operations["listAllMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/messages/{message_id}": {
         parameters: {
             query?: never;
@@ -236,6 +256,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List drafts across inboxes
+         * @description Every inbox the key can see, newest first. Pass `status=pending` for the approval queue.
+         */
+        get: operations["listAllDrafts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/drafts/{draft_id}": {
         parameters: {
             query?: never;
@@ -250,7 +290,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Edit a draft
+         * @description Changes the subject or body of a pending draft before it's approved. Needs an admin key (like approving), so an agent can't change a draft after a person has reviewed it. Decided drafts return 409.
+         */
+        patch: operations["updateDraft"];
         trace?: never;
     };
     "/v1/drafts/{draft_id}/send": {
@@ -262,7 +306,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Approve and send a draft */
+        /**
+         * Approve and send a draft
+         * @description Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.
+         */
         post: operations["sendDraft"];
         delete?: never;
         options?: never;
@@ -279,7 +326,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reject a draft */
+        /**
+         * Reject a draft
+         * @description Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.
+         */
         post: operations["rejectDraft"];
         delete?: never;
         options?: never;
@@ -427,6 +477,26 @@ export interface paths {
          * @description The full key is returned once.
          */
         post: operations["createApiKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get usage
+         * @description Your plan, inboxes used, sends today against the daily limit (UTC), and whether sending is paused.
+         */
+        get: operations["getUsage"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -771,6 +841,30 @@ export interface components {
             inbox_id: string | null;
             data: {
                 [key: string]: unknown;
+            };
+        };
+        Usage: {
+            /** @constant */
+            object: "usage";
+            /** @enum {string} */
+            plan: "free" | "pro" | "scale";
+            inboxes: {
+                used: number;
+                limit: number;
+            };
+            sends_today: {
+                used: number;
+                limit: number;
+                /**
+                 * Format: date-time
+                 * @description Midnight UTC, when the daily count starts over
+                 */
+                resets_at: string;
+            };
+            sending: {
+                paused: boolean;
+                reason: string | null;
+                paused_at: string | null;
             };
         };
         InboxList: {
@@ -1408,6 +1502,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WaitResult"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not allowed (scope, policy or account state) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this key */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate or daily limit reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listAllMessages: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+                direction?: "in" | "out";
+                from?: string;
+                subject?: string;
+                thread_id?: string;
+                since?: string;
+                q?: string;
+                inbox_id?: string;
+                status?: "received" | "queued" | "sent" | "delivered" | "bounced" | "complained" | "failed";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description MessageList */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageList"];
                 };
             };
             /** @description Invalid request */
@@ -2098,6 +2268,76 @@ export interface operations {
             };
         };
     };
+    listAllDrafts: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+                status?: "pending" | "approved" | "rejected" | "sent";
+                inbox_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description DraftList */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftList"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not allowed (scope, policy or account state) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this key */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate or daily limit reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getDraft: {
         parameters: {
             query?: never;
@@ -2109,6 +2349,82 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Draft */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Draft"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not allowed (scope, policy or account state) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this key */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate or daily limit reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Draft id (drf_…) */
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    subject?: string;
+                    text?: string | null;
+                    html?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Draft */
             200: {
@@ -3126,6 +3442,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiKeyWithSecret"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not allowed (scope, policy or account state) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this key */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate or daily limit reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getUsage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Usage */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Usage"];
                 };
             };
             /** @description Invalid request */

@@ -1,11 +1,11 @@
 import { forwardSubject, replyReferences, replySubject } from "@send0/core";
 import { schema, type MailboxJson } from "@send0/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 import { loadInbox, loadMessage } from "../access";
-import { requireScope } from "../auth";
-import { forbidden, invalid, notFound } from "../errors";
+import { requireApprover, requireScope } from "../auth";
+import { ApiError, conflict, invalid, notFound } from "../errors";
 import { listQuery, pageOrder, pageWhere, toPage } from "../pagination";
 import { send, serializeDraft, type SendPayload, type SendResult } from "../sending/service";
 import type { AppEnv } from "../types";
@@ -36,6 +36,15 @@ export const replyBody = z
 export const forwardBody = z.object({ to: addressList, cc: addressList.optional(), bcc: addressList.optional(), ...body });
 
 export const draftListQuery = listQuery.extend({ status: z.enum(["pending", "approved", "rejected", "sent"]).optional() });
+export const orgDraftListQuery = draftListQuery.extend({ inbox_id: z.string().max(40).optional() });
+
+export const draftUpdateBody = z
+  .object({
+    subject: z.string().trim().min(1).max(998).optional(),
+    text: z.string().max(500_000).nullable().optional(),
+    html: z.string().max(1_000_000).nullable().optional(),
+  })
+  .refine((b) => b.subject !== undefined || b.text !== undefined || b.html !== undefined, { message: "change subject, text or html" });
 
 function respond(c: Context<AppEnv>, r: SendResult) {
   return r.kind === "draft" ? c.json(r.draft, 202) : c.json(r.message, 201);
@@ -164,36 +173,105 @@ async function loadDraft(c: Context<AppEnv>, id: string) {
   return row;
 }
 
-/** Mounted at /v1/drafts. Approving or rejecting needs an admin key, so an agent can't approve its own mail. */
+/** Mounted at /v1/drafts. Approving or rejecting needs a person or an admin key (see requireApprover). */
 export const draftRoutes = new Hono<AppEnv>()
+  .get("/", validate("query", orgDraftListQuery), async (c) => {
+    const auth = c.get("auth");
+    requireScope(auth, "read");
+    const { limit, cursor, status, inbox_id } = c.req.valid("query");
+    if (inbox_id) await loadInbox(c, inbox_id);
+    const rows = await c
+      .get("deps")
+      .db.select({ draft: drafts })
+      .from(drafts)
+      .innerJoin(inboxes, eq(inboxes.id, drafts.inboxId))
+      .where(
+        and(
+          eq(drafts.orgId, auth.orgId),
+          isNull(inboxes.deletedAt),
+          inbox_id ? eq(drafts.inboxId, inbox_id) : undefined,
+          auth.inboxIds ? inArray(drafts.inboxId, auth.inboxIds.length ? auth.inboxIds : [""]) : undefined,
+          status ? eq(drafts.status, status) : undefined,
+          pageWhere(cursor, drafts.createdAt, drafts.id),
+        ),
+      )
+      .orderBy(...pageOrder(drafts.createdAt, drafts.id))
+      .limit(limit + 1)
+      .then((r) => r.map((x) => x.draft));
+    return c.json(toPage(rows, limit, (d) => ({ at: d.createdAt, id: d.id }), serializeDraft));
+  })
+
   .get("/:id", async (c) => {
     requireScope(c.get("auth"), "read");
     return c.json(serializeDraft(await loadDraft(c, c.req.param("id"))));
   })
 
+  // Edit a pending draft before approving it. Same rule as approving: an agent can't change
+  // what's waiting for review after a person has looked at it.
+  .patch("/:id", validate("json", draftUpdateBody), async (c) => {
+    const auth = c.get("auth");
+    requireApprover(auth);
+    const draft = await loadDraft(c, c.req.param("id"));
+    if (draft.status !== "pending") throw conflict("draft_decided", `This draft is already ${draft.status}.`);
+    const b = c.req.valid("json");
+    const payload = draft.payload as unknown as SendPayload;
+    const next: SendPayload = {
+      ...payload,
+      ...(b.subject !== undefined ? { subject: b.subject } : {}),
+      ...(b.text !== undefined ? { text: b.text } : {}),
+      ...(b.html !== undefined ? { html: b.html } : {}),
+    };
+    if (!next.text?.trim() && !next.html?.trim()) throw new ApiError(400, "invalid_request", "A draft needs text, html or both.", "text");
+    const [row] = await c
+      .get("deps")
+      .db.update(drafts)
+      .set({ payload: next as unknown as Record<string, unknown> })
+      .where(and(eq(drafts.id, draft.id), eq(drafts.status, "pending")))
+      .returning();
+    if (!row) throw conflict("draft_decided", "This draft was just decided.");
+    return c.json(serializeDraft(row));
+  })
+
   .post("/:id/send", async (c) => {
     const auth = c.get("auth");
-    requireScope(auth, "admin");
+    requireApprover(auth);
     const draft = await loadDraft(c, c.req.param("id"));
-    if (draft.status !== "pending") throw forbidden(`This draft is already ${draft.status}.`);
     const { db, now = () => new Date() } = c.get("deps");
+    // Claim it first, so two people approving at once can't both send it.
+    const [claimed] = await db
+      .update(drafts)
+      .set({ status: "approved", decidedBy: auth.keyId, decidedAt: now() })
+      .where(and(eq(drafts.id, draft.id), eq(drafts.status, "pending")))
+      .returning();
+    if (!claimed) throw conflict("draft_decided", `This draft is already ${(await loadDraft(c, draft.id)).status}.`);
     const [row] = await db
       .select({ inbox: inboxes, domain: domains.name })
       .from(inboxes)
       .innerJoin(domains, eq(domains.id, inboxes.domainId))
       .where(eq(inboxes.id, draft.inboxId));
-    const result = await send(c.get("deps"), auth, row!.inbox, row!.domain, draft.payload as unknown as SendPayload, { approved: true });
-    await db.update(drafts).set({ status: "sent", decidedBy: auth.keyId, decidedAt: now() }).where(eq(drafts.id, draft.id));
+    let result: SendResult;
+    try {
+      result = await send(c.get("deps"), auth, row!.inbox, row!.domain, claimed.payload as unknown as SendPayload, { approved: true });
+    } catch (err) {
+      // Not sent (policy, limits, provider): back to the queue so someone can try again.
+      await db.update(drafts).set({ status: "pending", decidedBy: null, decidedAt: null }).where(eq(drafts.id, draft.id));
+      throw err;
+    }
+    await db.update(drafts).set({ status: "sent" }).where(eq(drafts.id, draft.id));
     return respond(c, result);
   })
 
   .post("/:id/reject", async (c) => {
     const auth = c.get("auth");
-    requireScope(auth, "admin");
+    requireApprover(auth);
     const draft = await loadDraft(c, c.req.param("id"));
-    if (draft.status !== "pending") throw forbidden(`This draft is already ${draft.status}.`);
     const { db, now = () => new Date() } = c.get("deps");
-    const [row] = await db.update(drafts).set({ status: "rejected", decidedBy: auth.keyId, decidedAt: now() }).where(eq(drafts.id, draft.id)).returning();
-    return c.json(serializeDraft(row!));
+    const [row] = await db
+      .update(drafts)
+      .set({ status: "rejected", decidedBy: auth.keyId, decidedAt: now() })
+      .where(and(eq(drafts.id, draft.id), eq(drafts.status, "pending")))
+      .returning();
+    if (!row) throw conflict("draft_decided", `This draft is already ${(await loadDraft(c, draft.id)).status}.`);
+    return c.json(serializeDraft(row));
   });
 

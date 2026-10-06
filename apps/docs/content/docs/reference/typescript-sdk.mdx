@@ -26,12 +26,13 @@ No dependencies. Runs on Node 18+, Bun, Deno, Cloudflare Workers and browsers. T
 | | |
 |---|---|
 | **inboxes** | `create(params?)` · `list(params?)` · `get(id)` · `update(id, params)` · `delete(id)` · `wait(id, { from, subject, direction, since, timeout })` |
-| **messages** | `list(inboxId, { from, subject, q, direction, since, thread_id })` · `get(id)` · `send(inboxId, params)` · `reply(id, params)` · `forward(id, params)` · `attachment(id, attachmentId)` · `rawUrl(id)` |
+| **messages** | `list(inboxId, { from, subject, q, direction, since, thread_id })` · `listAll({ inbox_id, status, … })` · `get(id)` · `send(inboxId, params)` · `reply(id, params)` · `forward(id, params)` · `attachment(id, attachmentId)` · `rawUrl(id)` |
 | **threads** | `list(inboxId)` · `get(inboxId, threadId, { include_html })` |
-| **drafts** | `list(inboxId, { status })` · `get(id)` · `send(id)` · `reject(id)` |
+| **drafts** | `list(inboxId, { status })` · `listAll({ status, inbox_id })` · `get(id)` · `update(id, { subject, text, html })` · `send(id)` · `reject(id)` |
 | **webhooks** | `create` · `list` · `get` · `update` · `delete` · `rotateSecret` · `test` · `deliveries` · `retryDelivery` · `verify(rawBody, header, secret)` |
 | **apiKeys** | `create` · `list` · `revoke` |
 | **events** | `stream({ inboxId?, lastEventId?, signal? })`: an async iterable of events that reconnects and resumes on its own |
+| **usage** | `get()`: plan, inboxes used, sends today against the daily limit, and whether sending is paused |
 
 Also exported: `verifyWebhook()`, `isDraft()`, `Send0Error`, `Page`, and types for every object (`Inbox`, `Message`, `Thread`, `Draft`, `Webhook`, `Event`, …).
 

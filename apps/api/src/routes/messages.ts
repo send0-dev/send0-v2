@@ -1,6 +1,6 @@
 import { schema } from "@send0/db";
 import { serializeAttachment, serializeMessage } from "@send0/pipeline";
-import { and, asc, eq, gte, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { loadInbox, loadMessage } from "../access";
@@ -10,7 +10,7 @@ import { listQuery, pageOrder, pageWhere, toPage } from "../pagination";
 import type { AppEnv } from "../types";
 import { validate } from "../validation";
 
-const { messages, attachments } = schema;
+const { messages, attachments, inboxes } = schema;
 
 /** Download links stay valid for 15 minutes. */
 export const DOWNLOAD_TTL_SECONDS = 15 * 60;
@@ -112,8 +112,44 @@ export const inboxMessageRoutes = new Hono<AppEnv>()
   return c.json(toPage(rows, limit, (m) => ({ at: m.createdAt, id: m.id }), (m) => serializeMessage(m, atts.get(m.id) ?? [])));
 });
 
+export const MESSAGE_STATUSES = ["received", "queued", "sent", "delivered", "bounced", "complained", "failed"] as const;
+
+/** Mounted at /v1/messages: every inbox the key can see, newest first */
+export const orgMessageListQuery = messageListQuery.extend({
+  inbox_id: z.string().max(40).optional(),
+  status: z.enum(MESSAGE_STATUSES).optional(),
+});
+
 /** Mounted at /v1/messages */
 export const messageRoutes = new Hono<AppEnv>()
+  .get("/", validate("query", orgMessageListQuery), async (c) => {
+    const auth = c.get("auth");
+    requireScope(auth, "read");
+    const { limit, cursor, inbox_id, status, ...filters } = c.req.valid("query");
+    if (inbox_id) await loadInbox(c, inbox_id);
+    const { db } = c.get("deps");
+    const rows = await db
+      .select({ message: messages })
+      .from(messages)
+      .innerJoin(inboxes, eq(inboxes.id, messages.inboxId))
+      .where(
+        and(
+          eq(messages.orgId, auth.orgId),
+          isNull(inboxes.deletedAt),
+          inbox_id ? eq(messages.inboxId, inbox_id) : undefined,
+          auth.inboxIds ? inArray(messages.inboxId, auth.inboxIds.length ? auth.inboxIds : [""]) : undefined,
+          status ? eq(messages.status, status) : undefined,
+          ...filterConditions(filters),
+          pageWhere(cursor, messages.createdAt, messages.id),
+        ),
+      )
+      .orderBy(...pageOrder(messages.createdAt, messages.id))
+      .limit(limit + 1)
+      .then((r) => r.map((x) => x.message));
+    const atts = await withAttachments(db, rows);
+    return c.json(toPage(rows, limit, (m) => ({ at: m.createdAt, id: m.id }), (m) => serializeMessage(m, atts.get(m.id) ?? [])));
+  })
+
   .get("/:id", async (c) => {
     requireScope(c.get("auth"), "read");
     const message = await loadMessage(c, c.req.param("id"));

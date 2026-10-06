@@ -77,7 +77,11 @@ describe("responses match the spec", () => {
     const draft = check(S.Draft, (await t.call("POST", `/v1/messages/${dana.id}/forward`, { body: { to: "dana@gmail.com" } })).body);
     check(S.DraftList, (await t.call("GET", `/v1/inboxes/${inbox.id}/drafts`)).body);
     check(S.Draft, (await t.call("GET", `/v1/drafts/${draft.id}`)).body);
+    check(S.DraftList, (await t.call("GET", "/v1/drafts?status=pending")).body);
+    check(S.Draft, (await t.call("PATCH", `/v1/drafts/${draft.id}`, { body: { text: "edited" } })).body);
     check(S.Message, (await t.call("POST", `/v1/drafts/${draft.id}/send`)).body);
+    check(S.MessageList, (await t.call("GET", `/v1/messages?inbox_id=${inbox.id}&direction=out`)).body);
+    check(S.Usage, (await t.call("GET", "/v1/usage")).body);
 
     const hook = check(S.WebhookWithSecret, (await t.call("POST", "/v1/webhooks", { body: { url: "https://example.com/h" } })).body);
     check(S.WebhookList, (await t.call("GET", "/v1/webhooks")).body);

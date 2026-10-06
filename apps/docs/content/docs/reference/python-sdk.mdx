@@ -60,12 +60,13 @@ Same shape as the [TypeScript SDK](/reference/typescript-sdk), in snake_case:
 | | |
 |---|---|
 | **inboxes** | `create` · `list` · `get` · `update` · `delete` · `wait(inbox_id, from_=, subject=, direction=, since=, timeout=)` |
-| **messages** | `list(inbox_id, from_=, subject=, q=, direction=, since=, thread_id=)` · `get` · `send` · `reply` · `forward` · `attachment` · `raw_url` |
+| **messages** | `list(inbox_id, from_=, subject=, q=, direction=, since=, thread_id=)` · `list_all(inbox_id=, status=, …)` · `get` · `send` · `reply` · `forward` · `attachment` · `raw_url` |
 | **threads** | `list` · `get(inbox_id, thread_id, include_html=)` |
-| **drafts** | `list` · `get` · `send` · `reject` |
+| **drafts** | `list` · `list_all(status=, inbox_id=)` · `get` · `update(draft_id, subject=, text=, html=)` · `send` · `reject` |
 | **webhooks** | `create` · `list` · `get` · `update` · `delete` · `rotate_secret` · `test` · `deliveries` · `retry_delivery` · `verify` |
 | **api_keys** | `create` · `list` · `revoke` |
 | **events** | `stream(inbox_id=, last_event_id=)`: iterator that reconnects and resumes |
+| **usage** | `get()`: plan, inboxes used, sends today against the daily limit, paused state |
 
 `update()` arguments you leave out stay unchanged; pass `None` to clear a field (for example `display_name=None`).
 

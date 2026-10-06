@@ -11,6 +11,10 @@ const LAST_USED_RESOLUTION_MS = 60_000;
 export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
   const preset = c.get("deps").presetAuth;
   if (preset) {
+    // The dashboard already knows who this is; the workspace must still be in good standing.
+    const [org] = await c.get("deps").db.select({ status: orgs.status, deletedAt: orgs.deletedAt }).from(orgs).where(eq(orgs.id, preset.orgId));
+    if (!org || org.deletedAt) throw unauthorized();
+    if (org.status !== "active") throw forbidden("This organization is suspended. Contact support@send0.dev.");
     c.set("auth", preset);
     return next();
   }
@@ -74,4 +78,13 @@ export function requireScope(auth: AuthContext, scope: Scope): void {
 /** Keys restricted to specific inboxes may only touch those. Throws not_found so ids don't leak. */
 export function canAccessInbox(auth: AuthContext, inboxId: string): boolean {
   return auth.inboxIds === null || auth.inboxIds.includes(inboxId);
+}
+
+/**
+ * Approving or rejecting a draft needs a person (the dashboard) or an admin key,
+ * so an agent holding a send key can't approve its own mail.
+ */
+export function requireApprover(auth: AuthContext): void {
+  if (auth.actor === "user") return;
+  if (!auth.scopes.includes("admin")) throw forbidden("Approving drafts needs an admin key or a signed-in member.");
 }
