@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMime, encodeHeaderValue, forwardSubject, parseInbound, replyReferences, replySubject } from "../src";
+import { buildMime, displayNameFromLocalPart, encodeHeaderValue, encodeQuotedPrintable, forwardSubject, parseInbound, replyReferences, replySubject } from "../src";
 
 const opts = { trustedAuthservIds: [] };
 const base = {
@@ -71,6 +71,45 @@ describe("buildMime", () => {
     const toHeader = raw.split("\r\nSubject:")[0]!.split("To: ")[1]!;
     expect(toHeader.split("\r\n").length).toBeGreaterThan(1);
     expect(toHeader.split("\r\n").every((l) => l.length <= 78)).toBe(true);
+  });
+});
+
+describe("deliverability details", () => {
+  it("uses quoted-printable, not base64, for text", () => {
+    const raw = buildMime({ ...base, html: "<p>Hi</p>" });
+    expect(raw).not.toContain("Content-Transfer-Encoding: base64");
+    expect(raw.match(/Content-Transfer-Encoding: quoted-printable/g)).toHaveLength(2);
+    expect(raw).toContain("Can you confirm Thursday?");
+  });
+
+  it("adds a text part when only html is given, and wraps fragments", async () => {
+    const raw = buildMime({ ...base, text: null, html: "<p>Your code is <b>482913</b>.</p>" });
+    const p = await parseInbound(raw, { trustedAuthservIds: [] });
+    expect(p.text).toContain("Your code is 482913.");
+    expect(p.html).toMatch(/^<!DOCTYPE html>/);
+  });
+
+  it("encodes QP correctly at the edges", () => {
+    expect(encodeQuotedPrintable("a=b")).toBe("a=3Db");
+    expect(encodeQuotedPrintable("trailing ")).toBe("trailing=20");
+    expect(encodeQuotedPrintable("é")).toBe("=C3=A9");
+    const long = encodeQuotedPrintable("é".repeat(60));
+    for (const line of long.split("\r\n")) {
+      expect(line.length).toBeLessThanOrEqual(76);
+      expect(line).toMatch(/^(=[0-9A-F]{2})*=?$/);
+    }
+  });
+
+  it("round-trips long, multilingual, multi-line bodies through QP", async () => {
+    const text = "Line one with = sign\n" + "très long ".repeat(40) + "\n\nend 👍 ";
+    const p = await parseInbound(buildMime({ ...base, text }), { trustedAuthservIds: [] });
+    expect(p.text.replace(/\r\n/g, "\n").replace(/\n$/, "")).toBe(text); // the final CRLF ends the part
+  });
+
+  it("makes display names from local parts", () => {
+    expect(displayNameFromLocalPart("procurement-agent")).toBe("Procurement Agent");
+    expect(displayNameFromLocalPart("test")).toBe("Test");
+    expect(displayNameFromLocalPart("agent.v2_bot")).toBe("Agent V2 Bot");
   });
 });
 

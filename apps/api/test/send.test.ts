@@ -106,6 +106,13 @@ describe("send", () => {
     expect(text).toContain(parent.text.trim());
   });
 
+  it("defaults the sender name from the inbox name", async () => {
+    const plain = (await t.call("POST", "/v1/inboxes", { body: { name: "billing-desk" } })).body.id;
+    await deliver(t.db, "billing-desk@send0.email", fixture("gmail-reply.eml"));
+    await t.call("POST", `/v1/inboxes/${plain}/messages`, { body: { to: "dana@gmail.com", subject: "Invoice", text: "Attached." } });
+    expect((await parsed()).from).toEqual({ name: "Billing Desk", email: "billing-desk@send0.email" });
+  });
+
   it("test keys go through every check but never send", async () => {
     const key = await t.makeKey({ scopes: ["send", "read"], mode: "test" });
     const r = await send({ to: "dana@gmail.com", subject: "CI run", text: "ok" }, key);

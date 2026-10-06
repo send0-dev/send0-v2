@@ -1,5 +1,5 @@
 import { MailerError } from "@send0/adapters/mailer";
-import { buildMime, newId, normalizeSubject, rfcMessageId } from "@send0/core";
+import { buildMime, displayNameFromLocalPart, newId, normalizeSubject, rfcMessageId } from "@send0/core";
 import { schema, type MailboxJson } from "@send0/db";
 import { serializeMessage, toEnvelope } from "@send0/pipeline";
 import { eq, sql } from "drizzle-orm";
@@ -122,7 +122,7 @@ export async function send(
   const address = `${inbox.localPart}@${domain}`;
   const id = newId("msg");
   const rfcId = rfcMessageId(id, domain);
-  const from: MailboxJson = { name: inbox.displayName, email: address };
+  const from: MailboxJson = { name: inbox.displayName ?? displayNameFromLocalPart(inbox.localPart), email: address };
   const raw = buildMime({
     from,
     to: payload.to,

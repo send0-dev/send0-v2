@@ -1,3 +1,5 @@
+import { htmlToText } from "./html";
+
 export interface MimeAddress {
   name?: string | null;
   email: string;
@@ -69,10 +71,53 @@ function fold(name: string, items: string[], sep: string): string {
   return lines.join(CRLF);
 }
 
-/** Body part as base64, wrapped at 76 chars: safe for any UTF-8 and any line length. */
+/**
+ * Quoted-printable (RFC 2045) for UTF-8 text. Readable text in base64 is a spam-filter signal
+ * (e.g. SpamAssassin MIME_BASE64_TEXT); QP is what mainstream mail clients send.
+ */
+export function encodeQuotedPrintable(text: string): string {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  return lines
+    .map((line) => {
+      let encoded = "";
+      for (const byte of enc.encode(line)) {
+        const ch = String.fromCharCode(byte);
+        encoded += (byte >= 33 && byte <= 126 && ch !== "=") || byte === 32 || byte === 9 ? ch : `=${byte.toString(16).toUpperCase().padStart(2, "0")}`;
+      }
+      // Trailing whitespace must be encoded or it may be stripped in transit.
+      encoded = encoded.replace(/[ \t]$/, (ws) => `=${ws.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`);
+      // Soft line breaks: at most 76 chars per line, never splitting an =XX escape.
+      const out: string[] = [];
+      while (encoded.length > 76) {
+        let cut = 75;
+        const esc = encoded.lastIndexOf("=", cut);
+        if (esc > cut - 3) cut = esc;
+        out.push(`${encoded.slice(0, cut)}=`);
+        encoded = encoded.slice(cut);
+      }
+      out.push(encoded);
+      return out.join(CRLF);
+    })
+    .join(CRLF);
+}
+
 function part(contentType: string, body: string): string {
-  const b64 = base64(enc.encode(body)).replace(/.{76}/g, `$&${CRLF}`);
-  return `Content-Type: ${contentType}; charset=utf-8${CRLF}Content-Transfer-Encoding: base64${CRLF}${CRLF}${b64}`;
+  return `Content-Type: ${contentType}; charset=utf-8${CRLF}Content-Transfer-Encoding: quoted-printable${CRLF}${CRLF}${encodeQuotedPrintable(body)}`;
+}
+
+/** Wraps an HTML fragment in a minimal document; complete documents are left alone. */
+export function wrapHtml(html: string): string {
+  if (/<html[\s>]/i.test(html)) return html;
+  return `<!DOCTYPE html>\n<html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
+}
+
+/** "procurement-agent" → "Procurement Agent": a friendly default display name for an inbox. */
+export function displayNameFromLocalPart(localPart: string): string {
+  return localPart
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((w) => w[0]!.toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 /** RFC 5322 date in UTC: "Mon, 05 Oct 2026 10:14:03 +0000" */
@@ -109,13 +154,17 @@ export function buildMime(m: OutgoingMessage): string {
     headers.push(`${k}: ${encodeHeaderValue(clean(v))}`);
   }
 
+  // Always send a text part: HTML-only mail scores worse with spam filters.
+  const html = m.html ? wrapHtml(m.html) : null;
+  const text = m.text ?? (html ? htmlToText(html) : null);
+
   let body: string;
-  if (m.text && m.html) {
+  if (text && html) {
     const boundary = `=_send0_${base64(crypto.getRandomValues(new Uint8Array(12))).replace(/[+/=]/g, "")}`;
     headers.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
-    body = [`--${boundary}`, part("text/plain", m.text), `--${boundary}`, part("text/html", m.html), `--${boundary}--`, ""].join(CRLF);
+    body = [`--${boundary}`, part("text/plain", text), `--${boundary}`, part("text/html", html), `--${boundary}--`, ""].join(CRLF);
   } else {
-    const [type, content] = m.html ? ["text/html", m.html] : ["text/plain", m.text!];
+    const [type, content] = ["text/plain", text!];
     const p = part(type, content);
     const split = p.indexOf(CRLF + CRLF);
     headers.push(...p.slice(0, split).split(CRLF));
