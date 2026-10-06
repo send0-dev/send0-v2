@@ -1,6 +1,20 @@
-const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const ALPHABET =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-export type IdPrefix = "org" | "dom" | "ibx" | "thr" | "msg" | "drf" | "att" | "whk" | "evt" | "key" | "dlv";
+export type IdPrefix =
+  | "org"
+  | "dom"
+  | "ibx"
+  | "thr"
+  | "msg"
+  | "drf"
+  | "att"
+  | "whk"
+  | "evt"
+  | "key"
+  | "dlv"
+  | "usr"
+  | "ses";
 
 /** Random, URL-safe id such as `msg_4Tq1x9…`. 16 base62 chars ≈ 95 bits of entropy. */
 export function newId(prefix: IdPrefix, length = 16): string {

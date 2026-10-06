@@ -17,5 +17,5 @@ export const site = {
   },
   operator: "Kunal Dholiya",
   country: "India",
-  legalUpdated: "October 5, 2026",
+  legalUpdated: "October 6, 2026",
 } as const;

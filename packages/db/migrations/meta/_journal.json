@@ -15,6 +15,13 @@
       "when": 1791272607799,
       "tag": "0001_sending_controls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791286811188,
+      "tag": "0002_dashboard_auth",
+      "breakpoints": true
     }
   ]
 }

@@ -28,6 +28,11 @@ export interface AppDeps {
   mailer?: Mailer;
   /** Push a committed event to real-time hubs and the webhook queue */
   publish?: (orgId: string, envelope: EventEnvelope) => Promise<void>;
+  /**
+   * Already-authenticated caller (the dashboard, over a private service binding).
+   * When set, requests skip API-key auth and act with this context.
+   */
+  presetAuth?: AuthContext;
   /** SNS → SES events endpoint: shared secret in the URL, and the only topic we accept */
   sesEvents?: { token: string; topicArn: string };
   /** Defer work past the response (ctx.waitUntil on Workers). */

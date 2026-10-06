@@ -17,7 +17,8 @@ import {
 
 const tsvector = customType<{ data: string }>({ dataType: () => "tsvector" });
 
-const createdAt = () => timestamp({ withTimezone: true }).notNull().defaultNow();
+const createdAt = () =>
+  timestamp({ withTimezone: true }).notNull().defaultNow();
 const updatedAt = () =>
   timestamp({ withTimezone: true })
     .notNull()
@@ -34,8 +35,12 @@ export interface MailboxJson {
 export const orgs = pgTable("orgs", {
   id: text().primaryKey(), // org_…
   name: text().notNull(),
-  plan: text({ enum: ["free", "pro", "scale"] }).notNull().default("free"),
-  status: text({ enum: ["active", "suspended"] }).notNull().default("active"),
+  plan: text({ enum: ["free", "pro", "scale"] })
+    .notNull()
+    .default("free"),
+  status: text({ enum: ["active", "suspended"] })
+    .notNull()
+    .default("active"),
   /** Outbound messages allowed per UTC day. New orgs start low; raised as reputation builds. */
   dailySendLimit: integer().notNull().default(50),
   /** Set when sending is paused (complaint/bounce thresholds or by hand). Receiving keeps working. */
@@ -43,6 +48,91 @@ export const orgs = pgTable("orgs", {
   sendingPausedReason: text(),
   createdAt: createdAt(),
 });
+
+export const users = pgTable(
+  "users",
+  {
+    id: text().primaryKey(), // usr_…
+    email: text().notNull(),
+    name: text(),
+    /** pbkdf2-sha256$<iterations>$<salt b64>$<hash b64> */
+    passwordHash: text().notNull(),
+    emailVerifiedAt: timestamp({ withTimezone: true }),
+    /** Onboarding finished (org named, first inbox, key shown) */
+    onboardedAt: timestamp({ withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("users_email_idx").on(sql`lower(${t.email})`)]
+);
+
+export const members = pgTable(
+  "members",
+  {
+    orgId: text()
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    userId: text()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text({ enum: ["owner", "admin", "member"] })
+      .notNull()
+      .default("owner"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.orgId, t.userId] }),
+    index("members_user_idx").on(t.userId),
+  ]
+);
+
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: text().primaryKey(), // ses_…
+    userId: text()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** SHA-256 of the cookie value; the cookie itself is never stored */
+    tokenHash: text().notNull(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    lastSeenAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    ip: text(),
+    userAgent: text(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("sessions_token_idx").on(t.tokenHash),
+    index("sessions_user_idx").on(t.userId),
+  ]
+);
+
+/** Single-use, expiring tokens for email verification and password reset. */
+export const authTokens = pgTable(
+  "auth_tokens",
+  {
+    tokenHash: text().primaryKey(),
+    userId: text()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    purpose: text({ enum: ["verify_email", "reset_password"] }).notNull(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    usedAt: timestamp({ withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("auth_tokens_user_idx").on(t.userId, t.purpose)]
+);
+
+/** Fixed-window counters for login, sign-up and email rate limits. */
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    key: text().primaryKey(), // e.g. "login:ip:1.2.3.4:2026-10-06T10:15"
+    count: integer().notNull().default(0),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+  },
+  (t) => [index("rate_limits_expires_idx").on(t.expiresAt)]
+);
 
 export const apiKeys = pgTable(
   "api_keys",
@@ -64,7 +154,10 @@ export const apiKeys = pgTable(
     revokedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("api_keys_hash_idx").on(t.hash), index("api_keys_org_idx").on(t.orgId)],
+  (t) => [
+    uniqueIndex("api_keys_hash_idx").on(t.hash),
+    index("api_keys_org_idx").on(t.orgId),
+  ]
 );
 
 export const idempotencyKeys = pgTable(
@@ -82,7 +175,10 @@ export const idempotencyKeys = pgTable(
     responseBody: jsonb(),
     createdAt: createdAt(),
   },
-  (t) => [primaryKey({ columns: [t.orgId, t.key] }), index("idempotency_created_idx").on(t.createdAt)],
+  (t) => [
+    primaryKey({ columns: [t.orgId, t.key] }),
+    index("idempotency_created_idx").on(t.createdAt),
+  ]
 );
 
 // ---------- Addresses ----------
@@ -95,14 +191,19 @@ export const domains = pgTable(
     orgId: text().references(() => orgs.id, { onDelete: "cascade" }),
     name: text().notNull(),
     kind: text({ enum: ["shared", "custom", "sandbox"] }).notNull(),
-    status: text({ enum: ["pending", "verified", "failed"] }).notNull().default("pending"),
+    status: text({ enum: ["pending", "verified", "failed"] })
+      .notNull()
+      .default("pending"),
     dkimSelector: text(),
     /** DNS records the customer must publish, with last check results */
     records: jsonb().$type<unknown[]>().notNull().default([]),
     verifiedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("domains_name_idx").on(sql`lower(${t.name})`), index("domains_org_idx").on(t.orgId)],
+  (t) => [
+    uniqueIndex("domains_name_idx").on(sql`lower(${t.name})`),
+    index("domains_org_idx").on(t.orgId),
+  ]
 );
 
 export const inboxes = pgTable(
@@ -117,9 +218,15 @@ export const inboxes = pgTable(
       .references(() => domains.id),
     localPart: text().notNull(),
     displayName: text(),
-    mode: text({ enum: ["live", "sandbox"] }).notNull().default("live"),
-    sendPolicy: text({ enum: ["open", "reply_only", "approval"] }).notNull().default("reply_only"),
-    status: text({ enum: ["active", "suspended", "deleted"] }).notNull().default("active"),
+    mode: text({ enum: ["live", "sandbox"] })
+      .notNull()
+      .default("live"),
+    sendPolicy: text({ enum: ["open", "reply_only", "approval"] })
+      .notNull()
+      .default("reply_only"),
+    status: text({ enum: ["active", "suspended", "deleted"] })
+      .notNull()
+      .default("active"),
     retentionDays: integer().notNull().default(7),
     metadata: jsonb().$type<Record<string, unknown>>().notNull().default({}),
     expiresAt: timestamp({ withTimezone: true }),
@@ -129,9 +236,12 @@ export const inboxes = pgTable(
   },
   (t) => [
     // Addresses are never reused, even after deletion: the row stays, so the unique index holds.
-    uniqueIndex("inboxes_address_idx").on(t.domainId, sql`lower(${t.localPart})`),
+    uniqueIndex("inboxes_address_idx").on(
+      t.domainId,
+      sql`lower(${t.localPart})`
+    ),
     index("inboxes_org_idx").on(t.orgId, t.createdAt.desc()),
-  ],
+  ]
 );
 
 // ---------- Mail ----------
@@ -149,16 +259,26 @@ export const threads = pgTable(
     subject: text().notNull().default(""),
     subjectNorm: text().notNull().default(""),
     /** Lowercased addresses of everyone on the thread except the inbox */
-    participants: text().array().notNull().default(sql`'{}'::text[]`),
+    participants: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     messageCount: integer().notNull().default(0),
     lastMessageAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    labels: text().array().notNull().default(sql`'{}'::text[]`),
+    labels: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     createdAt: createdAt(),
   },
   (t) => [
     index("threads_inbox_recent_idx").on(t.inboxId, t.lastMessageAt.desc()),
-    index("threads_inbox_subject_idx").on(t.inboxId, t.subjectNorm, t.lastMessageAt.desc()),
-  ],
+    index("threads_inbox_subject_idx").on(
+      t.inboxId,
+      t.subjectNorm,
+      t.lastMessageAt.desc()
+    ),
+  ]
 );
 
 export const messages = pgTable(
@@ -175,10 +295,26 @@ export const messages = pgTable(
       .notNull()
       .references(() => threads.id, { onDelete: "cascade" }),
     direction: text({ enum: ["in", "out"] }).notNull(),
-    status: text({ enum: ["received", "queued", "sent", "delivered", "bounced", "complained", "failed"] }).notNull(),
+    status: text({
+      enum: [
+        "received",
+        "queued",
+        "sent",
+        "delivered",
+        "bounced",
+        "complained",
+        "failed",
+      ],
+    }).notNull(),
     rfcMessageId: text(),
-    inReplyTo: text().array().notNull().default(sql`'{}'::text[]`),
-    references: text().array().notNull().default(sql`'{}'::text[]`),
+    inReplyTo: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    references: text()
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     from: jsonb().$type<MailboxJson>(),
     to: jsonb().$type<MailboxJson[]>().notNull().default([]),
     cc: jsonb().$type<MailboxJson[]>().notNull().default([]),
@@ -187,8 +323,17 @@ export const messages = pgTable(
     text: text(),
     html: text(),
     extractedText: text(),
-    extracted: jsonb().$type<{ otp: string | null; links: string[]; actionLink: string | null }>(),
-    auth: jsonb().$type<{ spf: string; dkim: string; dmarc: string; source: string | null }>(),
+    extracted: jsonb().$type<{
+      otp: string | null;
+      links: string[];
+      actionLink: string | null;
+    }>(),
+    auth: jsonb().$type<{
+      spf: string;
+      dkim: string;
+      dmarc: string;
+      source: string | null;
+    }>(),
     safety: jsonb().$type<{ promptInjection: string; reasons: string[] }>(),
     /** Plus-address tag the message was sent to, e.g. "task42" for bot+task42@ */
     tag: text(),
@@ -201,7 +346,7 @@ export const messages = pgTable(
     createdAt: createdAt(),
     tsv: tsvector().generatedAlwaysAs(
       (): SQL =>
-        sql`setweight(to_tsvector('simple', coalesce(${messages.subject}, '')), 'A') || setweight(to_tsvector('simple', coalesce(${messages.extractedText}, ${messages.text}, '')), 'B')`,
+        sql`setweight(to_tsvector('simple', coalesce(${messages.subject}, '')), 'A') || setweight(to_tsvector('simple', coalesce(${messages.extractedText}, ${messages.text}, '')), 'B')`
     ),
   },
   (t) => [
@@ -213,7 +358,7 @@ export const messages = pgTable(
       .on(t.inboxId, t.rfcMessageId)
       .where(sql`${t.direction} = 'in' and ${t.rfcMessageId} is not null`),
     index("messages_tsv_idx").using("gin", t.tsv),
-  ],
+  ]
 );
 
 export const attachments = pgTable(
@@ -234,7 +379,7 @@ export const attachments = pgTable(
     blobKey: text().notNull(),
     createdAt: createdAt(),
   },
-  (t) => [index("attachments_message_idx").on(t.messageId)],
+  (t) => [index("attachments_message_idx").on(t.messageId)]
 );
 
 export const drafts = pgTable(
@@ -249,13 +394,15 @@ export const drafts = pgTable(
       .references(() => inboxes.id, { onDelete: "cascade" }),
     threadId: text().references(() => threads.id, { onDelete: "set null" }),
     payload: jsonb().$type<Record<string, unknown>>().notNull(),
-    status: text({ enum: ["pending", "approved", "rejected", "sent"] }).notNull().default("pending"),
+    status: text({ enum: ["pending", "approved", "rejected", "sent"] })
+      .notNull()
+      .default("pending"),
     decidedBy: text(),
     decidedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("drafts_inbox_idx").on(t.inboxId, t.createdAt.desc())],
+  (t) => [index("drafts_inbox_idx").on(t.inboxId, t.createdAt.desc())]
 );
 
 export const suppressions = pgTable(
@@ -268,7 +415,7 @@ export const suppressions = pgTable(
     reason: text({ enum: ["bounce", "complaint", "manual"] }).notNull(),
     createdAt: createdAt(),
   },
-  (t) => [primaryKey({ columns: [t.orgId, t.email] })],
+  (t) => [primaryKey({ columns: [t.orgId, t.email] })]
 );
 
 // ---------- Events and webhooks ----------
@@ -290,8 +437,10 @@ export const events = pgTable(
   },
   (t) => [
     index("events_org_recent_idx").on(t.orgId, t.createdAt.desc()),
-    index("events_undispatched_idx").on(t.createdAt).where(sql`${t.dispatchedAt} is null`),
-  ],
+    index("events_undispatched_idx")
+      .on(t.createdAt)
+      .where(sql`${t.dispatchedAt} is null`),
+  ]
 );
 
 export const webhooks = pgTable(
@@ -307,10 +456,12 @@ export const webhooks = pgTable(
     events: text().array().notNull(),
     /** null = every inbox */
     inboxIds: text().array(),
-    status: text({ enum: ["enabled", "disabled"] }).notNull().default("enabled"),
+    status: text({ enum: ["enabled", "disabled"] })
+      .notNull()
+      .default("enabled"),
     createdAt: createdAt(),
   },
-  (t) => [index("webhooks_org_idx").on(t.orgId)],
+  (t) => [index("webhooks_org_idx").on(t.orgId)]
 );
 
 export const deliveries = pgTable(
@@ -326,7 +477,9 @@ export const deliveries = pgTable(
     eventId: text()
       .notNull()
       .references(() => events.id, { onDelete: "cascade" }),
-    status: text({ enum: ["pending", "succeeded", "failed"] }).notNull().default("pending"),
+    status: text({ enum: ["pending", "succeeded", "failed"] })
+      .notNull()
+      .default("pending"),
     attempts: integer().notNull().default(0),
     lastStatusCode: integer(),
     lastError: text(),
@@ -337,8 +490,10 @@ export const deliveries = pgTable(
   },
   (t) => [
     uniqueIndex("deliveries_webhook_event_idx").on(t.webhookId, t.eventId),
-    index("deliveries_due_idx").on(t.nextAttemptAt).where(sql`${t.status} = 'pending'`),
-  ],
+    index("deliveries_due_idx")
+      .on(t.nextAttemptAt)
+      .where(sql`${t.status} = 'pending'`),
+  ]
 );
 
 // ---------- Usage ----------
@@ -355,5 +510,5 @@ export const usage = pgTable(
     received: integer().notNull().default(0),
     storageBytes: bigint({ mode: "number" }).notNull().default(0),
   },
-  (t) => [primaryKey({ columns: [t.orgId, t.period] })],
+  (t) => [primaryKey({ columns: [t.orgId, t.period] })]
 );

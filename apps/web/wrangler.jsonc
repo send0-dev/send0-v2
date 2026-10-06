@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "send0-web",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "app.send0.dev", "custom_domain": true }],
+  // The React app; /auth/* and /api/* go to the Worker first.
+  "assets": { "not_found_handling": "single-page-application", "run_worker_first": ["/auth/*", "/api/*"] },
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d4b5efae692848d08e04fa2dd1bab031" }],
+  // The API's private DashboardGateway entrypoint.
+  "services": [{ "binding": "API", "service": "send0-api", "entrypoint": "DashboardGateway" }],
+  "placement": { "mode": "targeted", "region": "aws:ap-southeast-1" },
+  "vars": {
+    "APP_URL": "https://app.send0.dev",
+    "MAIL_FROM": "noreply@send0.dev",
+    "SES_REGION": "ap-south-1",
+    "SES_CONFIGURATION_SET": "send0-default"
+    // Secrets: SES_ACCESS_KEY_ID, SES_SECRET_ACCESS_KEY (system-mail sender)
+  },
+  "observability": { "enabled": true }
+}

@@ -9,6 +9,11 @@ const { apiKeys, orgs } = schema;
 const LAST_USED_RESOLUTION_MS = 60_000;
 
 export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
+  const preset = c.get("deps").presetAuth;
+  if (preset) {
+    c.set("auth", preset);
+    return next();
+  }
   const header = c.req.header("authorization") ?? "";
   const token = header.replace(/^Bearer\s+/i, "").trim();
   if (!looksLikeApiKey(token)) throw unauthorized();
@@ -31,11 +36,21 @@ export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
     .limit(1);
 
   if (!row) throw unauthorized();
-  if (row.orgStatus !== "active") throw forbidden("This organization is suspended. Contact support@send0.dev.");
+  if (row.orgStatus !== "active")
+    throw forbidden(
+      "This organization is suspended. Contact support@send0.dev."
+    );
 
   const at = now();
-  if (!row.lastUsedAt || at.getTime() - row.lastUsedAt.getTime() > LAST_USED_RESOLUTION_MS) {
-    const touch = db.update(apiKeys).set({ lastUsedAt: at }).where(eq(apiKeys.id, row.id)).then(() => undefined);
+  if (
+    !row.lastUsedAt ||
+    at.getTime() - row.lastUsedAt.getTime() > LAST_USED_RESOLUTION_MS
+  ) {
+    const touch = db
+      .update(apiKeys)
+      .set({ lastUsedAt: at })
+      .where(eq(apiKeys.id, row.id))
+      .then(() => undefined);
     waitUntil ? waitUntil(touch) : await touch;
   }
 
