@@ -1,5 +1,6 @@
 import { canManageMember, type Role } from "@send0/auth/permissions";
 import { MoreHorizontal } from "lucide-react";
+import { Avatar } from "@/components/avatar";
 import { DataTable, type Column } from "@/components/data-table";
 import { RelativeTime } from "@/components/relative-time";
 import { Badge } from "@/components/ui/badge";
@@ -17,12 +18,15 @@ export function MembersTable({ members, myRole, myUserId, onRemove }: { members:
       key: "who",
       header: "Member",
       cell: (m) => (
-        <div className="grid">
+        <div className="flex items-center gap-2.5">
+          <Avatar name={m.name ?? m.email} size="md" />
+          <div className="grid">
           <span className="font-medium">
             {m.name ?? m.email.split("@")[0]}
             {m.user_id === myUserId && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(you)</span>}
           </span>
           <span className="text-xs text-muted-foreground">{m.email}</span>
+          </div>
         </div>
       ),
     },

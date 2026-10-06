@@ -82,6 +82,7 @@ describe("responses match the spec", () => {
     check(S.Message, (await t.call("POST", `/v1/drafts/${draft.id}/send`)).body);
     check(S.MessageList, (await t.call("GET", `/v1/messages?inbox_id=${inbox.id}&direction=out`)).body);
     check(S.Usage, (await t.call("GET", "/v1/usage")).body);
+    check(S.Stats, (await t.call("GET", "/v1/stats?days=3")).body);
 
     const hook = check(S.WebhookWithSecret, (await t.call("POST", "/v1/webhooks", { body: { url: "https://example.com/h" } })).body);
     check(S.WebhookList, (await t.call("GET", "/v1/webhooks")).body);

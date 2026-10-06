@@ -71,7 +71,7 @@ export default function AcceptInvitePage() {
     return (
       <>
         <InviteSummary invite={invite} />
-        <Button size="lg" className="w-full" loading={accept.isPending || accept.isSuccess} onClick={() => accept.mutate(undefined, { onError: (e) => toast.error(errorMessage(e)) })}>
+        <Button variant="primary" size="lg" className="w-full" loading={accept.isPending || accept.isSuccess} onClick={() => accept.mutate(undefined, { onError: (e) => toast.error(errorMessage(e)) })}>
           Accept and join {invite.workspace}
         </Button>
       </>
@@ -82,7 +82,7 @@ export default function AcceptInvitePage() {
     <>
       <InviteSummary invite={invite} />
       {invite.has_account ? (
-        <Button asChild size="lg" className="w-full">
+        <Button asChild variant="primary" size="lg" className="w-full">
           <Link to={`/login${next}`}>Log in to accept</Link>
         </Button>
       ) : (

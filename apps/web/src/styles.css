@@ -1,96 +1,134 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/inter";
 @import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Tokens. Neutral and quiet: near-black on white, hairline borders, colour only for state.
- * Orange is the brand, used sparingly (focus ring, one highlight). Dark mode swaps the values.
+ * Tokens, Linear-style: the app sits on a canvas, pages live in a raised panel, and colour is
+ * reserved for meaning (status, brand moments). Dark is the primary design; light mirrors it.
+ *
+ *   canvas   behind everything (sidebar sits directly on it)
+ *   panel    the page surface
+ *   card     surfaces inside the panel
+ *   elevated menus, dialogs, popovers
  */
 :root {
-  --background: #fafafa;
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --primary: #0a0a0a;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #0a0a0a;
-  --muted: #f4f4f5;
-  --muted-foreground: #6b6b70;
-  --accent: #f1f1f2;
-  --accent-foreground: #0a0a0a;
-  --border: #e8e8ea;
-  --input: #e1e1e4;
-  --ring: #ff5a1f;
-  --brand: #ff4f00;
-  --destructive: #d92d20;
-  --destructive-soft: #fef1f0;
-  --success: #12804a;
-  --success-soft: #ecf8f1;
-  --warning: #a35f00;
-  --warning-soft: #fdf5e6;
-  --info: #2563eb;
-  --info-soft: #eef3fe;
-  --sidebar: #fafafa;
+  --canvas: #f3f3f5;
+  --panel: #ffffff;
+  --background: var(--panel);
+  --foreground: #1b1b1f;
+  --card: #fbfbfc;
+  --card-foreground: var(--foreground);
+  --elevated: #ffffff;
+  --popover: var(--elevated);
+  --popover-foreground: var(--foreground);
+  --muted: #f1f1f4;
+  --muted-foreground: #696a74;
+  --faint: #9a9ba4;
+  --hover: rgb(15 15 25 / 0.045);
+  --selected: rgb(15 15 25 / 0.075);
+  --accent: var(--hover);
+  --accent-foreground: var(--foreground);
+  --secondary: #f1f1f4;
+  --secondary-foreground: var(--foreground);
+  --border: #e7e7eb;
+  --border-strong: #d9d9df;
+  --input: #dcdce2;
+  --primary: #1b1b1f;
+  --primary-foreground: #ffffff;
+  --brand: #f26522;
+  --brand-strong: #e0561a;
+  --brand-foreground: #ffffff;
+  --brand-soft: #fff0e8;
+  --ring: #f26522;
+  --destructive: #d93c2e;
+  --destructive-soft: #fdeeec;
+  --success: #1a8a52;
+  --success-soft: #e9f6ef;
+  --warning: #b26a00;
+  --warning-soft: #fdf4e3;
+  --info: #3b5bdb;
+  --info-soft: #edf1fd;
+  --chart-1: #f26522;
+  --chart-2: #8b8d98;
+  --chart-3: #1a8a52;
+  --chart-4: #d93c2e;
+  --shadow-panel: 0 0 0 1px rgb(15 15 25 / 0.04), 0 1px 2px rgb(15 15 25 / 0.04), 0 4px 16px -4px rgb(15 15 25 / 0.06);
+  --shadow-elevated: 0 0 0 1px rgb(15 15 25 / 0.06), 0 8px 24px -6px rgb(15 15 25 / 0.16), 0 2px 6px rgb(15 15 25 / 0.06);
   --radius: 0.5rem;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card: #111111;
-  --card-foreground: #ededed;
-  --popover: #141414;
-  --popover-foreground: #ededed;
-  --primary: #ededed;
-  --primary-foreground: #0a0a0a;
-  --secondary: #1c1c1c;
-  --secondary-foreground: #ededed;
-  --muted: #1a1a1a;
-  --muted-foreground: #a0a0a0;
-  --accent: #1f1f1f;
-  --accent-foreground: #ededed;
-  --border: #242424;
-  --input: #2e2e2e;
-  --ring: #ff6a26;
-  --brand: #ff6a26;
-  --destructive: #f2665a;
-  --destructive-soft: #2a1311;
-  --success: #3ccf7f;
-  --success-soft: #0f2419;
+  --canvas: #08090a;
+  --panel: #0f1011;
+  --foreground: #f7f8f8;
+  --card: #141516;
+  --elevated: #1a1b1d;
+  --muted: #18191b;
+  --muted-foreground: #8a8f98;
+  --faint: #5e626b;
+  --hover: rgb(255 255 255 / 0.04);
+  --selected: rgb(255 255 255 / 0.07);
+  --secondary: #1c1d20;
+  --border: rgb(255 255 255 / 0.07);
+  --border-strong: rgb(255 255 255 / 0.11);
+  --input: rgb(255 255 255 / 0.09);
+  --primary: #f7f8f8;
+  --primary-foreground: #08090a;
+  --brand: #ff7438;
+  --brand-strong: #ff6420;
+  --brand-soft: rgb(255 116 56 / 0.12);
+  --ring: #ff7438;
+  --destructive: #f2685c;
+  --destructive-soft: rgb(242 104 92 / 0.12);
+  --success: #4cc38a;
+  --success-soft: rgb(76 195 138 / 0.12);
   --warning: #f0b453;
-  --warning-soft: #2a1f0e;
-  --info: #6c9cff;
-  --info-soft: #111c33;
-  --sidebar: #0a0a0a;
+  --warning-soft: rgb(240 180 83 / 0.12);
+  --info: #7d9bff;
+  --info-soft: rgb(125 155 255 / 0.12);
+  --chart-1: #ff7438;
+  --chart-2: #5e626b;
+  --chart-3: #4cc38a;
+  --chart-4: #f2685c;
+  --shadow-panel: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 32px -8px rgb(0 0 0 / 0.6);
+  --shadow-elevated: 0 0 0 1px rgb(255 255 255 / 0.08), 0 16px 40px -8px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  color-scheme: dark;
 }
 
 @theme inline {
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
+  --color-canvas: var(--canvas);
+  --color-panel: var(--panel);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-elevated: var(--elevated);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-faint: var(--faint);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-ring: var(--ring);
   --color-destructive: var(--destructive);
   --color-destructive-soft: var(--destructive-soft);
   --color-success: var(--success);
@@ -99,11 +137,37 @@
   --color-warning-soft: var(--warning-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
-  --color-sidebar: var(--sidebar);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --shadow-panel: var(--shadow-panel);
+  --shadow-elevated: var(--shadow-elevated);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
+  --text-xxs: 11px;
+  --text-xxs--line-height: 16px;
+  --animate-enter: enter 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @layer base {
@@ -116,13 +180,49 @@
     height: 100%;
   }
   body {
-    @apply bg-background text-foreground text-sm antialiased;
-    font-feature-settings: "cv11", "ss01";
+    @apply bg-canvas text-foreground antialiased;
+    font-size: 13px;
+    line-height: 1.5;
+    font-feature-settings: "cv01", "cv02", "cv03", "cv04", "ss03", "calt";
+    -webkit-font-smoothing: antialiased;
   }
   ::selection {
-    background: color-mix(in oklab, var(--brand) 25%, transparent);
+    background: color-mix(in oklab, var(--brand) 28%, transparent);
   }
+  :focus-visible {
+    outline: none;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+  /* Soft brand glow behind hero moments (auth, onboarding, empty states). */
+  .glow {
+    background:
+      radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--brand) 16%, transparent), transparent 70%),
+      radial-gradient(40% 40% at 85% 10%, color-mix(in oklab, var(--info) 8%, transparent), transparent 70%);
+  }
+  /* Fine dotted texture for empty canvases. */
+  .dots {
+    background-image: radial-gradient(color-mix(in oklab, var(--foreground) 9%, transparent) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+  .text-balance {
+    text-wrap: balance;
   }
 }

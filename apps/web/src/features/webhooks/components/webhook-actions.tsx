@@ -24,13 +24,13 @@ export function WebhookActions({ webhook }: { webhook: Webhook }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Button variant="secondary" loading={test.isPending} onClick={() => test.mutate(undefined, { onSuccess: () => toast.success("Test event sent"), onError: fail })}>
+      <Button size="sm" loading={test.isPending} onClick={() => test.mutate(undefined, { onSuccess: () => toast.success("Test event sent"), onError: fail })}>
         <Send />
         Send test event
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" aria-label="More actions">
+          <Button variant="ghost" size="icon-sm" aria-label="More actions">
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>

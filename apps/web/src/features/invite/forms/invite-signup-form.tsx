@@ -53,7 +53,7 @@ export function InviteSignupForm({ token, email, workspace }: { token: string; e
           )}
         />
         <FormRootError />
-        <Button type="submit" size="lg" loading={signUp.isPending || signUp.isSuccess}>
+        <Button variant="primary" type="submit" size="lg" loading={signUp.isPending || signUp.isSuccess}>
           Create account and join {workspace}
         </Button>
       </form>

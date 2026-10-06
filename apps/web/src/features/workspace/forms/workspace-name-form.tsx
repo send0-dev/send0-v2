@@ -46,7 +46,7 @@ export function WorkspaceNameForm({
         <FormRootError />
         {!disabled && (
           <div>
-            <Button type="submit" loading={pending} disabled={!form.formState.isDirty && !!defaultName}>
+            <Button variant="primary" type="submit" loading={pending} disabled={!form.formState.isDirty && !!defaultName}>
               {submitLabel}
             </Button>
           </div>

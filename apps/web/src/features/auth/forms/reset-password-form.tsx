@@ -46,7 +46,7 @@ export function ResetPasswordForm({ token, onDone }: { token: string; onDone: ()
           )}
         />
         <FormRootError />
-        <Button type="submit" size="lg" loading={reset.isPending}>
+        <Button variant="primary" type="submit" size="lg" loading={reset.isPending}>
           Set new password
         </Button>
       </form>

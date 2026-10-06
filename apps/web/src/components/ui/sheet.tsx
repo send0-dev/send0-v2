@@ -15,20 +15,20 @@ export function SheetContent({
 }: ComponentProps<typeof SheetPrimitive.Content> & { side?: "right" | "left" }) {
   return (
     <SheetPrimitive.Portal>
-      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/30 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "fixed inset-y-0 z-50 flex h-full w-full flex-col border-l bg-popover shadow-xl transition ease-out data-[state=open]:animate-in data-[state=open]:duration-200 data-[state=closed]:animate-out data-[state=closed]:duration-150",
+          "fixed inset-y-2 z-50 flex w-[calc(100%-1rem)] flex-col rounded-xl bg-elevated shadow-elevated transition ease-out data-[state=open]:animate-in data-[state=open]:duration-200 data-[state=closed]:animate-out data-[state=closed]:duration-150",
           side === "right"
-            ? "right-0 sm:max-w-xl data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
-            : "left-0 max-w-72 border-r border-l-0 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left",
+            ? "right-2 sm:max-w-xl data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
+            : "left-2 max-w-72 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left",
           className
         )}
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="absolute top-4 right-4 cursor-pointer rounded-sm p-0.5 text-muted-foreground opacity-70 outline-none hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40">
+        <SheetPrimitive.Close className="absolute top-3.5 right-3.5 flex size-6 cursor-pointer items-center justify-center rounded-md text-faint outline-none transition-colors hover:bg-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40">
           <XIcon className="size-4" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
@@ -38,11 +38,11 @@ export function SheetContent({
 }
 
 export function SheetHeader({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("flex flex-col gap-1 border-b px-5 py-4 pr-12", className)} {...props} />;
+  return <div className={cn("flex flex-col gap-1 border-b px-5 py-3.5 pr-12", className)} {...props} />;
 }
 
 export function SheetTitle({ className, ...props }: ComponentProps<typeof SheetPrimitive.Title>) {
-  return <SheetPrimitive.Title className={cn("text-base font-semibold tracking-tight", className)} {...props} />;
+  return <SheetPrimitive.Title className={cn("text-[14px] font-semibold tracking-[-0.01em]", className)} {...props} />;
 }
 
 export function SheetDescription({ className, ...props }: ComponentProps<typeof SheetPrimitive.Description>) {

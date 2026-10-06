@@ -19,7 +19,7 @@ export function RouteError() {
             Reload
           </Button>
         )}
-        <Button asChild>
+        <Button asChild variant="primary">
           <Link to="/">Go to overview</Link>
         </Button>
       </div>
@@ -34,7 +34,7 @@ export function NotFound() {
       <p className="font-mono text-xs text-muted-foreground">404</p>
       <h1 className="text-lg font-semibold">This page doesn't exist</h1>
       <p className="max-w-sm text-[13px] text-muted-foreground">Check the address, or head back to the overview.</p>
-      <Button asChild className="mt-3">
+      <Button asChild variant="primary" className="mt-3">
         <Link to="/">Go to overview</Link>
       </Button>
     </div>

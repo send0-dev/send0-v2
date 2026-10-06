@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createApp } from "../src/app";
 import { deliver, fixture, setup, type TestEnv } from "./helpers";
 
 let t: TestEnv;
@@ -106,6 +107,22 @@ describe("usage", () => {
       sends_today: { used: 0, limit: 50 },
       sending: { paused: false, reason: null, paused_at: null },
     });
+  });
+});
+
+describe("stats", () => {
+  // A fixed clock: the fixtures are stamped 2026-10-05 (see beforeAll).
+  const at = async (path: string): Promise<any> => {
+    const app = createApp({ db: t.db, files: { signedGetUrl: async () => "x" }, now: () => new Date("2026-10-06T12:00:00Z"), presetAuth: { orgId: t.orgId, keyId: "key_x", mode: "live", scopes: ["read"], inboxIds: null } });
+    return (await app.request(path)).json();
+  };
+
+  it("counts mail per UTC day, with empty days as zeros", async () => {
+    const r = await at("/v1/stats?days=7");
+    expect(r.days.map((d: any) => d.date)).toEqual(["2026-09-30", "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06"]);
+    expect(r.days[5]).toMatchObject({ received: 5 });
+    expect(r.totals).toEqual({ received: 5, sent: 0, delivered: 0, bounced: 0, failed: 0 });
+    expect((await at(`/v1/stats?inbox_id=${otherInboxId}`)).totals.received).toBe(1);
   });
 });
 

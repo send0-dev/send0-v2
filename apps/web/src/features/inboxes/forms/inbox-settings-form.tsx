@@ -68,7 +68,7 @@ export function InboxSettingsForm({ inbox, onSaved }: { inbox: Inbox; onSaved: (
         />
         <FormRootError />
         <div className="flex justify-end">
-          <Button type="submit" loading={update.isPending} disabled={!form.formState.isDirty}>
+          <Button variant="primary" type="submit" loading={update.isPending} disabled={!form.formState.isDirty}>
             Save changes
           </Button>
         </div>

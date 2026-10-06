@@ -32,7 +32,7 @@ export function ForgotPasswordForm({ onSent }: { onSent: (email: string) => void
           )}
         />
         <FormRootError />
-        <Button type="submit" size="lg" loading={forgot.isPending}>
+        <Button variant="primary" type="submit" size="lg" loading={forgot.isPending}>
           Send reset link
         </Button>
       </form>

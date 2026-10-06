@@ -19,7 +19,7 @@ export function RoleSelect({ member }: { member: MemberRow }) {
         )
       }
     >
-      <SelectTrigger className="h-7 w-28 text-[13px]" aria-label={`Role for ${member.email}`}>
+      <SelectTrigger className="h-7 w-28 text-xs" aria-label={`Role for ${member.email}`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listQuery } from "../pagination";
 import { apiKeyCreateBody } from "../routes/api-keys";
 import { streamQuery } from "../routes/events";
+import { statsQuery } from "../routes/stats";
 import { inboxCreateBody, inboxUpdateBody } from "../routes/inboxes";
 import { messageListQuery, orgMessageListQuery, waitQuery } from "../routes/messages";
 import {
@@ -430,6 +431,17 @@ export const operations: Operation[] = [
     summary: "Get usage",
     description: "Your plan, inboxes used, sends today against the daily limit (UTC), and whether sending is paused.",
     responses: { 200: "Usage" },
+  },
+  {
+    method: "get",
+    path: "/v1/stats",
+    operationId: "getStats",
+    tag: "Usage",
+    scope: "read",
+    summary: "Get daily stats",
+    description: "Mail per UTC day for the last `days` days (default 14, up to 90): received, sent, delivered, bounced and failed. Days with no mail are zeros.",
+    query: statsQuery,
+    responses: { 200: "Stats" },
   },
   {
     method: "delete",

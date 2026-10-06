@@ -79,7 +79,7 @@ export function FormDescription({ className, ...props }: ComponentProps<"p">) {
     setHasDescription(true);
     return () => setHasDescription(false);
   }, [setHasDescription]);
-  return <p id={descriptionId} className={cn("text-[13px] text-muted-foreground", className)} {...props} />;
+  return <p id={descriptionId} className={cn("text-xs text-faint", className)} {...props} />;
 }
 
 export function FormMessage({ className, children, ...props }: ComponentProps<"p">) {
@@ -87,7 +87,7 @@ export function FormMessage({ className, children, ...props }: ComponentProps<"p
   const body = error ? String(error.message ?? "") : children;
   if (!body) return null;
   return (
-    <p id={messageId} className={cn("text-[13px] text-destructive", className)} {...props}>
+    <p id={messageId} className={cn("text-xs text-destructive", className)} {...props}>
       {body}
     </p>
   );
@@ -99,7 +99,7 @@ export function FormRootError({ className }: { className?: string }) {
   const message = errors.root?.server?.message;
   if (!message) return null;
   return (
-    <p role="alert" className={cn("rounded-md bg-destructive-soft px-3 py-2 text-[13px] text-destructive", className)}>
+    <p role="alert" className={cn("rounded-md border border-destructive/20 bg-destructive-soft px-3 py-2 text-xs text-destructive", className)}>
       {message}
     </p>
   );

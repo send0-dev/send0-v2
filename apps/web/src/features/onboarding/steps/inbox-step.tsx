@@ -52,7 +52,7 @@ export function InboxStep({ owner, onDone }: { owner: string | null; onDone: (in
             )}
           />
           <FormRootError />
-          <Button type="submit" size="lg" loading={create.isPending}>
+          <Button variant="primary" type="submit" size="lg" loading={create.isPending}>
             Create inbox
           </Button>
         </form>

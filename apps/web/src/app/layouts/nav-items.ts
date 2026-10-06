@@ -1,4 +1,4 @@
-import { FileClock, Inbox, KeyRound, LayoutDashboard, Mail, Settings, Users, Webhook, type LucideIcon } from "lucide-react";
+import { FileClock, KeyRound, LayoutGrid, Mails, Settings, Users, Webhook, type LucideIcon } from "lucide-react";
 import type { Action } from "@/lib/permissions";
 
 export interface NavItem {
@@ -8,19 +8,19 @@ export interface NavItem {
   /** Hidden from roles that can't use the page */
   requires?: Action;
   end?: boolean;
+  /** Single key that jumps here after pressing G (Linear-style "g then o") */
+  key?: string;
 }
 
 export const MAIN_NAV: NavItem[] = [
-  { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/inboxes", label: "Inboxes", icon: Inbox },
-  { to: "/messages", label: "Messages", icon: Mail },
-  { to: "/drafts", label: "Drafts", icon: FileClock },
-  { to: "/webhooks", label: "Webhooks", icon: Webhook, requires: "webhook.manage" },
-  { to: "/api-keys", label: "API keys", icon: KeyRound, requires: "key.manage" },
+  { to: "/", label: "Overview", icon: LayoutGrid, end: true, key: "o" },
+  { to: "/messages", label: "Messages", icon: Mails, key: "m" },
+  { to: "/drafts", label: "Drafts", icon: FileClock, key: "d" },
 ];
 
-export const SETTINGS_NAV: NavItem[] = [
-  { to: "/settings/workspace", label: "Workspace", icon: Settings },
+export const WORKSPACE_NAV: NavItem[] = [
+  { to: "/webhooks", label: "Webhooks", icon: Webhook, requires: "webhook.manage", key: "w" },
+  { to: "/api-keys", label: "API keys", icon: KeyRound, requires: "key.manage", key: "k" },
   { to: "/settings/members", label: "Members", icon: Users },
-  { to: "/settings/account", label: "Account", icon: Settings },
+  { to: "/settings/workspace", label: "Settings", icon: Settings, key: "s" },
 ];

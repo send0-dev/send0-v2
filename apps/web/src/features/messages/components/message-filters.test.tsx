@@ -29,9 +29,8 @@ describe("MessageFilters", () => {
 
   it("reads filters from the URL", () => {
     server.use(http.get("*/api/v1/inboxes", () => HttpResponse.json(list([]))));
-    renderApp(<Harness />, { route: "/messages?q=otp&direction=in&status=bogus" });
+    renderApp(<Harness />, { route: "/messages?q=otp&status=bogus" });
     expect(screen.getByLabelText("Search messages")).toHaveValue("otp");
-    expect(screen.getByLabelText("Direction")).toHaveTextContent("Received");
     expect(screen.getByLabelText("Status")).toHaveTextContent("Any status"); // unknown values are ignored
   });
 });

@@ -52,7 +52,7 @@ export function InviteMemberForm({ onInvited, onCancel }: { onInvited: (email: s
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" loading={invite.isPending}>
+          <Button variant="primary" type="submit" loading={invite.isPending}>
             Send invitation
           </Button>
         </DialogFooter>

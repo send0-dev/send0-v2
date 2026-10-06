@@ -3,32 +3,33 @@ import { Outlet } from "react-router";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { CommandMenu } from "@/features/command/command-menu";
 import { CommandMenuProvider } from "@/features/command/command-menu-context";
+import { useGoToShortcuts } from "./go-to-shortcuts";
+import { ShellContext } from "./shell-context";
 import { Sidebar } from "./sidebar";
-import { TopBar } from "./top-bar";
 
-/** The signed-in app: sidebar, top bar, the page, and the ⌘K menu. */
+/** The signed-in app: the sidebar on the canvas, and the page in a raised panel beside it. */
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  useGoToShortcuts();
   return (
     <CommandMenuProvider>
-      <div className="flex min-h-dvh">
-        <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r bg-sidebar md:block">
-          <Sidebar />
-        </aside>
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-64 p-0" aria-describedby={undefined}>
-            <SheetTitle className="sr-only">Menu</SheetTitle>
-            <Sidebar onNavigate={() => setMobileOpen(false)} />
-          </SheetContent>
-        </Sheet>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar onOpenSidebar={() => setMobileOpen(true)} />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">
+      <ShellContext.Provider value={{ openSidebar: () => setMobileOpen(true) }}>
+        <div className="flex h-dvh overflow-hidden bg-canvas">
+          <aside className="hidden w-[232px] shrink-0 md:block">
+            <Sidebar />
+          </aside>
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetContent side="left" className="w-[260px] bg-canvas p-0" aria-describedby={undefined}>
+              <SheetTitle className="sr-only">Menu</SheetTitle>
+              <Sidebar onNavigate={() => setMobileOpen(false)} />
+            </SheetContent>
+          </Sheet>
+          <main className="min-w-0 flex-1 overflow-hidden bg-panel md:my-2 md:mr-2 md:rounded-xl md:shadow-panel">
             <Outlet />
           </main>
         </div>
-      </div>
-      <CommandMenu />
+        <CommandMenu />
+      </ShellContext.Provider>
     </CommandMenuProvider>
   );
 }

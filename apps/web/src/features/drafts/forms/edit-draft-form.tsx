@@ -57,7 +57,7 @@ export function EditDraftForm({ draft, onSaved, onCancel }: { draft: Draft; onSa
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" loading={update.isPending} disabled={!form.formState.isDirty}>
+          <Button variant="primary" type="submit" loading={update.isPending} disabled={!form.formState.isDirty}>
             Save draft
           </Button>
         </DialogFooter>

@@ -75,7 +75,7 @@ const API_RULES: Rule[] = [
   ["POST", /^\/v1\/inboxes$/, "inbox.manage"],
   ["PATCH", new RegExp(`^/v1/inboxes/${ID}$`), "inbox.manage"],
   ["DELETE", new RegExp(`^/v1/inboxes/${ID}$`), "inbox.manage"],
-  ["GET", /^\/v1\/(inboxes|messages|drafts|usage|events)(\/.*)?$/, "mail.read"],
+  ["GET", /^\/v1\/(inboxes|messages|drafts|usage|stats|events)(\/.*)?$/, "mail.read"],
 ];
 
 /** The action an API request needs, or null if the dashboard doesn't allow it at all. */

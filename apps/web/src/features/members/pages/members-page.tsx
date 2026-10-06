@@ -1,13 +1,13 @@
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
-import { TableSkeleton } from "@/components/data-table";
-import { PageHeader } from "@/components/page-header";
+import { ListSkeleton } from "@/components/list-skeleton";
 import { QueryState } from "@/components/query-state";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurrentWorkspace } from "@/features/session/api/use-me";
-import { SettingsTabs } from "@/features/workspace/components/settings-tabs";
+import { SettingsTitle } from "@/features/workspace/components/settings-layout";
+import { SettingsSection } from "@/features/workspace/components/settings-section";
 import type { MemberRow } from "@/lib/auth-client";
+import { pluralize } from "@/lib/format";
 import { useCan } from "@/lib/permissions";
 import { useInvites, useMembers } from "../api/use-members";
 import { InviteMemberDialog } from "../components/invite-member-dialog";
@@ -25,33 +25,32 @@ export default function MembersPage() {
   const [removing, setRemoving] = useState<MemberRow | null>(null);
   return (
     <>
-      <PageHeader title="Settings" />
-      <SettingsTabs />
-      <div className="grid gap-5">
-        <Card>
-          <CardHeader className="items-center">
-            <CardTitle>Members</CardTitle>
-            {canManage && (
-              <Button size="sm" onClick={() => setInviting(true)}>
-                <UserPlus />
-                Invite
-              </Button>
-            )}
-          </CardHeader>
-          <QueryState query={members} skeleton={<TableSkeleton columns={3} rows={3} />}>
+      <SettingsTitle title="Members" description={`Who can see and work in ${workspace.name}.`} />
+      <SettingsSection
+        title={members.data ? pluralize(members.data.length, "member") : "Members"}
+        action={
+          canManage && (
+            <Button variant="primary" size="sm" onClick={() => setInviting(true)}>
+              <UserPlus />
+              Invite
+            </Button>
+          )
+        }
+      >
+        <div className="-m-5">
+          <QueryState query={members} skeleton={<ListSkeleton rows={3} />}>
             {(rows) => <MembersTable members={rows} myRole={workspace.role} myUserId={user.id} onRemove={setRemoving} />}
           </QueryState>
-        </Card>
-        {canManage && !!invites.data?.length && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending invitations</CardTitle>
-            </CardHeader>
+        </div>
+      </SettingsSection>
+      {canManage && !!invites.data?.length && (
+        <SettingsSection title="Pending invitations" description="Links work for 7 days.">
+          <div className="-m-5">
             <InvitesTable invites={invites.data} />
-          </Card>
-        )}
-        {workspace.role !== "owner" && <LeaveWorkspaceSection workspaceName={workspace.name} />}
-      </div>
+          </div>
+        </SettingsSection>
+      )}
+      {workspace.role !== "owner" && <LeaveWorkspaceSection workspaceName={workspace.name} />}
       <InviteMemberDialog open={inviting} onOpenChange={setInviting} />
       <RemoveMemberDialog member={removing} onOpenChange={(o) => !o && setRemoving(null)} />
     </>

@@ -39,7 +39,11 @@ export function ReplyForm({ inboxId, threadId, replyTo, needsApproval }: { inbox
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="rounded-lg border bg-card focus-within:border-ring/60" noValidate>
+      <form
+        onSubmit={onSubmit}
+        className="rounded-xl border border-border-strong bg-elevated shadow-elevated transition-colors focus-within:border-brand/40"
+        noValidate
+      >
         <FormField
           control={form.control}
           name="text"
@@ -48,22 +52,24 @@ export function ReplyForm({ inboxId, threadId, replyTo, needsApproval }: { inbox
               <FormControl>
                 <Textarea
                   {...field}
+                  id="reply-composer"
                   placeholder={`Reply to ${mailboxShort(recipient)}…`}
-                  className="min-h-24 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+                  className="max-h-72 min-h-20 resize-none border-0 bg-transparent px-3.5 pt-3 shadow-none hover:border-0 focus-visible:ring-0 dark:bg-transparent"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void onSubmit();
+                    if (e.key === "Escape") e.currentTarget.blur();
                   }}
                 />
               </FormControl>
-              <FormMessage className="px-2.5 pb-1" />
+              <FormMessage className="px-3.5 pb-1" />
             </FormItem>
           )}
         />
-        <FormRootError className="mx-2.5 mb-2" />
-        <div className="flex items-center justify-between gap-3 border-t px-2.5 py-2">
-          <p className="text-xs text-muted-foreground">{needsApproval ? "This inbox needs approval: your reply becomes a draft." : "Sent from this inbox, in this thread. ⌘↵ to send."}</p>
-          <Button type="submit" size="sm" loading={reply.isPending}>
-            {needsApproval ? "Save draft" : "Send reply"}
+        <FormRootError className="mx-3 mb-2" />
+        <div className="flex items-center justify-between gap-3 px-3 pb-2.5">
+          <p className="text-xs text-faint">{needsApproval ? "Needs approval: this becomes a draft." : "Replies in this thread, from this inbox"}</p>
+          <Button variant="primary" type="submit" size="sm" loading={reply.isPending} shortcut="⌘↵">
+            {needsApproval ? "Save draft" : "Send"}
           </Button>
         </div>
       </form>

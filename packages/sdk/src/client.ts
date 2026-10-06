@@ -30,6 +30,8 @@ import type {
   UpdateInboxParams,
   UpdateWebhookParams,
   Usage,
+  Stats,
+  StatsParams,
   WaitParams,
   WaitResult,
   Webhook,
@@ -316,6 +318,10 @@ class UsageApi {
   /** Plan, inboxes used, sends today against the daily limit, and whether sending is paused. */
   get(): Promise<Usage> {
     return this.http.request("GET", "/v1/usage");
+  }
+  /** Mail per UTC day (received, sent, delivered, bounced, failed) for charts. Default 14 days. */
+  stats(params: StatsParams = {}): Promise<Stats> {
+    return this.http.request("GET", "/v1/stats", { query: params });
   }
 }
 

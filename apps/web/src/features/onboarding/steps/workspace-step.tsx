@@ -34,7 +34,7 @@ export function WorkspaceStep({ defaultName, onDone }: { defaultName: string; on
             )}
           />
           <FormRootError />
-          <Button type="submit" size="lg" loading={ensure.isPending}>
+          <Button variant="primary" type="submit" size="lg" loading={ensure.isPending}>
             Continue
           </Button>
         </form>

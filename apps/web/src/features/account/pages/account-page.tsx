@@ -1,26 +1,30 @@
-import { PageHeader } from "@/components/page-header";
+import { useTheme, type ThemeChoice } from "@/app/theme";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrentWorkspace } from "@/features/session/api/use-me";
-import { SettingsSection } from "@/features/workspace/components/settings-section";
-import { SettingsTabs } from "@/features/workspace/components/settings-tabs";
-import { SessionsSection } from "../components/sessions-section";
-import { ChangePasswordForm } from "../forms/change-password-form";
+import { SettingsTitle } from "@/features/workspace/components/settings-layout";
+import { SettingsRow, SettingsSection } from "@/features/workspace/components/settings-section";
 import { ProfileForm } from "../forms/profile-form";
 
 export default function AccountPage() {
   const { user } = useCurrentWorkspace();
+  const { choice, setChoice } = useTheme();
   return (
     <>
-      <PageHeader title="Settings" />
-      <SettingsTabs />
-      <div className="grid gap-5">
-        <SettingsSection title="Profile">
-          <ProfileForm name={user.name} email={user.email} />
-        </SettingsSection>
-        <SettingsSection title="Password" description="Changing it signs you out on every other device.">
-          <ChangePasswordForm />
-        </SettingsSection>
-        <SessionsSection />
-      </div>
+      <SettingsTitle title="Profile" description="How you appear to teammates." />
+      <SettingsSection title="Profile">
+        <ProfileForm name={user.name} email={user.email} />
+      </SettingsSection>
+      <SettingsSection title="Preferences">
+        <SettingsRow label="Theme" description="Follow your system, or pick one.">
+          <Tabs value={choice} onValueChange={(v) => setChoice(v as ThemeChoice)}>
+            <TabsList aria-label="Theme">
+              <TabsTrigger value="system">System</TabsTrigger>
+              <TabsTrigger value="light">Light</TabsTrigger>
+              <TabsTrigger value="dark">Dark</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </SettingsRow>
+      </SettingsSection>
     </>
   );
 }

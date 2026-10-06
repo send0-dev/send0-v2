@@ -16,16 +16,15 @@ export function WorkspaceSwitcher() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger aria-label={`Workspace: ${workspace.name}. Switch workspace`} className="flex w-full cursor-pointer items-center gap-2.5 rounded-md p-1.5 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/40">
-          <WorkspaceAvatar name={workspace.name} />
-          <span className="grid min-w-0 flex-1">
-            <span className="truncate text-[13px] font-medium">{workspace.name}</span>
-            <span className="text-xs text-muted-foreground">{ROLE_LABEL[workspace.role]}</span>
-          </span>
-          <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
+        <DropdownMenuTrigger aria-label={`Workspace: ${workspace.name}. Switch workspace`} className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-1.5 text-left outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/40 data-[state=open]:bg-hover">
+          <WorkspaceAvatar name={workspace.name} size="sm" />
+          <span className="min-w-0 flex-1 truncate text-[13px] font-semibold tracking-[-0.01em]">{workspace.name}</span>
+          <ChevronsUpDown className="size-3.5 shrink-0 text-faint" />
         </DropdownMenuTrigger>
         <DropdownMenuContent opensDialogs className="w-64" align="start">
-          <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {ROLE_LABEL[workspace.role]} of {workspace.name}
+          </DropdownMenuLabel>
           {workspaces.map((w) => (
             <DropdownMenuItem key={w.id} onSelect={() => w.id !== workspace.id && switchTo.mutate(w.id)}>
               <WorkspaceAvatar name={w.name} size="sm" />

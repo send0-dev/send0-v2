@@ -434,6 +434,51 @@ class Usage(BaseModel):
     sending: Sending
 
 
+class Day(BaseModel):
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    received: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    sent: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    delivered: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    bounced: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    """
+    Bounces and complaints
+    """
+    failed: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    date: str
+    """
+    YYYY-MM-DD, UTC
+    """
+
+
+class Totals(BaseModel):
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    received: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    sent: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    delivered: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    bounced: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    """
+    Bounces and complaints
+    """
+    failed: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+
+
+class Stats(BaseModel):
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    object: Literal['stats']
+    from_: Annotated[AwareDatetime, Field(alias='from')]
+    """
+    Start of the first day (UTC)
+    """
+    days: list[Day]
+    totals: Totals
+
+
 class InboxList(BaseModel):
     model_config = ConfigDict(
         extra='allow',

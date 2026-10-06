@@ -15,7 +15,7 @@ export function AttachmentList({ messageId, attachments }: { messageId: string; 
             type="button"
             onClick={() => download.mutate({ messageId, attachmentId: a.id })}
             disabled={download.isPending && download.variables?.attachmentId === a.id}
-            className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-md border bg-card px-2.5 text-[13px] hover:bg-accent disabled:opacity-60"
+            className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border bg-elevated px-3 text-[13px] transition-colors hover:bg-hover disabled:opacity-60"
           >
             <Paperclip className="size-3.5 text-muted-foreground" />
             <span className="max-w-56 truncate">{a.filename ?? "attachment"}</span>

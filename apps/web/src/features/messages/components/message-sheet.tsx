@@ -1,5 +1,6 @@
 import { Download } from "lucide-react";
 import { Link } from "react-router";
+import { Avatar } from "@/components/avatar";
 import { QueryState } from "@/components/query-state";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { useMessage } from "../api/use-message";
 import { useRawDownload } from "../api/use-attachment-download";
 import { AttachmentList } from "./attachment-list";
 import { AuthBadges } from "./auth-badges";
+import { mailboxShort } from "./mailbox";
 import { ExtractedDetails } from "./extracted-details";
 import { HtmlPreview } from "./html-preview";
 import { MessageDetails } from "./message-details";
@@ -37,10 +39,14 @@ export function MessageSheet({ messageId, onOpenChange }: { messageId: string | 
               <SheetHeader>
                 <SheetTitle className="pr-6">{m.subject || "(no subject)"}</SheetTitle>
                 <SheetDescription asChild>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-3">
                     <StatusBadge status={m.status} />
-                    <Link to={`/inboxes/${m.inbox_id}?thread=${m.thread_id}`} className="underline-offset-4 hover:underline">
-                      Open thread
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <Avatar name={mailboxShort(m.from)} size="xs" />
+                      {mailboxShort(m.from)}
+                    </span>
+                    <Link to={`/inboxes/${m.inbox_id}?thread=${m.thread_id}`} className="text-xs text-brand hover:underline">
+                      Open thread →
                     </Link>
                   </div>
                 </SheetDescription>
@@ -58,7 +64,7 @@ export function MessageSheet({ messageId, onOpenChange }: { messageId: string | 
                     <TabsTrigger value="details">Details</TabsTrigger>
                   </TabsList>
                   <TabsContent value="text">
-                    <div className="text-[13.5px] leading-relaxed break-words whitespace-pre-wrap">{m.text ?? <span className="text-muted-foreground italic">No text body</span>}</div>
+                    <div className="rounded-lg border bg-card p-4 text-[13.5px] leading-[1.65] break-words whitespace-pre-wrap">{m.text ?? <span className="text-muted-foreground italic">No text body</span>}</div>
                   </TabsContent>
                   {m.html && (
                     <TabsContent value="html">

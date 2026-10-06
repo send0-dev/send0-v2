@@ -10,6 +10,7 @@ import { sesWebhookRoutes } from "./routes/ses-webhook";
 import { webhookRoutes } from "./routes/webhooks";
 import { inboxRoutes } from "./routes/inboxes";
 import { inboxMessageRoutes, messageRoutes } from "./routes/messages";
+import { statsRoutes } from "./routes/stats";
 import { usageRoutes } from "./routes/usage";
 import { draftRoutes, inboxDraftRoutes, inboxSendRoutes, messageSendRoutes } from "./routes/send";
 import { threadRoutes } from "./routes/threads";
@@ -52,6 +53,7 @@ export function createApp(deps: AppDeps) {
   v1.route("/webhooks", webhookRoutes);
   v1.route("/events", eventRoutes);
   v1.route("/usage", usageRoutes);
+  v1.route("/stats", statsRoutes);
   app.route("/v1", v1);
 
   app.notFound((c) => c.json(errorBody(c, new ApiError(404, "route_not_found", `No route ${c.req.method} ${c.req.path}.`)), 404));

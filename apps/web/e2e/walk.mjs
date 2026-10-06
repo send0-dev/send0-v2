@@ -47,6 +47,9 @@ const api = (path, body) =>
 const lastLink = async (to) => (await api(`/__dev/email?to=${encodeURIComponent(to)}`)).link;
 const deliver = (to, fixture) => api("/__dev/deliver", { to, fixture });
 
+/** Visible text of an element, minus keyboard-shortcut hints (<kbd>). Runs in the page. */
+const LABEL_FN = `(el) => { const c = el.cloneNode(true); c.querySelectorAll("kbd").forEach((k) => k.remove()); return c.textContent.trim(); }`;
+
 /** A real mouse click, falling back to a DOM click when Puppeteer can't find a clickable point. */
 const press = async (handle) => {
   const el = handle.asElement();
@@ -79,10 +82,14 @@ const h = (page) => ({
   /** Click the first enabled button or link whose text is exactly `text` (optionally inside `scope`). Real mouse events. */
   click: async (text, scope = "body") => {
     const el = await page.waitForFunction(
-      (t, s) => [...document.querySelectorAll(`${s} button, ${s} a, ${s} [role=menuitem], ${s} [role=option], ${s} [role=tab], ${s} [cmdk-item]`)].find((b) => b.textContent.trim() === t && !b.disabled),
+      (t, s, fn) => {
+        const label = eval(fn);
+        return [...document.querySelectorAll(`${s} button, ${s} a, ${s} [role=menuitem], ${s} [role=option], ${s} [role=tab], ${s} [cmdk-item]`)].find((b) => label(b) === t && !b.disabled);
+      },
       { timeout: 10000 },
       text,
-      scope
+      scope,
+      LABEL_FN
     );
     await press(el);
   },
@@ -98,7 +105,7 @@ const h = (page) => ({
   },
   /** Click the table row containing `text`. */
   clickRow: async (text) => {
-    const el = await page.waitForFunction((t) => [...document.querySelectorAll("tbody tr")].find((r) => r.textContent.includes(t)), { timeout: 10000 }, text);
+    const el = await page.waitForFunction((t) => [...document.querySelectorAll("[role=list] button, tbody tr")].find((r) => r.textContent.includes(t)), { timeout: 10000 }, text);
     await press(el);
   },
   /** Wait until no dialog or sheet is open (including its closing animation). */
@@ -199,40 +206,40 @@ await step("inbox: threads list and a thread with extracted code and auth badges
   await o.goto(`/inboxes/${inboxId}`);
   await o.text("Invoice #9921 attached");
   await o.shot("inbox");
-  await o.clickContaining("Invoice #9921 attached", "[aria-label=Threads]");
+  await o.clickContaining("Invoice #9921 attached", "ul[aria-label=Threads]");
   await o.text("Possible prompt injection");
   await o.shot("thread-injection");
-  await o.clickContaining("Sign in to Acme", "[aria-label=Threads]");
+  await o.clickContaining("Sign in to Acme", "ul[aria-label=Threads]");
   await o.text("DKIM");
   await o.shot("thread-magic-link");
 });
 
 await step("inbox: replying in-thread", async () => {
-  await o.clickContaining("Re: PO #4471 delivery date", "[aria-label=Threads]");
+  await o.clickContaining("Re: PO #4471 delivery date", "ul[aria-label=Threads]");
   await o.text("Can you confirm Thursday instead?"); // the thread (and its reply box) has switched
   await page.type("textarea", "Thanks Dana, Thursday works.");
-  await o.click("Send reply");
+  await o.click("Send");
   await o.text("Reply sent");
   await o.text("Thanks Dana, Thursday works.");
   await o.shot("thread-replied");
 });
 
 await step("inbox: new mail shows up live without reloading", async () => {
-  await o.clickContaining("Sign in to Acme", "[aria-label=Threads]");
+  await o.clickContaining("Sign in to Acme", "ul[aria-label=Threads]");
   await deliver(address, "calendar-invite.eml");
-  await page.waitForFunction(() => document.querySelectorAll("[aria-label=Threads] li").length >= 6, { timeout: 15000 });
+  await page.waitForFunction(() => document.querySelectorAll("ul[aria-label=Threads] li").length >= 6, { timeout: 15000 });
 });
 
 await step("inbox settings: switch to approval; a reply becomes a draft; approve it", async () => {
-  await o.click("Settings", "main");
-  await o.text("Inbox settings");
+  await page.click("[aria-label='Inbox settings']");
+  await o.text("Sending");
   await o.clickContaining("Needs approval", "[role=dialog]");
   await o.click("Save changes", "[role=dialog]");
   await o.text("Inbox saved");
   await o.dialogsClosed();
-  await o.clickContaining("Re: PO #4471 delivery date", "[aria-label=Threads]");
+  await o.clickContaining("Re: PO #4471 delivery date", "ul[aria-label=Threads]");
   await o.text("Thanks Dana, Thursday works.");
-  await o.text("your reply becomes a draft");
+  await o.text("this becomes a draft");
   await page.type("textarea", "Second reply, needs a human.");
   await o.click("Save draft");
   await o.text("waiting for approval");
@@ -245,8 +252,8 @@ await step("inbox settings: switch to approval; a reply becomes a draft; approve
   await o.text("Edited before approval.");
   await o.dialogsClosed();
   await o.click("Approve & send");
-  await o.text("Approved and sent");
-  await o.text("Nothing waiting for approval");
+  await o.text("Sent “Re: PO #4471 delivery date”");
+  await o.text("You're all caught up");
 });
 
 await step("messages log: filters in the URL and a detail sheet", async () => {
@@ -266,7 +273,7 @@ await step("messages log: filters in the URL and a detail sheet", async () => {
 
 await step("⌘K jumps to a page", async () => {
   await o.goto("/");
-  await o.text("Recent messages");
+  await o.text("Mail volume");
   await page.keyboard.down("Meta");
   await page.keyboard.press("k");
   await page.keyboard.up("Meta");
@@ -313,8 +320,8 @@ await step("webhooks: add an endpoint, see the secret once, send a test event", 
 
 await step("overview: usage, recent messages, checklist", async () => {
   await o.goto("/");
-  await o.text("Sent today");
-  await o.text("Recent messages");
+  await o.text("Mail volume");
+  await o.text("Activity");
   await o.shot("overview");
 });
 
@@ -348,7 +355,7 @@ await step("teammate: accepts the invitation by signing up", async () => {
 });
 
 await step("teammate: sees mail but not keys or webhooks", async () => {
-  const nav = await matePage.$eval("nav[aria-label=Main]", (n) => n.innerText);
+  const nav = await matePage.$eval("aside", (n) => n.innerText);
   if (nav.includes("API keys") || nav.includes("Webhooks")) throw new Error(`member nav shows admin pages: ${nav}`);
   await m.goto(`/inboxes/${inboxId}`);
   await m.text(address);
@@ -368,11 +375,11 @@ await step("owner: sees the teammate, and can create and switch workspaces", asy
   await o.fill("Workspace name", "Side project");
   await o.click("Create workspace", "[role=dialog]");
   await o.text("Switched to Side project");
-  await o.text("Get started");
+  await o.text("Get set up");
   await o.dialogsClosed();
   await page.click("aside [aria-label*='Switch workspace']");
   await o.clickContaining("Acme", "[role=menu]");
-  await o.text("Recent messages");
+  await o.text("Mail volume");
 });
 
 await step("account: rename yourself", async () => {
@@ -401,7 +408,7 @@ await step("phone width", async () => {
   await o.text(address);
   await o.shot("phone-inbox");
   await page.click("[aria-label='Open menu']");
-  await o.text("Overview");
+  await o.text("Documentation");
   await o.shot("phone-menu");
 });
 

@@ -15,13 +15,13 @@ export function Breadcrumbs() {
         const label = typeof C === "string" ? C : <C />;
         return (
           <Fragment key={id}>
-            {i > 0 && <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/60" />}
+            {i > 0 && <ChevronRight className="size-3.5 shrink-0 text-faint" />}
             {last ? (
-              <span aria-current="page" className="truncate font-medium">
+              <span aria-current="page" className="truncate font-medium text-foreground">
                 {label}
               </span>
             ) : (
-              <Link to={to} className="truncate text-muted-foreground hover:text-foreground">
+              <Link to={to} className="truncate rounded px-1 text-muted-foreground transition-colors hover:bg-hover hover:text-foreground">
                 {label}
               </Link>
             )}

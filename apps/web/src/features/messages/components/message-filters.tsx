@@ -1,7 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { InboxDot } from "@/components/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useInboxes } from "@/features/inboxes/api/use-inboxes";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
@@ -10,7 +10,7 @@ import type { MessageFilters as Filters } from "../use-message-filters";
 
 const ANY = "any";
 
-/** Search box and dropdowns above the messages table. */
+/** Search and the status / inbox pickers above the messages list. Direction lives in the header. */
 export function MessageFilters({ filters, onChange, onClear, active }: { filters: Filters; onChange: <K extends keyof Filters>(key: K, value: Filters[K]) => void; onClear: () => void; active: boolean }) {
   const inboxes = useInboxes();
   const [q, setQ] = useState(filters.q);
@@ -26,23 +26,21 @@ export function MessageFilters({ filters, onChange, onClear, active }: { filters
   useEffect(() => setQ(filters.q), [filters.q]);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b p-3">
+    <>
       <div className="relative min-w-48 flex-1">
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search subject and body" className="pl-8" aria-label="Search messages" />
+        <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-faint" />
+        <input
+          id="message-search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => e.key === "Escape" && e.currentTarget.blur()}
+          placeholder="Search subject and body"
+          aria-label="Search messages"
+          className="h-7 w-full rounded-md bg-transparent pr-2 pl-7 text-[13px] outline-none placeholder:text-faint hover:bg-hover focus:bg-hover"
+        />
       </div>
-      <Select value={filters.direction || ANY} onValueChange={(v) => onChange("direction", v === ANY ? "" : (v as Filters["direction"]))}>
-        <SelectTrigger className="w-32" aria-label="Direction">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ANY}>All mail</SelectItem>
-          <SelectItem value="in">Received</SelectItem>
-          <SelectItem value="out">Sent</SelectItem>
-        </SelectContent>
-      </Select>
       <Select value={filters.status || ANY} onValueChange={(v) => onChange("status", v === ANY ? "" : (v as Filters["status"]))}>
-        <SelectTrigger className="w-36" aria-label="Status">
+        <SelectTrigger className="h-7 w-auto gap-1.5 border-dashed text-xs" aria-label="Status">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -55,24 +53,27 @@ export function MessageFilters({ filters, onChange, onClear, active }: { filters
         </SelectContent>
       </Select>
       <Select value={filters.inbox || ANY} onValueChange={(v) => onChange("inbox", v === ANY ? "" : v)}>
-        <SelectTrigger className="w-52" aria-label="Inbox">
+        <SelectTrigger className="h-7 w-auto max-w-56 gap-1.5 border-dashed text-xs" aria-label="Inbox">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ANY}>All inboxes</SelectItem>
           {inboxes.items.map((i) => (
             <SelectItem key={i.id} value={i.id}>
-              <span className="font-mono text-xs">{i.address}</span>
+              <span className="flex items-center gap-2">
+                <InboxDot id={i.id} />
+                {i.display_name || i.local_part}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
       {active && (
-        <Button variant="ghost" size="sm" onClick={onClear}>
+        <Button variant="ghost" size="xs" onClick={onClear}>
           <X />
           Clear
         </Button>
       )}
-    </div>
+    </>
   );
 }

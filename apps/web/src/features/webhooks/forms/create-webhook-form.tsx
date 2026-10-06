@@ -89,7 +89,7 @@ export function CreateWebhookForm({ onCreated, onCancel }: { onCreated: (w: Webh
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" loading={create.isPending}>
+          <Button variant="primary" type="submit" loading={create.isPending}>
             Add endpoint
           </Button>
         </DialogFooter>

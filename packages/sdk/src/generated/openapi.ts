@@ -503,6 +503,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get daily stats
+         * @description Mail per UTC day for the last `days` days (default 14, up to 90): received, sent, delivered, bounced and failed. Days with no mail are zeros.
+         */
+        get: operations["getStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/api-keys/{api_key_id}": {
         parameters: {
             query?: never;
@@ -865,6 +885,33 @@ export interface components {
                 paused: boolean;
                 reason: string | null;
                 paused_at: string | null;
+            };
+        };
+        Stats: {
+            /** @constant */
+            object: "stats";
+            /**
+             * Format: date-time
+             * @description Start of the first day (UTC)
+             */
+            from: string;
+            days: {
+                received: number;
+                sent: number;
+                delivered: number;
+                /** @description Bounces and complaints */
+                bounced: number;
+                failed: number;
+                /** @description YYYY-MM-DD, UTC */
+                date: string;
+            }[];
+            totals: {
+                received: number;
+                sent: number;
+                delivered: number;
+                /** @description Bounces and complaints */
+                bounced: number;
+                failed: number;
             };
         };
         InboxList: {
@@ -3507,6 +3554,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Usage"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or invalid API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not allowed (scope, policy or account state) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not found, or not visible to this key */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate or daily limit reached */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStats: {
+        parameters: {
+            query?: {
+                days?: number;
+                inbox_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Stats */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Stats"];
                 };
             };
             /** @description Invalid request */

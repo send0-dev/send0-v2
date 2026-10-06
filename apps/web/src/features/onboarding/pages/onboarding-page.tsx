@@ -1,6 +1,6 @@
 import type { Inbox } from "@send0/sdk";
 import { useEffect, useState } from "react";
-import { Logo } from "@/components/logo";
+import { LogoMark } from "@/components/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInboxes } from "@/features/inboxes/api/use-inboxes";
 import { useMe } from "@/features/session/api/use-me";
@@ -36,23 +36,29 @@ export default function OnboardingPage() {
 
   const user = me.data?.user;
   return (
-    <div className="min-h-dvh">
-      <header className="flex items-center justify-between px-6 py-5">
-        <Logo />
-        <button type="button" className="cursor-pointer text-[13px] text-muted-foreground hover:text-foreground" onClick={() => logOut.mutate()}>
+    <div className="relative min-h-dvh overflow-hidden bg-canvas">
+      <div aria-hidden className="glow pointer-events-none absolute inset-x-0 top-0 h-[480px]" />
+      <header className="relative flex items-center justify-between px-6 py-5">
+        <span className="flex items-center gap-2 text-[14px] font-semibold tracking-[-0.01em]">
+          <LogoMark className="size-6" />
+          send0
+        </span>
+        <button type="button" className="cursor-pointer text-xs text-faint hover:text-foreground" onClick={() => logOut.mutate()}>
           {user?.email} · Log out
         </button>
       </header>
-      <main className="mx-auto max-w-lg px-4 pt-6 pb-24">
+      <main className="relative mx-auto max-w-[480px] px-5 pt-8 pb-24">
         {step === null ? (
           <Skeleton className="h-64" />
         ) : (
           <>
             <Stepper steps={STEPS} current={step} />
-            {step === 0 && <WorkspaceStep defaultName={user?.name ? `${user.name.split(" ")[0]}'s workspace` : ""} onDone={() => setStep(1)} />}
-            {step === 1 && <InboxStep owner={user?.name ?? null} onDone={(i) => (setInbox(i), setStep(2))} />}
-            {step === 2 && <KeyStep onDone={(k) => (setApiKey(k), setStep(3))} />}
-            {step === 3 && inbox && <TryStep inbox={inbox} apiKey={apiKey} />}
+            <div className="rounded-xl bg-panel p-6 shadow-panel sm:p-8">
+              {step === 0 && <WorkspaceStep defaultName={user?.name ? `${user.name.split(" ")[0]}'s workspace` : ""} onDone={() => setStep(1)} />}
+              {step === 1 && <InboxStep owner={user?.name ?? null} onDone={(i) => (setInbox(i), setStep(2))} />}
+              {step === 2 && <KeyStep onDone={(k) => (setApiKey(k), setStep(3))} />}
+              {step === 3 && inbox && <TryStep inbox={inbox} apiKey={apiKey} />}
+            </div>
           </>
         )}
       </main>

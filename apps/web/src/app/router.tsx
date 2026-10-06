@@ -6,6 +6,7 @@ import { AuthLayout } from "@/app/layouts/auth-layout";
 import { NotFound, RouteError } from "@/app/route-error";
 import { InboxCrumb } from "@/features/inboxes/components/inbox-crumb";
 import { WebhookCrumb } from "@/features/webhooks/components/webhook-crumb";
+import { SettingsLayout } from "@/features/workspace/components/settings-layout";
 
 /** Breadcrumb for the top bar: a label, or a component that works one out (e.g. an inbox's address). */
 export type Crumb = string | ComponentType;
@@ -44,11 +45,13 @@ const appRoutes: RouteObject[] = withErrorBoundaries([
   {
     path: "settings",
     handle: { crumb: "Settings" },
+    element: <SettingsLayout />,
     children: [
       { index: true, element: <Navigate to="workspace" replace /> },
-      { path: "workspace", handle: { crumb: "Workspace" }, lazy: page(() => import("@/features/workspace/pages/workspace-settings-page")) },
+      { path: "workspace", handle: { crumb: "General" }, lazy: page(() => import("@/features/workspace/pages/workspace-settings-page")) },
       { path: "members", handle: { crumb: "Members" }, lazy: page(() => import("@/features/members/pages/members-page")) },
-      { path: "account", handle: { crumb: "Account" }, lazy: page(() => import("@/features/account/pages/account-page")) },
+      { path: "account", handle: { crumb: "Profile" }, lazy: page(() => import("@/features/account/pages/account-page")) },
+      { path: "security", handle: { crumb: "Security" }, lazy: page(() => import("@/features/account/pages/security-page")) },
     ],
   },
   { path: "*", Component: NotFound },

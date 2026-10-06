@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva("relative flex w-full gap-2.5 rounded-lg border px-3.5 py-3 text-[13px] [&>svg]:mt-px [&>svg]:size-4 [&>svg]:shrink-0", {
+const alertVariants = cva("relative flex w-full gap-2.5 rounded-lg border px-3.5 py-3 text-[13px] [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:shrink-0", {
   variants: {
     variant: {
       default: "bg-card text-foreground [&>svg]:text-muted-foreground",

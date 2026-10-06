@@ -88,7 +88,7 @@ export function CreateInboxForm({ onCreated, onCancel }: { onCreated: (inbox: In
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" loading={create.isPending}>
+          <Button variant="primary" type="submit" loading={create.isPending}>
             Create inbox
           </Button>
         </DialogFooter>

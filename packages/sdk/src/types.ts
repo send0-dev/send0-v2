@@ -20,6 +20,7 @@ export type Event = Schemas["Event"];
 export type Mailbox = Schemas["Mailbox"];
 export type WaitResult = Schemas["WaitResult"];
 export type Usage = Schemas["Usage"];
+export type Stats = Schemas["Stats"];
 
 export type CreateInboxParams = Body<"createInbox">;
 export type UpdateInboxParams = Body<"updateInbox">;
@@ -40,6 +41,7 @@ export type WaitParams = Omit<Query<"waitForMessage">, "timeout"> & {
 };
 export type ListDraftsParams = Query<"listDrafts">;
 export type ListAllDraftsParams = Query<"listAllDrafts">;
+export type StatsParams = Query<"getStats">;
 export type ListDeliveriesParams = Query<"listDeliveries">;
 
 /** A message was sent, or (for approval inboxes) a draft was created instead. */

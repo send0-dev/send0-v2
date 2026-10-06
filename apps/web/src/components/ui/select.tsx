@@ -11,15 +11,15 @@ export function SelectTrigger({ className, children, ...props }: ComponentProps<
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "flex h-8 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-input bg-card px-2.5 text-sm whitespace-nowrap shadow-xs outline-none data-[placeholder]:text-muted-foreground",
-        "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/20 aria-invalid:border-destructive disabled:opacity-50 [&>span]:truncate",
+        "flex h-8 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-input bg-transparent px-2.5 text-[13px] whitespace-nowrap outline-none transition-colors hover:border-border-strong hover:bg-hover data-[placeholder]:text-faint dark:bg-white/[0.02]",
+        "focus-visible:border-brand/60 focus-visible:ring-[3px] focus-visible:ring-brand/15 aria-invalid:border-destructive disabled:opacity-50 [&>span]:truncate",
         className
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
+        <ChevronDownIcon className="size-3.5 text-faint" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -32,7 +32,7 @@ export function SelectContent({ className, children, position = "popper", ...pro
         data-slot="select-content"
         position={position}
         className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg",
+          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] overflow-hidden rounded-lg bg-elevated text-popover-foreground shadow-elevated",
           "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
           position === "popper" && "w-full min-w-(--radix-select-trigger-width) data-[side=bottom]:translate-y-1",
           className
@@ -49,7 +49,7 @@ export function SelectItem({ className, children, ...props }: ComponentProps<typ
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
-      className={cn("relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pr-8 pl-2 text-[13px] outline-none focus:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50", className)}
+      className={cn("relative flex h-8 w-full cursor-default select-none items-center rounded-md pr-8 pl-2 text-[13px] outline-none focus:bg-selected data-[disabled]:pointer-events-none data-[disabled]:opacity-50", className)}
       {...props}
     >
       <span className="absolute right-2 flex size-3.5 items-center justify-center">

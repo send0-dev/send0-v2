@@ -6,8 +6,11 @@ export function Toaster(props: ToasterProps) {
   return (
     <Sonner
       theme={resolved}
-      position="bottom-right"
-      toastOptions={{ classNames: { toast: "!rounded-lg !border !border-border !bg-popover !text-popover-foreground !shadow-lg !text-[13px]" } }}
+      // Bottom-left sits over the sidebar's quiet corner, clear of composers and primary actions on the right.
+      position="bottom-left"
+      offset={{ bottom: 56, left: 12 }}
+      mobileOffset={{ bottom: 12 }}
+      toastOptions={{ classNames: { toast: "!rounded-lg !border-0 !bg-elevated !text-foreground !shadow-elevated !text-[13px] !font-sans", description: "!text-muted-foreground" } }}
       {...props}
     />
   );

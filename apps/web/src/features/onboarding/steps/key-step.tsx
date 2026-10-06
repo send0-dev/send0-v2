@@ -18,6 +18,7 @@ export function KeyStep({ onDone }: { onDone: (key: string) => void }) {
       <StepHeader title="Your API key" description="Your code and agents use it to call send0. It can read and send, but can't manage keys or webhooks." />
       {!key ? (
         <Button
+          variant="primary"
           size="lg"
           className="w-full"
           loading={create.isPending}
@@ -34,7 +35,7 @@ export function KeyStep({ onDone }: { onDone: (key: string) => void }) {
               I've stored my key somewhere safe
             </Label>
           </div>
-          <Button size="lg" disabled={!saved} onClick={() => onDone(key.key)}>
+          <Button variant="primary" size="lg" disabled={!saved} onClick={() => onDone(key.key)}>
             Continue
           </Button>
         </div>

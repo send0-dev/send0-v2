@@ -31,7 +31,7 @@ export function ChangePasswordForm() {
   );
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+      <form onSubmit={onSubmit} className="grid max-w-md gap-4" noValidate>
         <FormField
           control={form.control}
           name="current"
@@ -74,7 +74,7 @@ export function ChangePasswordForm() {
         />
         <FormRootError />
         <div>
-          <Button type="submit" loading={change.isPending}>
+          <Button variant="primary" type="submit" loading={change.isPending}>
             Change password
           </Button>
         </div>

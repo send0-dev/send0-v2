@@ -17,7 +17,7 @@ export function CopyButton({ value, label = "Copy", size = "icon-sm", variant = 
     }
   };
   const icon = copied ? <Check className="text-success" /> : <Copy />;
-  if (size === "icon-sm" || size === "icon") {
+  if (size === "icon-sm" || size === "icon" || size === "icon-xs") {
     return (
       <Tooltip content={copied ? "Copied" : label}>
         <Button type="button" variant={variant} size={size} onClick={copy} aria-label={label} {...props}>

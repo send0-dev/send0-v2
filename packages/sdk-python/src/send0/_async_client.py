@@ -24,6 +24,7 @@ from ._models import (
     Message,
     RevokedApiKey,
     Thread,
+    Stats,
     ThreadWithMessages,
     Usage,
     WaitResult,
@@ -409,6 +410,10 @@ class UsageApi:
     async def get(self) -> Usage:
         """Plan, inboxes used, sends today against the daily limit, and whether sending is paused."""
         return await self._http.get(Usage, "/v1/usage")
+
+    async def stats(self, *, days: int | None = None, inbox_id: str | None = None) -> Stats:
+        """Mail per UTC day (received, sent, delivered, bounced, failed). Default 14 days."""
+        return await self._http.get(Stats, "/v1/stats", params={"days": days, "inbox_id": inbox_id})
 
 
 class Events:

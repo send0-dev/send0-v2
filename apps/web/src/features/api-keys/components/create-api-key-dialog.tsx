@@ -23,7 +23,7 @@ export function CreateApiKeyDialog({ open, onOpenChange }: { open: boolean; onOp
             </DialogHeader>
             <SecretReveal value={created.key} what="API key" />
             <DialogFooter>
-              <Button onClick={close}>Done</Button>
+              <Button variant="primary" onClick={close}>Done</Button>
             </DialogFooter>
           </>
         ) : (

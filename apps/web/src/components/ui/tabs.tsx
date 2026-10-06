@@ -6,8 +6,9 @@ export function Tabs({ className, ...props }: ComponentProps<typeof TabsPrimitiv
   return <TabsPrimitive.Root data-slot="tabs" className={cn("flex flex-col gap-3", className)} {...props} />;
 }
 
+/** Segmented control, like Linear's view switcher. */
 export function TabsList({ className, ...props }: ComponentProps<typeof TabsPrimitive.List>) {
-  return <TabsPrimitive.List data-slot="tabs-list" className={cn("inline-flex w-fit items-center gap-4 border-b", className)} {...props} />;
+  return <TabsPrimitive.List data-slot="tabs-list" className={cn("inline-flex h-7 w-fit items-center gap-0.5 rounded-md border bg-muted/60 p-0.5", className)} {...props} />;
 }
 
 export function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsPrimitive.Trigger>) {
@@ -15,8 +16,8 @@ export function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsP
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "-mb-px inline-flex h-8 cursor-pointer items-center gap-1.5 border-b-2 border-transparent text-[13px] font-medium text-muted-foreground transition-colors outline-none",
-        "hover:text-foreground focus-visible:text-foreground data-[state=active]:border-foreground data-[state=active]:text-foreground",
+        "inline-flex h-full cursor-pointer items-center gap-1.5 rounded-[5px] px-2.5 text-xs font-medium text-muted-foreground transition-colors outline-none",
+        "hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-[state=active]:bg-elevated data-[state=active]:text-foreground data-[state=active]:shadow-[0_1px_2px_rgb(0_0_0/0.12),0_0_0_1px_var(--border)]",
         className
       )}
       {...props}

@@ -238,6 +238,24 @@ export const Usage = reg(
   }),
 );
 
+const DayCounts = z.strictObject({
+  received: z.number().int(),
+  sent: z.number().int(),
+  delivered: z.number().int(),
+  bounced: z.number().int().describe("Bounces and complaints"),
+  failed: z.number().int(),
+});
+
+export const Stats = reg(
+  "Stats",
+  z.strictObject({
+    object: z.literal("stats"),
+    from: ts.describe("Start of the first day (UTC)"),
+    days: z.array(DayCounts.extend({ date: z.string().describe("YYYY-MM-DD, UTC") })),
+    totals: DayCounts,
+  }),
+);
+
 /** Paginated list of T. */
 export const list = <T extends z.ZodType>(id: string, item: T) =>
   reg(id, z.strictObject({ object: z.literal("list"), data: z.array(item), next_cursor: z.string().nullable() }));

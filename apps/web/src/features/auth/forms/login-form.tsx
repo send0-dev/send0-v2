@@ -52,7 +52,7 @@ export function LoginForm() {
           )}
         />
         <FormRootError />
-        <Button type="submit" size="lg" loading={logIn.isPending || logIn.isSuccess}>
+        <Button variant="primary" type="submit" size="lg" loading={logIn.isPending || logIn.isSuccess}>
           Log in
         </Button>
       </form>

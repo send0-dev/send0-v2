@@ -60,7 +60,7 @@ export function SignupForm() {
           )}
         />
         <FormRootError />
-        <Button type="submit" size="lg" loading={signUp.isPending || signUp.isSuccess}>
+        <Button variant="primary" type="submit" size="lg" loading={signUp.isPending || signUp.isSuccess}>
           Create account
         </Button>
       </form>

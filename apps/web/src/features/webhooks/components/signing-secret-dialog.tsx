@@ -15,7 +15,7 @@ export function SigningSecretDialog({ secret, onClose, title = "Save your signin
         </DialogHeader>
         {secret && <SecretReveal value={secret} what="signing secret" />}
         <DialogFooter>
-          <Button onClick={onClose}>Done</Button>
+          <Button variant="primary" onClick={onClose}>Done</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

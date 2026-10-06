@@ -19,17 +19,17 @@ describe("ReplyForm", () => {
     );
     const { user } = renderApp(<ReplyForm inboxId="ibx_1" threadId="thr_1" replyTo={message()} needsApproval={false} />, { me: me() });
     await user.type(screen.getByRole("textbox"), "Thanks!");
-    await user.click(screen.getByRole("button", { name: "Send reply" }));
+    await user.click(screen.getByRole("button", { name: "Send" }));
     expect(await screen.findByText("SES is busy, try again.")).toBeInTheDocument();
 
     fail = false;
-    await user.click(screen.getByRole("button", { name: "Send reply" }));
+    await user.click(screen.getByRole("button", { name: "Send" }));
     expect(await screen.findByText("Reply sent")).toBeInTheDocument();
     expect(keys[0]).toBeTruthy();
     expect(keys[1]).toBe(keys[0]);
 
     await user.type(screen.getByRole("textbox"), "One more thing");
-    await user.click(screen.getByRole("button", { name: "Send reply" }));
+    await user.click(screen.getByRole("button", { name: "Send" }));
     await screen.findAllByText("Reply sent");
     await new Promise((r) => setTimeout(r, 50));
     expect(keys[2]).toBeTruthy();

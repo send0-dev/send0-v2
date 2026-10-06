@@ -31,7 +31,7 @@ export function DataTable<T>({ columns, rows, rowKey, onRowClick, className }: {
         {rows.map((row) => (
           <TableRow
             key={rowKey(row)}
-            className={cn(onRowClick && "cursor-pointer hover:bg-muted/50")}
+            className={cn(onRowClick ? "cursor-pointer hover:bg-hover" : "hover:bg-hover/60")}
             onClick={onRowClick ? () => onRowClick(row) : undefined}
             onKeyDown={
               onRowClick

@@ -18,7 +18,7 @@ export function ProfileForm({ name, email }: { name: string | null; email: strin
   const onSubmit = form.handleSubmit((v) => update.mutate({ name: v.name || null }, { onSuccess: () => toast.success("Profile saved"), onError: (e) => applyServerError(form, e) }));
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="grid gap-4" noValidate>
+      <form onSubmit={onSubmit} className="grid max-w-md gap-4" noValidate>
         <div className="grid gap-1.5">
           <Label htmlFor="account-email">Email</Label>
           <Input id="account-email" value={email} disabled readOnly />
@@ -40,7 +40,7 @@ export function ProfileForm({ name, email }: { name: string | null; email: strin
         />
         <FormRootError />
         <div>
-          <Button type="submit" loading={update.isPending} disabled={!form.formState.isDirty}>
+          <Button variant="primary" type="submit" loading={update.isPending} disabled={!form.formState.isDirty}>
             Save
           </Button>
         </div>

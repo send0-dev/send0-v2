@@ -1,33 +1,12 @@
-import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import { StatusIcon } from "@/components/status-icon";
+import { cn } from "@/lib/utils";
 
-const TONES: Record<string, BadgeVariant> = {
-  // messages
-  received: "neutral",
-  queued: "neutral",
-  sent: "info",
-  delivered: "success",
-  bounced: "destructive",
-  complained: "destructive",
-  failed: "destructive",
-  // drafts
-  pending: "warning",
-  approved: "success",
-  rejected: "neutral",
-  // webhooks and deliveries
-  enabled: "success",
-  disabled: "neutral",
-  succeeded: "success",
-  // inboxes
-  active: "success",
-  suspended: "destructive",
-};
-
-/** A status word in the colour that matches its meaning. */
+/** A status glyph with its word, e.g. ✓ delivered. */
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
   return (
-    <Badge variant={TONES[status] ?? "neutral"} className={className}>
-      <span className="size-1.5 rounded-full bg-current opacity-80" />
-      {status.replace(/_/g, " ")}
-    </Badge>
+    <span className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
+      <StatusIcon status={status} />
+      <span className="capitalize">{status.replace(/_/g, " ")}</span>
+    </span>
   );
 }
