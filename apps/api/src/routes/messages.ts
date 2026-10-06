@@ -51,7 +51,7 @@ export const MAX_WAIT_SECONDS = 120;
 /** Default look-back for `wait`, so a message that landed just before the call still counts. */
 export const WAIT_DEFAULT_LOOKBACK_MS = 60_000;
 
-const waitQuery = z.object({
+export const waitQuery = z.object({
   timeout: z.coerce.number().int().min(1).max(MAX_WAIT_SECONDS).default(30),
   since: z.iso.datetime({ offset: true }).optional(),
   from: messageFilters.shape.from,
@@ -60,6 +60,8 @@ const waitQuery = z.object({
 });
 
 /** Mounted at /v1/inboxes/:inboxId/messages */
+export const messageListQuery = listQuery.extend(messageFilters.shape);
+
 export const inboxMessageRoutes = new Hono<AppEnv>()
   /**
    * Long-poll: returns the first message matching the filters received at or after `since`
@@ -95,7 +97,7 @@ export const inboxMessageRoutes = new Hono<AppEnv>()
     return respond(arrived);
   })
 
-  .get("/", validate("query", listQuery.extend(messageFilters.shape)), async (c) => {
+  .get("/", validate("query", messageListQuery), async (c) => {
   requireScope(c.get("auth"), "read");
   const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
   const { limit, cursor, ...filters } = c.req.valid("query");

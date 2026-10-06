@@ -8,24 +8,27 @@
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "check": "wrangler types && tsc --noEmit",
-    "bootstrap": "tsx scripts/bootstrap.ts"
+    "bootstrap": "tsx scripts/bootstrap.ts",
+    "openapi": "tsx scripts/export-openapi.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.9.1",
+    "@send0/adapters": "workspace:*",
     "@send0/core": "workspace:*",
     "@send0/db": "workspace:*",
+    "@send0/pipeline": "workspace:*",
     "drizzle-orm": "^0.45.3",
     "hono": "^4.13.13",
-    "zod": "^4.6.5",
-    "@send0/adapters": "workspace:*",
-    "@send0/pipeline": "workspace:*"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
+    "@electric-sql/pglite": "^0.5.8",
     "@types/node": "^24",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vitest": "^5.0.3",
     "wrangler": "^4.147.0",
-    "@electric-sql/pglite": "^0.5.8"
+    "@send0/sdk": "workspace:*"
   }
 }

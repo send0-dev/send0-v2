@@ -68,18 +68,20 @@ const urlSchema = z
 
 const eventsSchema = z.array(z.enum([...EVENT_TYPES, "*"])).min(1).max(20);
 
-const createBody = z.object({
+export const webhookCreateBody = z.object({
   url: urlSchema,
   events: eventsSchema.default(["*"]),
   inbox_ids: z.array(z.string()).min(1).max(100).nullable().optional(),
 });
 
-const updateBody = z
+export const webhookUpdateBody = z
   .object({ url: urlSchema, events: eventsSchema, inbox_ids: z.array(z.string()).min(1).max(100).nullable(), status: z.enum(["enabled", "disabled"]) })
   .partial()
   .refine((b) => Object.keys(b).length > 0, "send at least one field to update");
 
 const MAX_WEBHOOKS_PER_ORG = 20;
+
+export const deliveryListQuery = listQuery.extend({ status: z.enum(["pending", "succeeded", "failed"]).optional() });
 
 export const webhookRoutes = new Hono<AppEnv>()
   .use(async (c, next) => {
@@ -89,7 +91,7 @@ export const webhookRoutes = new Hono<AppEnv>()
     await next();
   })
 
-  .post("/", validate("json", createBody), async (c) => {
+  .post("/", validate("json", webhookCreateBody), async (c) => {
     const { orgId } = c.get("auth");
     const { db } = c.get("deps");
     const body = c.req.valid("json");
@@ -120,7 +122,7 @@ export const webhookRoutes = new Hono<AppEnv>()
 
   .get("/:id", async (c) => c.json(serializeWebhook(await load(c, c.req.param("id")))))
 
-  .patch("/:id", validate("json", updateBody), async (c) => {
+  .patch("/:id", validate("json", webhookUpdateBody), async (c) => {
     const hook = await load(c, c.req.param("id"));
     const body = c.req.valid("json");
     if (body.inbox_ids) await assertInboxes(c, body.inbox_ids);
@@ -173,7 +175,7 @@ export const webhookRoutes = new Hono<AppEnv>()
     return c.json({ object: "event", id: eventId, type: "webhook.test", delivery_id: deliveryId }, 202);
   })
 
-  .get("/:id/deliveries", validate("query", listQuery.extend({ status: z.enum(["pending", "succeeded", "failed"]).optional() })), async (c) => {
+  .get("/:id/deliveries", validate("query", deliveryListQuery), async (c) => {
     const hook = await load(c, c.req.param("id"));
     const { limit, cursor, status } = c.req.valid("query");
     const rows = await c

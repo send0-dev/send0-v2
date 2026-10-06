@@ -1,0 +1,33 @@
+{
+  "name": "@send0/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for send0: email inboxes for AI agents",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://send0.dev",
+  "keywords": ["email", "inbox", "ai", "agents", "api", "send0"],
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "generate": "openapi-typescript openapi.json -o src/generated/openapi.ts",
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "test": "vitest run",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.3"
+  }
+}

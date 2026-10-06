@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { requireApiKey } from "./auth";
 import { ApiError, errorBody } from "./errors";
 import { idempotency } from "./idempotency";
+import { buildOpenApi } from "./openapi/spec";
 import { apiKeyRoutes } from "./routes/api-keys";
 import { eventRoutes } from "./routes/events";
 import { sesWebhookRoutes } from "./routes/ses-webhook";
@@ -25,6 +26,13 @@ export function createApp(deps: AppDeps) {
 
   app.get("/", (c) => c.json({ name: "send0 API", docs: "https://send0.dev", version: "v1" }));
   app.get("/health", (c) => c.json({ ok: true }));
+  let spec: ReturnType<typeof buildOpenApi> | undefined;
+  app.get("/openapi.json", (c) => {
+    spec ??= buildOpenApi();
+    c.header("cache-control", "public, max-age=300");
+    c.header("access-control-allow-origin", "*");
+    return c.json(spec);
+  });
 
   // SES delivery events from SNS (token-protected, no API key).
   app.route("/internal/ses-events", sesWebhookRoutes);

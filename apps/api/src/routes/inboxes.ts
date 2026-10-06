@@ -37,7 +37,7 @@ const metadataSchema = z
   .record(z.string().max(40), z.union([z.string().max(500), z.number(), z.boolean(), z.null()]))
   .refine((m) => Object.keys(m).length <= 20, "at most 20 keys");
 
-const createBody = z.object({
+export const inboxCreateBody = z.object({
   /** Local part; random when omitted */
   name: z.string().trim().toLowerCase().max(64).optional(),
   domain: z.string().trim().toLowerCase().max(253).optional(),
@@ -47,7 +47,7 @@ const createBody = z.object({
   expires_at: z.iso.datetime({ offset: true }).optional(),
 });
 
-const updateBody = z
+export const inboxUpdateBody = z
   .object({
     display_name: z.string().trim().max(100).nullable(),
     send_policy: z.enum(["open", "reply_only", "approval"]),
@@ -84,7 +84,7 @@ async function loadInbox(c: { get: (k: "deps") => AppEnv["Variables"]["deps"] },
 }
 
 export const inboxRoutes = new Hono<AppEnv>()
-  .post("/", validate("json", createBody), async (c) => {
+  .post("/", validate("json", inboxCreateBody), async (c) => {
     const auth = c.get("auth");
     requireScope(auth, "send");
     if (auth.inboxIds) throw forbidden("Keys limited to specific inboxes can't create new inboxes.");
@@ -162,7 +162,7 @@ export const inboxRoutes = new Hono<AppEnv>()
     return c.json(serializeInbox(inbox, domain));
   })
 
-  .patch("/:id", validate("json", updateBody), async (c) => {
+  .patch("/:id", validate("json", inboxUpdateBody), async (c) => {
     const auth = c.get("auth");
     requireScope(auth, "send");
     const { inbox, domain } = await loadInbox(c, auth, c.req.param("id"));

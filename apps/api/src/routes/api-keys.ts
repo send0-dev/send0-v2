@@ -23,14 +23,14 @@ export const serializeApiKey = (k: typeof apiKeys.$inferSelect) => ({
   created_at: k.createdAt.toISOString(),
 });
 
-const createBody = z.object({
+export const apiKeyCreateBody = z.object({
   name: z.string().trim().min(1).max(100),
   scopes: z.array(z.enum(SCOPES as [string, ...string[]])).min(1).default(["read", "send"]),
   inbox_ids: z.array(z.string()).min(1).max(100).nullable().optional(),
 });
 
 export const apiKeyRoutes = new Hono<AppEnv>()
-  .post("/", validate("json", createBody), async (c) => {
+  .post("/", validate("json", apiKeyCreateBody), async (c) => {
     const auth = c.get("auth");
     requireScope(auth, "admin");
     const { db } = c.get("deps");

@@ -12,6 +12,8 @@ import { validate } from "../validation";
 
 const { threads, messages, attachments } = schema;
 
+export const threadGetQuery = z.object({ include_html: z.stringbool().default(false) });
+
 /** Mounted at /v1/inboxes/:inboxId/threads */
 export const threadRoutes = new Hono<AppEnv>()
   .get("/", validate("query", listQuery), async (c) => {
@@ -30,7 +32,7 @@ export const threadRoutes = new Hono<AppEnv>()
 
   .get(
     "/:threadId",
-    validate("query", z.object({ include_html: z.stringbool().default(false) })),
+    validate("query", threadGetQuery),
     async (c) => {
       requireScope(c.get("auth"), "read");
       const { inbox } = await loadInbox(c, c.req.param("inboxId")!);

@@ -25,15 +25,17 @@ const body = {
 };
 const hasBody = (b: { text?: string; html?: string }) => !!(b.text?.trim() || b.html?.trim());
 
-const sendBody = z
+export const sendBody = z
   .object({ to: addressList, cc: addressList.optional(), bcc: addressList.optional(), subject: z.string().trim().min(1).max(998), ...body })
   .refine(hasBody, { message: "send text, html or both", path: ["text"] });
 
-const replyBody = z
+export const replyBody = z
   .object({ reply_all: z.boolean().default(false), cc: addressList.optional(), bcc: addressList.optional(), ...body })
   .refine(hasBody, { message: "send text, html or both", path: ["text"] });
 
-const forwardBody = z.object({ to: addressList, cc: addressList.optional(), bcc: addressList.optional(), ...body });
+export const forwardBody = z.object({ to: addressList, cc: addressList.optional(), bcc: addressList.optional(), ...body });
+
+export const draftListQuery = listQuery.extend({ status: z.enum(["pending", "approved", "rejected", "sent"]).optional() });
 
 function respond(c: Context<AppEnv>, r: SendResult) {
   return r.kind === "draft" ? c.json(r.draft, 202) : c.json(r.message, 201);
@@ -140,7 +142,7 @@ export const messageSendRoutes = new Hono<AppEnv>()
   });
 
 /** Mounted at /v1/inboxes/:inboxId/drafts */
-export const inboxDraftRoutes = new Hono<AppEnv>().get("/", validate("query", listQuery.extend({ status: z.enum(["pending", "approved", "rejected", "sent"]).optional() })), async (c) => {
+export const inboxDraftRoutes = new Hono<AppEnv>().get("/", validate("query", draftListQuery), async (c) => {
   requireScope(c.get("auth"), "read");
   const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
   const { limit, cursor, status } = c.req.valid("query");

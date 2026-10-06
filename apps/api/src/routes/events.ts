@@ -13,10 +13,12 @@ import { validate } from "../validation";
 const { events } = schema;
 const REPLAY_LIMIT = 500;
 
+export const streamQuery = z.object({ inbox_id: z.string().max(40).optional() });
+
 /** Mounted at /v1/events */
 export const eventRoutes = new Hono<AppEnv>().get(
   "/stream",
-  validate("query", z.object({ inbox_id: z.string().max(40).optional() })),
+  validate("query", streamQuery),
   async (c) => {
     const auth = c.get("auth");
     requireScope(auth, "read");
