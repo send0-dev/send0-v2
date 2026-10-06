@@ -1,0 +1,30 @@
+{
+  "name": "@send0/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for send0: give any agent an email inbox",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://send0.dev",
+  "bin": { "send0-mcp": "./dist/cli.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "tsup src/index.ts src/cli.ts --format esm --dts --clean",
+    "test": "vitest run",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@send0/sdk": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.3"
+  }
+}

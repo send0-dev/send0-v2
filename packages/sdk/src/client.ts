@@ -92,7 +92,6 @@ class Inboxes {
         1,
         Math.min(MAX_WAIT_PER_REQUEST, Math.ceil(remaining))
       );
-      const started = Date.now();
       const r = await this.http.request<WaitResult>(
         "GET",
         `/v1/inboxes/${enc(inboxId)}/messages/wait`,
@@ -102,7 +101,8 @@ class Inboxes {
         }
       );
       if (!r.timed_out) return r.message;
-      remaining -= (Date.now() - started) / 1000;
+      // The server waited the full timeout before giving up; count that, not the wall clock (which can jump).
+      remaining -= timeout;
       if (remaining < 1) return null;
     }
   }

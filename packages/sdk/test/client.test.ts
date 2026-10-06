@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Send0, Send0Error, verifyWebhook } from "../src";
 import { parseSse } from "../src/sse";
 
@@ -13,6 +13,8 @@ function mockFetch(responses: (Response | (() => Response) | Error)[]) {
   });
   return { fetch: fn as unknown as typeof fetch, calls };
 }
+
+afterEach(() => vi.useRealTimers());
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
@@ -100,7 +102,7 @@ describe("wait", () => {
     expect(msg?.id).toBe("msg_2");
     const [a, b] = m.calls.map((c) => new URL(c.url).searchParams);
     expect(a!.get("timeout")).toBe("120");
-    expect(Number(b!.get("timeout"))).toBeGreaterThan(70);
+    expect(b!.get("timeout")).toBe("80");
     expect(b!.get("since")).toBe(a!.get("since"));
   });
 
