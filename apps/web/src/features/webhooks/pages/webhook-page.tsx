@@ -5,7 +5,8 @@ import { CopyButton } from "@/components/copy-button";
 import { EmptyState } from "@/components/empty-state";
 import { ListSkeleton } from "@/components/list-skeleton";
 import { LoadMore } from "@/components/load-more";
-import { Page, PageBody, PageHeader, PageToolbar } from "@/components/page";
+import { PaneBar } from "@/components/list";
+import { Page, PageBody, PageHeader } from "@/components/page";
 import { QueryState } from "@/components/query-state";
 import { StatusBadge } from "@/components/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,7 +29,7 @@ export default function WebhookPage() {
       <PageBody>
         <QueryState query={hook} skeleton={<Skeleton className="m-5 h-16" />}>
           {(w) => (
-            <div className="animate-enter border-b px-5 py-5">
+            <div className="animate-enter border-b px-gutter py-5">
               <div className="flex items-center gap-1">
                 <h1 className="truncate font-mono text-[15px] font-medium">{w.url}</h1>
                 <CopyButton value={w.url} label="Copy URL" size="icon-xs" />
@@ -41,8 +42,8 @@ export default function WebhookPage() {
             </div>
           )}
         </QueryState>
-        <PageToolbar className="justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Deliveries</span>
+        <PaneBar className="justify-between">
+          <span className="font-medium text-foreground">Deliveries</span>
           <Tabs value={filter} onValueChange={(v) => setFilter(v as DeliveryFilter)}>
             <TabsList aria-label="Delivery status">
               <TabsTrigger value="all">All</TabsTrigger>
@@ -51,7 +52,7 @@ export default function WebhookPage() {
               <TabsTrigger value="succeeded">Succeeded</TabsTrigger>
             </TabsList>
           </Tabs>
-        </PageToolbar>
+        </PaneBar>
         <QueryState
           query={deliveries.state}
           skeleton={<ListSkeleton rows={5} />}

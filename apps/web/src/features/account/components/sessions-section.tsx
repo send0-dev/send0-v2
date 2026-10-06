@@ -10,7 +10,6 @@ export function SessionsSection() {
     <SettingsSection title="Sessions">
       <SettingsRow label="Other devices" description="Signed in on a shared or lost device? Sign out everywhere except here.">
       <Button
-        size="sm"
         loading={revoke.isPending}
         onClick={() => revoke.mutate(undefined, { onSuccess: () => toast.success("Signed out of every other device"), onError: (e) => toast.error(errorMessage(e)) })}
       >

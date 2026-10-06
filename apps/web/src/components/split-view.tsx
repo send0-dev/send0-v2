@@ -18,10 +18,7 @@ export function SplitView({ detailOpen, className, children }: { detailOpen: boo
   );
 }
 
-/** The bar at the top of a pane: same height on both sides. */
-export function PaneBar({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("flex h-11 shrink-0 items-center gap-2 border-b px-gutter text-xs text-muted-foreground", className)} {...props} />;
-}
+export { PaneBar } from "@/components/list";
 
 export function ListPane({ bar, className, children, label }: { bar?: ReactNode; className?: string; children: ReactNode; label: string }) {
   return (

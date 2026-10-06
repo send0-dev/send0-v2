@@ -42,16 +42,21 @@ const dana = (await call("GET", `/api/v1/inboxes/${inbox.id}/messages?from=dana@
 await call("POST", `/api/v1/messages/${dana.id}/reply`, { text: "Thanks Dana, Thursday works for us." });
 await call("PATCH", `/api/v1/inboxes/${inbox.id}`, { send_policy: "approval" });
 await call("POST", `/api/v1/messages/${dana.id}/reply`, { text: "Following up: can you confirm the delivery window is 9–11am?\n\nThanks,\nSupport agent" });
+const hook = await call("POST", "/api/v1/webhooks", { url: "https://hooks.example.com/send0/events" });
+await call("POST", `/api/v1/webhooks/${hook.id}/test`);
+await call("POST", "/api/v1/api-keys", { name: "Signup agent", scopes: ["read"], inbox_ids: [inbox.id] });
+await call("POST", "/auth/invites", { email: "mia@example.com", role: "member" });
 const threadId = threads.data.find((t) => t.subject.includes("PO #4471"))?.id ?? threads.data[0].id;
 
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: true });
 const page = await browser.newPage();
-await page.setCookie({ name: cookie.split("=")[0], value: cookie.split("=").slice(1).join("="), url: BASE });
+// ANON=1 shoots signed-out pages (login, sign-up, …).
+if (process.env.ANON !== "1") await page.setCookie({ name: cookie.split("=")[0], value: cookie.split("=").slice(1).join("="), url: BASE });
 for (const [w, h] of [[1440, 900], [1180, 820], [400, 860]]) {
   await page.setViewport({ width: w, height: h });
   for (const theme of ["light", "dark"]) {
     await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: theme }]);
-    await page.goto(BASE + path.replace(":inbox", inbox.id).replace(":thread", threadId), { waitUntil: "domcontentloaded" });
+    await page.goto(BASE + path.replace(":inbox", inbox.id).replace(":thread", threadId).replace(":webhook", hook.id), { waitUntil: "domcontentloaded" });
     await new Promise((r) => setTimeout(r, 1800));
     // The panel scrolls internally. For scrolling pages (FULL=1) let it grow so the capture shows
     // everything; split views (inbox, drafts) are captured as the viewport the person sees.

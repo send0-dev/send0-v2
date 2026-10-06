@@ -1,6 +1,9 @@
 import { Plus, Webhook } from "lucide-react";
 import { useState } from "react";
+import { CodeBlock } from "@/components/code-block";
 import { EmptyState } from "@/components/empty-state";
+import { ListHint, PaneBar } from "@/components/list";
+import { pluralize } from "@/lib/format";
 import { ListSkeleton } from "@/components/list-skeleton";
 import { LoadMore } from "@/components/load-more";
 import { Page, PageBody, PageHeader } from "@/components/page";
@@ -42,8 +45,15 @@ export default function WebhooksPage() {
         >
           {(items) => (
             <>
+              <PaneBar>
+                <span>Signed POSTs for new mail, deliveries, bounces and drafts.</span>
+                <span className="tabular ml-auto">{pluralize(items.length, "endpoint")}</span>
+              </PaneBar>
               <WebhooksList webhooks={items} />
               <LoadMore hasNextPage={hooks.hasNextPage} isFetchingNextPage={hooks.isFetchingNextPage} fetchNextPage={() => void hooks.fetchNextPage()} />
+              <ListHint title="Verify every delivery">
+                <CodeBlock code={`const ok = await send0.webhooks.verify(rawBody, req.headers["send0-signature"], secret);`} />
+              </ListHint>
             </>
           )}
         </QueryState>

@@ -386,7 +386,9 @@ await step("owner: sees the teammate, and can create and switch workspaces", asy
 
 await step("account: rename yourself", async () => {
   await o.goto("/settings/account");
-  await o.fill("Name", "Olivia O.");
+  const nameInput = await page.waitForSelector("[aria-label='Your name']");
+  await nameInput.click({ clickCount: 3 });
+  await nameInput.type("Olivia O.");
   await o.click("Save");
   await o.text("Profile saved");
   await o.shot("account");

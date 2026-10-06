@@ -31,7 +31,7 @@ export function ChangePasswordForm() {
   );
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="grid max-w-md gap-4" noValidate>
+      <form onSubmit={onSubmit} className="grid max-w-sm gap-4" noValidate>
         <FormField
           control={form.control}
           name="current"

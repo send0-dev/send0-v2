@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -50,5 +51,45 @@ export function RowActions({ className, ...props }: ComponentProps<"div">) {
       onKeyDown={(e) => e.stopPropagation()}
       {...props}
     />
+  );
+}
+
+/** A 44px bar above a list or pane: counts, filters, view controls. Same height everywhere. */
+export function PaneBar({ className, ...props }: ComponentProps<"div">) {
+  return <div className={cn("flex h-11 shrink-0 items-center gap-2 border-b px-gutter text-xs text-muted-foreground", className)} {...props} />;
+}
+
+/** Column headings for a list. Give each heading the same width class as its cells so they line up. */
+export function ListColumns({ className, ...props }: ComponentProps<"div">) {
+  return <div aria-hidden className={cn("flex h-8 shrink-0 items-center gap-3 border-b px-gutter text-[11px] font-medium text-faint", className)} {...props} />;
+}
+
+/** A quiet tip under a short list: how to do the same thing from code, or what to do next. */
+export function ListHint({ title, children, className }: { title: string; children: ReactNode; className?: string }) {
+  return (
+    <div className={cn("px-gutter py-8", className)}>
+      <div className="max-w-xl rounded-lg border border-dashed p-4">
+        <p className="text-xs font-medium text-muted-foreground">{title}</p>
+        <div className="mt-2">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/** A filter box for a list bar. */
+export function ListFilter({ value, onChange, placeholder, id }: { value: string; onChange: (v: string) => void; placeholder: string; id?: string }) {
+  return (
+    <span className="relative flex h-full min-w-0 flex-1 items-center">
+      <Search className="pointer-events-none absolute left-0 size-3.5 text-faint" />
+    <input
+      id={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => e.key === "Escape" && (onChange(""), e.currentTarget.blur())}
+      placeholder={placeholder}
+      aria-label={placeholder}
+      className="h-full w-full max-w-72 bg-transparent pl-6 text-[13px] text-foreground outline-none placeholder:text-faint"
+    />
+    </span>
   );
 }

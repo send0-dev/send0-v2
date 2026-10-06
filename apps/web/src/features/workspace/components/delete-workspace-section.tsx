@@ -5,20 +5,18 @@ import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/api";
 import type { WorkspaceRef } from "@/lib/auth-client";
 import { useDeleteWorkspace } from "../api/use-workspace-mutations";
-import { SettingsSection } from "./settings-section";
+import { SettingsRow, SettingsSection } from "./settings-section";
 
 export function DeleteWorkspaceSection({ workspace }: { workspace: WorkspaceRef }) {
   const [open, setOpen] = useState(false);
   const del = useDeleteWorkspace();
   return (
-    <SettingsSection
-      danger
-      title="Delete workspace"
-      description="API keys stop working, webhooks stop, and inboxes refuse mail immediately. Everything is erased after 30 days."
-    >
-      <Button variant="destructive-outline" onClick={() => setOpen(true)}>
-        Delete {workspace.name}
-      </Button>
+    <SettingsSection danger title="Danger zone">
+      <SettingsRow label="Delete workspace" description="Keys stop working, webhooks stop and inboxes refuse mail at once. Everything is erased after 30 days.">
+        <Button variant="destructive-outline" onClick={() => setOpen(true)}>
+          Delete workspace
+        </Button>
+      </SettingsRow>
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

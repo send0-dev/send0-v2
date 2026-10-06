@@ -7,7 +7,7 @@ import { useMembers } from "@/features/members/api/use-members";
 import { errorMessage } from "@/lib/api";
 import type { WorkspaceRef } from "@/lib/auth-client";
 import { useTransferWorkspace } from "../api/use-workspace-mutations";
-import { SettingsSection } from "./settings-section";
+import { SettingsRow, SettingsSection } from "./settings-section";
 
 /** Hand the workspace to an admin. The owner becomes an admin. */
 export function TransferOwnershipSection({ workspace }: { workspace: WorkspaceRef }) {
@@ -18,11 +18,12 @@ export function TransferOwnershipSection({ workspace }: { workspace: WorkspaceRe
   const transfer = useTransferWorkspace();
   const chosen = admins.find((a) => a.user_id === target);
   return (
-    <SettingsSection title="Transfer ownership" description="Make an admin the owner. You'll stay on as an admin.">
-      {admins.length ? (
-        <div className="flex flex-wrap gap-2">
+    <SettingsSection title="Ownership">
+      <SettingsRow label="Transfer ownership" description={admins.length ? "Make an admin the owner. You'll stay on as an admin." : "Make someone an admin in Members first."}>
+      {admins.length > 0 && (
+        <>
           <Select value={target} onValueChange={setTarget}>
-            <SelectTrigger className="w-64" aria-label="New owner">
+            <SelectTrigger className="w-44 max-sm:flex-1" aria-label="New owner">
               <SelectValue placeholder="Choose an admin" />
             </SelectTrigger>
             <SelectContent>
@@ -33,13 +34,12 @@ export function TransferOwnershipSection({ workspace }: { workspace: WorkspaceRe
               ))}
             </SelectContent>
           </Select>
-          <Button variant="secondary" disabled={!chosen} onClick={() => setConfirming(true)}>
+          <Button disabled={!chosen} onClick={() => setConfirming(true)}>
             Transfer
           </Button>
-        </div>
-      ) : (
-        <p className="text-[13px] text-muted-foreground">Make someone an admin in Members first.</p>
+        </>
       )}
+      </SettingsRow>
       <ConfirmDialog
         open={confirming}
         onOpenChange={setConfirming}
