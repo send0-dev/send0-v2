@@ -639,6 +639,15 @@ export interface components {
             participants: string[];
             message_count: number;
             labels: string[];
+            /** @description The newest message, for list previews */
+            latest_message: {
+                id: string;
+                /** @enum {string} */
+                direction: "in" | "out";
+                from: components["schemas"]["Mailbox"] | null;
+                /** @description Start of the new text (quotes and signatures removed), whitespace collapsed */
+                snippet: string;
+            } | null;
             /** Format: date-time */
             last_message_at: string;
             /** Format: date-time */
@@ -653,6 +662,15 @@ export interface components {
             participants: string[];
             message_count: number;
             labels: string[];
+            /** @description The newest message, for list previews */
+            latest_message: {
+                id: string;
+                /** @enum {string} */
+                direction: "in" | "out";
+                from: components["schemas"]["Mailbox"] | null;
+                /** @description Start of the new text (quotes and signatures removed), whitespace collapsed */
+                snippet: string;
+            } | null;
             /** Format: date-time */
             last_message_at: string;
             /** Format: date-time */

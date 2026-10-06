@@ -19,7 +19,7 @@ const dateFmt = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }
  * Stacked bars with a hover readout. Pure SVG, sized by its container; no chart library.
  * Labels are ISO dates (YYYY-MM-DD) and shown as "Oct 6".
  */
-export function BarChart({ data, series, height = 168, className }: { data: BarDatum[]; series: Series[]; height?: number; className?: string }) {
+export function BarChart({ data, series, height, className }: { data: BarDatum[]; series: Series[]; /** Fixed plot height; omit to fill the container */ height?: number; className?: string }) {
   const [hover, setHover] = useState<number | null>(null);
   const totals = data.map((d) => series.reduce((s, x) => s + (d.values[x.key] ?? 0), 0));
   const max = Math.max(4, ...totals);
@@ -41,7 +41,7 @@ export function BarChart({ data, series, height = 168, className }: { data: BarD
           </span>
         ))}
       </div>
-      <div className="relative" style={{ height }}>
+      <div className={cn("relative", height === undefined && "min-h-40 flex-1")} style={height === undefined ? undefined : { height }}>
         {ticks.map((t) => (
           <div key={t} className="pointer-events-none absolute inset-x-0 flex items-center gap-2" style={{ bottom: `${(t / max) * 100}%` }}>
             <div className="h-px flex-1 bg-border/70" />

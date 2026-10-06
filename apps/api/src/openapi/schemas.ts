@@ -94,6 +94,15 @@ export const Thread = reg(
     participants: z.array(z.string()),
     message_count: z.number().int(),
     labels: z.array(z.string()),
+    latest_message: z
+      .strictObject({
+        id: z.string(),
+        direction: z.enum(["in", "out"]),
+        from: Mailbox.nullable(),
+        snippet: z.string().describe("Start of the new text (quotes and signatures removed), whitespace collapsed"),
+      })
+      .nullable()
+      .describe("The newest message, for list previews"),
     last_message_at: ts,
     created_at: ts,
   }),

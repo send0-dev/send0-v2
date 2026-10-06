@@ -65,6 +65,7 @@ export const thread = (messages: Message[] = [message()]): ThreadWithMessages =>
   participants: ["dana@acme.dev", "agent@send0.email"],
   message_count: messages.length,
   labels: [],
+  latest_message: messages.at(-1) ? { id: messages.at(-1)!.id, direction: messages.at(-1)!.direction, from: messages.at(-1)!.from, snippet: messages.at(-1)!.extracted_text ?? "" } : null,
   last_message_at: at,
   created_at: at,
   messages,

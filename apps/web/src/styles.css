@@ -207,6 +207,13 @@
   }
 }
 
+@utility px-gutter {
+  padding-inline: 1rem;
+  @media (width >= 48rem) {
+    padding-inline: 1.5rem;
+  }
+}
+
 @layer utilities {
   .tabular {
     font-variant-numeric: tabular-nums;

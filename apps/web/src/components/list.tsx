@@ -9,7 +9,7 @@ export function List({ className, ...props }: ComponentProps<"div">) {
 /** A sticky group heading inside a list ("Today", "Yesterday", …) with an optional count. */
 export function ListGroupHeader({ label, count, className }: { label: ReactNode; count?: number; className?: string }) {
   return (
-    <div className={cn("sticky top-0 z-10 flex h-8 items-center gap-2 border-b bg-panel/95 px-5 text-xs font-medium text-muted-foreground backdrop-blur", className)}>
+    <div className={cn("sticky top-0 z-10 flex h-8 items-center gap-2 border-b bg-panel/95 px-gutter text-xs font-medium text-muted-foreground backdrop-blur", className)}>
       {label}
       {count !== undefined && <span className="tabular text-faint">{count}</span>}
     </div>
@@ -18,7 +18,7 @@ export function ListGroupHeader({ label, count, className }: { label: ReactNode;
 
 const rowClasses = (selected?: boolean, interactive = true) =>
   cn(
-    "group/row relative flex min-h-11 w-full min-w-0 items-center gap-3 border-b border-border/60 px-5 text-left text-[13px] transition-colors duration-75 outline-none last:border-b-0",
+    "group/row relative flex min-h-11 w-full min-w-0 items-center gap-3 border-b border-border/60 px-gutter text-left text-[13px] transition-colors duration-75 outline-none last:border-b-0",
     interactive && "cursor-pointer hover:bg-hover focus-visible:bg-hover",
     selected && "bg-selected hover:bg-selected"
   );

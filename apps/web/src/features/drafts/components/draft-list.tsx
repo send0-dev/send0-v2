@@ -18,7 +18,7 @@ export function DraftList({ drafts, selectedId, onSelect, inboxName }: { drafts:
               onClick={() => onSelect(d.id)}
               aria-current={selected || undefined}
               className={cn(
-                "relative grid w-full cursor-pointer gap-1 border-b border-border/60 px-4 py-3 text-left outline-none transition-colors duration-75 hover:bg-hover focus-visible:bg-hover",
+                "relative grid w-full cursor-pointer gap-1 border-b border-border/60 px-gutter py-3 text-left outline-none transition-colors duration-75 hover:bg-hover focus-visible:bg-hover",
                 selected && "bg-selected hover:bg-selected"
               )}
             >
@@ -34,6 +34,7 @@ export function DraftList({ drafts, selectedId, onSelect, inboxName }: { drafts:
                 <span className="text-faint">→</span>
                 <span className="truncate">{d.to.map((t) => t.email).join(", ")}</span>
               </span>
+              <span className="truncate pl-[22px] text-xs text-faint">{(d.text ?? "").replace(/\s+/g, " ").slice(0, 140) || "HTML only"}</span>
             </button>
           </li>
         );

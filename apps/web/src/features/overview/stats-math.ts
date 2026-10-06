@@ -5,10 +5,14 @@ type Key = keyof Stats["totals"];
 /** Sum of `key` over the last `n` days. */
 export const lastDays = (s: Stats, key: Key, n: number) => s.days.slice(-n).reduce((t, d) => t + d[key], 0);
 
-/** Percent change of the last 7 days against the 7 before them; null when there's nothing to compare. */
-export function weekOverWeek(s: Stats, key: Key): number | null {
-  const recent = lastDays(s, key, 7);
-  const before = s.days.slice(-14, -7).reduce((t, d) => t + d[key], 0);
+/**
+ * Percent change of the second half of the range against the first half (e.g. this week vs last
+ * week for 14 days); null when the first half had nothing to compare against.
+ */
+export function halfOverHalf(s: Stats, key: Key): number | null {
+  const half = Math.floor(s.days.length / 2);
+  const recent = lastDays(s, key, half);
+  const before = s.days.slice(-2 * half, -half).reduce((t, d) => t + d[key], 0);
   if (!before) return null;
   return Math.round(((recent - before) / before) * 100);
 }

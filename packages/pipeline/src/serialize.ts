@@ -50,7 +50,18 @@ export function serializeMessage(m: MessageRow, attachments: AttachmentRow[], op
   };
 }
 
-export const serializeThread = (t: ThreadRow) => ({
+/** The newest message in a thread, as much as a list needs: who, which way, and a preview. */
+export interface LatestMessage {
+  id: string;
+  direction: "in" | "out";
+  from: { name: string | null; email: string } | null;
+  text: string | null;
+}
+
+const SNIPPET_LENGTH = 160;
+export const snippet = (text: string | null) => (text ? text.replace(/\s+/g, " ").trim().slice(0, SNIPPET_LENGTH) : "");
+
+export const serializeThread = (t: ThreadRow, latest?: LatestMessage | null) => ({
   object: "thread" as const,
   id: t.id,
   inbox_id: t.inboxId,
@@ -58,6 +69,7 @@ export const serializeThread = (t: ThreadRow) => ({
   participants: t.participants,
   message_count: t.messageCount,
   labels: t.labels,
+  latest_message: latest ? { id: latest.id, direction: latest.direction, from: latest.from, snippet: snippet(latest.text) } : null,
   last_message_at: t.lastMessageAt.toISOString(),
   created_at: t.createdAt.toISOString(),
 });

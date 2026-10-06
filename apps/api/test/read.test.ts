@@ -126,6 +126,18 @@ describe("stats", () => {
   });
 });
 
+describe("thread previews", () => {
+  it("lists threads with the newest message's sender and a preview", async () => {
+    const r = await t.call("GET", `/v1/inboxes/${inboxId}/threads`);
+    const t0 = r.body.data[0];
+    expect(t0.latest_message).toMatchObject({ id: expect.stringMatching(/^msg_/), direction: "in", from: { email: expect.any(String) } });
+    expect(t0.latest_message.snippet.length).toBeGreaterThan(0);
+    expect(t0.latest_message.snippet).not.toMatch(/\s{2,}/);
+    const full = await t.call("GET", `/v1/inboxes/${inboxId}/threads/${t0.id}`);
+    expect(full.body.latest_message.id).toBe(full.body.messages.at(-1).id);
+  });
+});
+
 describe("threads", () => {
   it("lists threads by most recent activity and returns a thread oldest-first", async () => {
     const list = await t.call("GET", `/v1/inboxes/${inboxId}/threads`);

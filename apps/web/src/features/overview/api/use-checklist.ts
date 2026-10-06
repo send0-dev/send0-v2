@@ -3,7 +3,7 @@ import { useMembers } from "@/features/members/api/use-members";
 import { useMessages } from "@/features/messages/api/use-messages";
 import { useWebhooks } from "@/features/webhooks/api/use-webhooks";
 import { useCan } from "@/lib/permissions";
-import type { ChecklistItem } from "../components/getting-started";
+import type { ChecklistItem } from "../components/setup-checklist";
 import { useUsage } from "./use-usage";
 
 /**

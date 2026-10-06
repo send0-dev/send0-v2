@@ -27,7 +27,7 @@ export function MessageFilters({ filters, onChange, onClear, active }: { filters
 
   return (
     <>
-      <div className="relative min-w-48 flex-1">
+      <div className="relative min-w-48 flex-1 max-md:basis-full">
         <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-faint" />
         <input
           id="message-search"
@@ -40,7 +40,7 @@ export function MessageFilters({ filters, onChange, onClear, active }: { filters
         />
       </div>
       <Select value={filters.status || ANY} onValueChange={(v) => onChange("status", v === ANY ? "" : (v as Filters["status"]))}>
-        <SelectTrigger className="h-7 w-auto gap-1.5 border-dashed text-xs" aria-label="Status">
+        <SelectTrigger className="h-7 w-auto gap-1.5 border-dashed text-xs max-md:flex-1" aria-label="Status">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -53,7 +53,7 @@ export function MessageFilters({ filters, onChange, onClear, active }: { filters
         </SelectContent>
       </Select>
       <Select value={filters.inbox || ANY} onValueChange={(v) => onChange("inbox", v === ANY ? "" : v)}>
-        <SelectTrigger className="h-7 w-auto max-w-56 gap-1.5 border-dashed text-xs" aria-label="Inbox">
+        <SelectTrigger className="h-7 w-auto max-w-56 gap-1.5 border-dashed text-xs max-md:max-w-none max-md:flex-1" aria-label="Inbox">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

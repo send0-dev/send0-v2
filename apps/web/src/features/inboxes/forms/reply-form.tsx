@@ -41,7 +41,7 @@ export function ReplyForm({ inboxId, threadId, replyTo, needsApproval }: { inbox
     <Form {...form}>
       <form
         onSubmit={onSubmit}
-        className="rounded-xl border border-border-strong bg-elevated shadow-elevated transition-colors focus-within:border-brand/40"
+        className="rounded-xl border border-border-strong bg-elevated shadow-elevated transition-colors focus-within:border-brand/40 dark:bg-card"
         noValidate
       >
         <FormField
@@ -54,7 +54,7 @@ export function ReplyForm({ inboxId, threadId, replyTo, needsApproval }: { inbox
                   {...field}
                   id="reply-composer"
                   placeholder={`Reply to ${mailboxShort(recipient)}…`}
-                  className="max-h-72 min-h-20 resize-none border-0 bg-transparent px-3.5 pt-3 shadow-none hover:border-0 focus-visible:ring-0 dark:bg-transparent"
+                  className="max-h-60 min-h-16 resize-none border-0 bg-transparent px-3.5 pt-3 shadow-none hover:border-0 focus-visible:ring-0 dark:bg-transparent"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void onSubmit();
                     if (e.key === "Escape") e.currentTarget.blur();

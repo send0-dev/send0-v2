@@ -143,6 +143,23 @@ class Message(BaseModel):
     created_at: AwareDatetime
 
 
+class LatestMessage(BaseModel):
+    """
+    The newest message, for list previews
+    """
+
+    model_config = ConfigDict(
+        extra='allow',
+    )
+    id: str
+    direction: Literal['in', 'out']
+    from_: Annotated[Mailbox | None, Field(alias='from')]
+    snippet: str
+    """
+    Start of the new text (quotes and signatures removed), whitespace collapsed
+    """
+
+
 class Thread(BaseModel):
     model_config = ConfigDict(
         extra='allow',
@@ -154,6 +171,10 @@ class Thread(BaseModel):
     participants: list[str]
     message_count: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
     labels: list[str]
+    latest_message: LatestMessage | None
+    """
+    The newest message, for list previews
+    """
     last_message_at: AwareDatetime
     created_at: AwareDatetime
 
@@ -169,6 +190,10 @@ class ThreadWithMessages(BaseModel):
     participants: list[str]
     message_count: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
     labels: list[str]
+    latest_message: LatestMessage | None
+    """
+    The newest message, for list previews
+    """
     last_message_at: AwareDatetime
     created_at: AwareDatetime
     messages: list[Message]

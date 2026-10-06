@@ -216,7 +216,8 @@ await step("inbox: threads list and a thread with extracted code and auth badges
 
 await step("inbox: replying in-thread", async () => {
   await o.clickContaining("Re: PO #4471 delivery date", "ul[aria-label=Threads]");
-  await o.text("Can you confirm Thursday instead?"); // the thread (and its reply box) has switched
+  // The open thread (and its reply box) has switched once its heading shows the new subject.
+  await page.waitForFunction(() => document.querySelector("section[aria-label=Conversation] h2")?.textContent === "Re: PO #4471 delivery date", { timeout: 10000 });
   await page.type("textarea", "Thanks Dana, Thursday works.");
   await o.click("Send");
   await o.text("Reply sent");
@@ -238,6 +239,7 @@ await step("inbox settings: switch to approval; a reply becomes a draft; approve
   await o.text("Inbox saved");
   await o.dialogsClosed();
   await o.clickContaining("Re: PO #4471 delivery date", "ul[aria-label=Threads]");
+  await page.waitForFunction(() => document.querySelector("section[aria-label=Conversation] h2")?.textContent === "Re: PO #4471 delivery date", { timeout: 10000 });
   await o.text("Thanks Dana, Thursday works.");
   await o.text("this becomes a draft");
   await page.type("textarea", "Second reply, needs a human.");
@@ -358,7 +360,7 @@ await step("teammate: sees mail but not keys or webhooks", async () => {
   const nav = await matePage.$eval("aside", (n) => n.innerText);
   if (nav.includes("API keys") || nav.includes("Webhooks")) throw new Error(`member nav shows admin pages: ${nav}`);
   await m.goto(`/inboxes/${inboxId}`);
-  await m.text(address);
+  await m.text("threads"); // the inbox opened with its thread list
   expectedErrors++;
   await m.goto("/api-keys");
   await m.text("You don't have access to this");
@@ -405,7 +407,7 @@ await step("log out, then log back in straight to the page you wanted", async ()
 await step("phone width", async () => {
   await page.setViewport({ width: 400, height: 860 });
   await o.goto(`/inboxes/${inboxId}`);
-  await o.text(address);
+  await o.text("threads");
   await o.shot("phone-inbox");
   await page.click("[aria-label='Open menu']");
   await o.text("Documentation");

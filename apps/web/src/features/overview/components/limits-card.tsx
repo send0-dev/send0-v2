@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatCount, relativeTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
-const PLAN = { free: "Free", pro: "Pro", scale: "Scale" } as const;
+const PLAN = { free: "Free plan", pro: "Pro plan", scale: "Scale plan" } as const;
 
 function Meter({ label, used, limit, hint }: { label: string; used: number; limit: number; hint?: string }) {
   const pct = limit ? (used / limit) * 100 : 0;
@@ -25,9 +26,9 @@ function Meter({ label, used, limit, hint }: { label: string; used: number; limi
 }
 
 /** Where the workspace stands against its plan today. */
-export function LimitsCard({ usage }: { usage: Usage }) {
+export function LimitsCard({ usage, className }: { usage: Usage; className?: string }) {
   return (
-    <Card>
+    <Card className={cn("flex flex-col", className)}>
       <CardHeader>
         <CardTitle>Limits</CardTitle>
         <Badge variant="outline">{PLAN[usage.plan]}</Badge>

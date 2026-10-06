@@ -5125,6 +5125,50 @@
               "type": "string"
             }
           },
+          "latest_message": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "in",
+                      "out"
+                    ]
+                  },
+                  "from": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/Mailbox"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "snippet": {
+                    "type": "string",
+                    "description": "Start of the new text (quotes and signatures removed), whitespace collapsed"
+                  }
+                },
+                "required": [
+                  "id",
+                  "direction",
+                  "from",
+                  "snippet"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The newest message, for list previews"
+          },
           "last_message_at": {
             "type": "string",
             "format": "date-time"
@@ -5142,6 +5186,7 @@
           "participants",
           "message_count",
           "labels",
+          "latest_message",
           "last_message_at",
           "created_at"
         ],
@@ -5181,6 +5226,50 @@
               "type": "string"
             }
           },
+          "latest_message": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "in",
+                      "out"
+                    ]
+                  },
+                  "from": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/Mailbox"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "snippet": {
+                    "type": "string",
+                    "description": "Start of the new text (quotes and signatures removed), whitespace collapsed"
+                  }
+                },
+                "required": [
+                  "id",
+                  "direction",
+                  "from",
+                  "snippet"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The newest message, for list previews"
+          },
           "last_message_at": {
             "type": "string",
             "format": "date-time"
@@ -5204,6 +5293,7 @@
           "participants",
           "message_count",
           "labels",
+          "latest_message",
           "last_message_at",
           "created_at",
           "messages"

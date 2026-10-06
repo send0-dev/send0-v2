@@ -1,28 +1,32 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Sparkline } from "@/components/charts/sparkline";
+import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-/** A headline number with its trend: label, value, change vs last week, and a sparkline. */
-export function StatTile({ label, value, change, spark, color, hint }: { label: string; value: ReactNode; change?: number | null; spark?: number[]; color?: string; hint?: string }) {
+/**
+ * A headline number. Every tile has the same three rows, so a row of them lines up exactly:
+ * label + change, the value, then a one-line hint with the sparkline on the right.
+ */
+export function StatTile({ label, value, change, changeLabel, spark, color, hint }: { label: string; value: ReactNode; change?: number | null; changeLabel?: string; spark: number[]; color: string; hint: string }) {
   const up = (change ?? 0) >= 0;
   return (
-    <div className="relative flex min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-lg border bg-card p-4">
+    <div className="grid h-[116px] min-w-0 grid-rows-[20px_1fr_28px] gap-1 rounded-lg border bg-card px-4 py-3.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="truncate text-xs text-muted-foreground">{label}</span>
         {change !== undefined && change !== null && (
-          <span className={cn("inline-flex items-center gap-0.5 text-[11px] font-medium tabular", up ? "text-success" : "text-destructive")}>
-            {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
-            {Math.abs(change)}%
-          </span>
+          <Tooltip content={changeLabel}>
+            <span className={cn("inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium tabular", up ? "text-success" : "text-destructive")}>
+              {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
+              {Math.abs(change)}%
+            </span>
+          </Tooltip>
         )}
       </div>
+      <div className="tabular self-center text-[26px] leading-none font-semibold tracking-[-0.03em]">{value}</div>
       <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <div className="tabular text-[26px] leading-none font-semibold tracking-[-0.03em]">{value}</div>
-          {hint && <div className="mt-1.5 text-[11px] text-faint">{hint}</div>}
-        </div>
-        {spark && <Sparkline values={spark} color={color} className="h-8 w-24 shrink-0" />}
+        <span className="min-w-0 truncate pb-0.5 text-[11px] text-faint">{hint}</span>
+        <Sparkline values={spark} color={color} className="h-7 w-20 shrink-0 @max-md:hidden" />
       </div>
     </div>
   );
