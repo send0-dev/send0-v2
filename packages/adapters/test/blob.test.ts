@@ -44,6 +44,24 @@ describe("S3BlobStore", () => {
   });
 });
 
+describe("S3BlobStore.signedGetUrl", () => {
+  const cfg = { accessKeyId: "AKIDEXAMPLE", secretAccessKey: "secret", region: "ap-south-1", bucket: "send0-raw-mail" };
+  it("returns a SigV4 query-signed URL with expiry and download name", async () => {
+    const u = new URL(await new S3BlobStore(cfg).signedGetUrl("att/org_1/msg_1/att_1", { expiresIn: 900, filename: "price list.pdf", contentType: "application/pdf" }));
+    expect(u.origin + u.pathname).toBe("https://send0-raw-mail.s3.ap-south-1.amazonaws.com/att/org_1/msg_1/att_1");
+    expect(u.searchParams.get("X-Amz-Algorithm")).toBe("AWS4-HMAC-SHA256");
+    expect(u.searchParams.get("X-Amz-Expires")).toBe("900");
+    expect(u.searchParams.get("X-Amz-Credential")).toMatch(/^AKIDEXAMPLE\/\d{8}\/ap-south-1\/s3\/aws4_request$/);
+    expect(u.searchParams.get("X-Amz-Signature")).toMatch(/^[0-9a-f]{64}$/);
+    expect(u.searchParams.get("response-content-disposition")).toContain("filename*=UTF-8''price%20list.pdf");
+    expect(u.searchParams.get("response-content-type")).toBe("application/pdf");
+  });
+  it("caps expiry at 7 days", async () => {
+    const u = new URL(await new S3BlobStore(cfg).signedGetUrl("raw/x.eml", { expiresIn: 10 ** 9 }));
+    expect(u.searchParams.get("X-Amz-Expires")).toBe("604800");
+  });
+});
+
 describe("R2BlobStore", () => {
   it("maps options onto the R2 binding", async () => {
     const put = vi.fn(async () => null);

@@ -12,8 +12,6 @@
   "vars": {
     // Domains this Worker accepts mail for.
     "MAIL_DOMAINS": "send0.email",
-    // Milestone 1 has no database yet: only these local parts are accepted, everything else is rejected.
-    "ALLOWED_INBOXES": "test,kunal",
     // MTAs whose Authentication-Results we trust (topmost header only).
     "TRUSTED_AUTHSERV_IDS": "mx.cloudflare.net",
     "BLOB_DRIVER": "s3",
@@ -21,5 +19,9 @@
     "S3_REGION": "ap-south-1"
     // Secrets (wrangler secret put): S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
   },
+  // Postgres (Neon) through Hyperdrive; same config as the API Worker.
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d4b5efae692848d08e04fa2dd1bab031" }],
+  // Run next to the database (Neon, AWS Singapore): one long hop per request instead of one per query.
+  "placement": { "mode": "targeted", "region": "aws:ap-southeast-1" },
   "observability": { "enabled": true }
 }

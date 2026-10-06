@@ -1,5 +1,5 @@
 {
-  "name": "@send0/inbound",
+  "name": "@send0/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,20 +8,24 @@
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "check": "wrangler types && tsc --noEmit",
-    "cf-typegen": "wrangler types"
+    "bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {
-    "@send0/adapters": "workspace:*",
+    "@hono/zod-validator": "^0.9.1",
     "@send0/core": "workspace:*",
     "@send0/db": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "hono": "^4.13.13",
+    "zod": "^4.6.5",
+    "@send0/adapters": "workspace:*",
     "@send0/pipeline": "workspace:*"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
     "@types/node": "^24",
-    "drizzle-orm": "^0.45.3",
+    "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vitest": "^5.0.3",
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.147.0",
+    "@electric-sql/pglite": "^0.5.8"
   }
 }

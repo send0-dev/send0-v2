@@ -1,27 +1,41 @@
+import type { BlobStore } from "@send0/adapters/blob";
+import { schema, type Db } from "@send0/db";
+import { createTestDb } from "@send0/db/testing";
+import { eq } from "drizzle-orm";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import type { BlobStore } from "@send0/adapters/blob";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { blobStoreFromEnv } from "../src/blobs";
-import { handleEmail, MAX_MESSAGE_BYTES, rawKey, type InboundConfig, type InboundMessage } from "../src/handler";
+import { handleEmail, MAX_MESSAGE_BYTES, rawKey, type InboundMessage } from "../src/handler";
 import { checkRecipient } from "../src/recipient";
 
 const fixture = (name: string) =>
   readFileSync(fileURLToPath(new URL(`../../../fixtures/emails/${name}`, import.meta.url).href));
 
+const cfg = { MAIL_DOMAINS: "send0.email", TRUSTED_AUTHSERV_IDS: "mx.cloudflare.net" };
+let db: Db;
+let close: () => Promise<void>;
+
+beforeAll(async () => {
+  ({ db, close } = await createTestDb());
+  await db.insert(schema.orgs).values({ id: "org_1", name: "Acme" });
+  await db.insert(schema.domains).values({ id: "dom_1", name: "send0.email", kind: "shared", status: "verified" });
+  await db.insert(schema.inboxes).values([
+    { id: "ibx_test", orgId: "org_1", domainId: "dom_1", localPart: "test" },
+    { id: "ibx_off", orgId: "org_1", domainId: "dom_1", localPart: "paused", status: "suspended" },
+  ]);
+});
+afterAll(() => close());
+afterEach(() => vi.restoreAllMocks());
+
 function setup(opts: { to: string; raw?: Uint8Array; rawSize?: number; putFails?: boolean }) {
   const raw = opts.raw ?? fixture("gmail-reply.eml");
   const puts: { key: string; body: Uint8Array; options: any }[] = [];
-  const env: InboundConfig = {
-    MAIL_DOMAINS: "send0.email",
-    ALLOWED_INBOXES: "test, kunal",
-    TRUSTED_AUTHSERV_IDS: "mx.cloudflare.net",
-  };
   const blobs: BlobStore = {
-    put: vi.fn(async (key: string, body: Uint8Array, options: any) => {
+    put: async (key, body, options) => {
       if (opts.putFails) throw new Error("S3 down");
       puts.push({ key, body, options });
-    }),
+    },
   };
   const message: InboundMessage & { rejected?: string } = {
     from: "dana@gmail.com",
@@ -32,93 +46,93 @@ function setup(opts: { to: string; raw?: Uint8Array; rawSize?: number; putFails?
       this.rejected = reason;
     },
   };
-  return { env, blobs, message, puts };
+  return { deps: { db, blobs }, message, puts };
 }
 
-const logs = () => vi.spyOn(console, "log").mockImplementation(() => {});
-afterEach(() => vi.restoreAllMocks());
+const quiet = () => {
+  vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.spyOn(console, "error").mockImplementation(() => {});
+};
 
 describe("checkRecipient", () => {
-  const env = { MAIL_DOMAINS: "send0.email", ALLOWED_INBOXES: "test" };
   it.each([
     ["test@send0.email", true, undefined],
     ["Test+signup@Send0.Email", true, undefined],
-    ["nobody@send0.email", false, "unknown"],
     ["postmaster@send0.email", false, "reserved"],
     ["test@other.com", false, "foreign_domain"],
     ["garbage", false, "invalid"],
   ])("%s", (to, ok, reason) => {
-    const r = checkRecipient(to, env);
+    const r = checkRecipient(to, cfg);
     expect(r.ok).toBe(ok);
     if (!r.ok) expect(r.reason).toBe(reason);
   });
 });
 
 describe("handleEmail", () => {
-  it("stores the raw message, then logs the parsed summary", async () => {
-    const log = logs();
-    const { env, blobs, message, puts } = setup({ to: "Test+po4471@send0.email" });
-    await handleEmail(message, env, blobs, new Date("2026-10-05T10:14:03Z"));
+  it("stores raw mail first, then ingests it into the inbox", async () => {
+    quiet();
+    const { deps, message, puts } = setup({ to: "Test+po4471@send0.email" });
+    const r = await handleEmail(message, cfg, deps, new Date("2026-10-05T10:14:03Z"));
 
     expect(message.rejected).toBeUndefined();
-    expect(puts).toHaveLength(1);
-    expect(puts[0]!.key).toMatch(/^raw\/2026\/10\/05\/msg_[0-9A-Za-z]{16}\.eml$/);
-    expect(puts[0]!.body.byteLength).toBe(fixture("gmail-reply.eml").byteLength);
-    expect(puts[0]!.options.metadata).toMatchObject({ inbox: "test@send0.email", tag: "po4471", envelope_from: "dana@gmail.com" });
+    expect(puts[0]!.key).toMatch(/^raw\/org_1\/2026\/10\/05\/msg_[0-9A-Za-z]{16}\.eml$/);
+    expect(puts[0]!.options.metadata).toMatchObject({ inbox_id: "ibx_test", tag: "po4471", envelope_from: "dana@gmail.com" });
+    if (!r || r.duplicate) throw new Error("expected a new message");
 
-    const summary = JSON.parse(log.mock.calls.at(-1)![0] as string);
-    expect(summary).toMatchObject({
-      event: "message.received",
-      inbox: "test@send0.email",
-      tag: "po4471",
-      raw_key: puts[0]!.key,
-      in_reply_to: ["<msg_4Tq1aB9cD8eF7gH6@send0.email>"],
-      auth: { spf: "pass", dkim: "pass", dmarc: "pass" },
-      safety: { promptInjection: "none" },
-    });
-    expect(summary.extracted_text).toBe("Can you confirm Thursday instead? Our dock is closed Wednesday.\n\nThanks,\nDana");
+    const [msg] = await db.select().from(schema.messages).where(eq(schema.messages.id, r.messageId));
+    expect(msg).toMatchObject({ inboxId: "ibx_test", tag: "po4471", rawKey: puts[0]!.key, direction: "in" });
+    expect(msg!.extractedText).toBe("Can you confirm Thursday instead? Our dock is closed Wednesday.\n\nThanks,\nDana");
   });
 
-  it("rejects unknown and reserved addresses without storing anything", async () => {
-    logs();
-    for (const to of ["nobody@send0.email", "abuse@send0.email"]) {
-      const { env, blobs, message, puts } = setup({ to });
-      await handleEmail(message, env, blobs);
-      expect(message.rejected).toMatch(/^5\.1\.1 /);
+  it("treats a retried delivery as a duplicate", async () => {
+    quiet();
+    const { deps, message } = setup({ to: "test@send0.email" });
+    const r = await handleEmail(message, cfg, deps);
+    expect(r?.duplicate).toBe(true);
+  });
+
+  it("refuses unknown, reserved and suspended inboxes without storing anything", async () => {
+    quiet();
+    for (const [to, smtp] of [
+      ["nobody@send0.email", /^5\.1\.1 Mailbox does not exist/],
+      ["abuse@send0.email", /^5\.1\.1 /],
+      ["paused@send0.email", /^5\.2\.1 Mailbox disabled/],
+    ] as const) {
+      const { deps, message, puts } = setup({ to });
+      await handleEmail(message, cfg, deps);
+      expect(message.rejected).toMatch(smtp);
       expect(puts).toHaveLength(0);
     }
   });
 
   it("rejects messages over 25 MiB before reading them", async () => {
-    logs();
-    const { env, blobs, message, puts } = setup({ to: "test@send0.email", rawSize: MAX_MESSAGE_BYTES + 1 });
-    await handleEmail(message, env, blobs);
+    quiet();
+    const { deps, message, puts } = setup({ to: "test@send0.email", rawSize: MAX_MESSAGE_BYTES + 1 });
+    await handleEmail(message, cfg, deps);
     expect(message.rejected).toBe("5.3.4 Message too big");
     expect(puts).toHaveLength(0);
   });
 
-  it("keeps the message when parsing fails", async () => {
-    logs();
-    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+  it("keeps the raw message when parsing fails", async () => {
+    quiet();
     const core = await import("@send0/core");
     vi.spyOn(core, "parseInbound").mockRejectedValueOnce(new Error("boom"));
-    const { env, blobs, message, puts } = setup({ to: "test@send0.email" });
-    await handleEmail(message, env, blobs);
+    const { deps, message, puts } = setup({ to: "test@send0.email", raw: fixture("magic-link.eml") });
+    expect(await handleEmail(message, cfg, deps)).toBeNull();
     expect(message.rejected).toBeUndefined();
     expect(puts).toHaveLength(1);
-    expect(JSON.parse(err.mock.calls[0]![0] as string)).toMatchObject({ event: "message.parse_failed", error: "Error: boom" });
   });
 
   it("lets storage failures throw, so the sender retries instead of the mail being lost", async () => {
-    logs();
-    const { env, blobs, message } = setup({ to: "test@send0.email", putFails: true });
-    await expect(handleEmail(message, env, blobs)).rejects.toThrow("S3 down");
+    quiet();
+    const { deps, message } = setup({ to: "test@send0.email", putFails: true, raw: fixture("otp-subject.eml") });
+    await expect(handleEmail(message, cfg, deps)).rejects.toThrow("S3 down");
   });
 });
 
 describe("rawKey", () => {
-  it("partitions by UTC date", () => {
-    expect(rawKey("msg_x", new Date("2026-01-02T23:59:59Z"))).toBe("raw/2026/01/02/msg_x.eml");
+  it("partitions by org and UTC date", () => {
+    expect(rawKey("org_1", "msg_x", new Date("2026-01-02T23:59:59Z"))).toBe("raw/org_1/2026/01/02/msg_x.eml");
   });
 });
 

@@ -8,3 +8,8 @@ export interface PutOptions {
 export interface BlobStore {
   put(key: string, body: Uint8Array<ArrayBuffer>, opts: PutOptions): Promise<void>;
 }
+
+/** Stores that can hand out time-limited download links (S3 and S3-compatible). */
+export interface SignedUrlStore {
+  signedGetUrl(key: string, opts: { expiresIn: number; filename?: string | null; contentType?: string }): Promise<string>;
+}

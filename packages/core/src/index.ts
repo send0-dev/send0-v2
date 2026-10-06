@@ -3,6 +3,7 @@ export * from "./auth";
 export * from "./extract";
 export * from "./html";
 export * from "./ids";
+export * from "./keys";
 export * from "./parse";
 export * from "./reply";
 export * from "./safety";
