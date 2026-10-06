@@ -1,6 +1,6 @@
 import { schema } from "@send0/db";
 import { serializeAttachment, serializeMessage } from "@send0/pipeline";
-import { and, eq, gte, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, sql, type SQL } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { loadInbox, loadMessage } from "../access";
@@ -47,8 +47,55 @@ export async function withAttachments(db: AppEnv["Variables"]["deps"]["db"], row
   return map;
 }
 
+export const MAX_WAIT_SECONDS = 120;
+/** Default look-back for `wait`, so a message that landed just before the call still counts. */
+export const WAIT_DEFAULT_LOOKBACK_MS = 60_000;
+
+const waitQuery = z.object({
+  timeout: z.coerce.number().int().min(1).max(MAX_WAIT_SECONDS).default(30),
+  since: z.iso.datetime({ offset: true }).optional(),
+  from: messageFilters.shape.from,
+  subject: messageFilters.shape.subject,
+  direction: z.enum(["in", "out"]).default("in"),
+});
+
 /** Mounted at /v1/inboxes/:inboxId/messages */
-export const inboxMessageRoutes = new Hono<AppEnv>().get("/", validate("query", listQuery.extend(messageFilters.shape)), async (c) => {
+export const inboxMessageRoutes = new Hono<AppEnv>()
+  /**
+   * Long-poll: returns the first message matching the filters received at or after `since`
+   * (default: one minute before the call), waiting up to `timeout` seconds for it to arrive.
+   */
+  .get("/wait", validate("query", waitQuery), async (c) => {
+    requireScope(c.get("auth"), "read");
+    const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
+    const q = c.req.valid("query");
+    const { db, hub, now = () => new Date() } = c.get("deps");
+    const since = q.since ? new Date(q.since) : new Date(now().getTime() - WAIT_DEFAULT_LOOKBACK_MS);
+    const filter = { direction: q.direction, ...(q.from ? { from: q.from } : {}), ...(q.subject ? { subject: q.subject } : {}) };
+
+    const respond = async (m: typeof messages.$inferSelect | undefined) => {
+      if (!m) return c.json({ object: "wait_result", timed_out: true, message: null });
+      const atts = await withAttachments(db, [m]);
+      return c.json({ object: "wait_result", timed_out: false, message: serializeMessage(m, atts.get(m.id) ?? []) });
+    };
+
+    // 1. Already here? The hub keeps recent events, so nothing slips through between this check and step 2.
+    const [existing] = await db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.inboxId, inbox.id), ...filterConditions({ ...filter, since: since.toISOString() })))
+      .orderBy(asc(messages.createdAt), asc(messages.id))
+      .limit(1);
+    if (existing || !hub) return respond(existing);
+
+    // 2. Block on the inbox's hub until a match arrives or the timeout passes.
+    const event = await hub.wait(inbox.id, filter, since.getTime(), q.timeout * 1000);
+    if (!event) return respond(undefined);
+    const [arrived] = await db.select().from(messages).where(and(eq(messages.id, String(event.data.id)), eq(messages.inboxId, inbox.id)));
+    return respond(arrived);
+  })
+
+  .get("/", validate("query", listQuery.extend(messageFilters.shape)), async (c) => {
   requireScope(c.get("auth"), "read");
   const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
   const { limit, cursor, ...filters } = c.req.valid("query");

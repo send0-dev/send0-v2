@@ -19,6 +19,10 @@
     "S3_REGION": "ap-south-1"
     // Secrets (wrangler secret put): S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
   },
+  // Real-time hubs live in the API Worker; notify them as soon as a message is stored.
+  "durable_objects": { "bindings": [{ "name": "HUB", "class_name": "Hub", "script_name": "send0-api" }] },
+  // Webhook fan-out is consumed by the API Worker.
+  "queues": { "producers": [{ "binding": "EVENTS", "queue": "send0-events" }] },
   // Postgres (Neon) through Hyperdrive; same config as the API Worker.
   "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d4b5efae692848d08e04fa2dd1bab031" }],
   // Run next to the database (Neon, AWS Singapore): one long hop per request instead of one per query.

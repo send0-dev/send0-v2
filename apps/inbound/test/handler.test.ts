@@ -84,6 +84,33 @@ describe("handleEmail", () => {
     expect(msg!.extractedText).toBe("Can you confirm Thursday instead? Our dock is closed Wednesday.\n\nThanks,\nDana");
   });
 
+  it("publishes new messages to the inbox and org hubs and the webhook queue", async () => {
+    quiet();
+    const notified: { name: string; id: string }[] = [];
+    const queued: unknown[] = [];
+    const hub = {
+      idFromName: (name: string) => name,
+      get: (name: never) => ({ notify: async (e: { id: string }) => void notified.push({ name, id: e.id }) }),
+    };
+    const { deps, message } = setup({ to: "test@send0.email", raw: fixture("otp-html-only.eml") });
+    const r = await handleEmail(message, cfg, { ...deps, hub, queue: { send: async (m) => void queued.push(m) } });
+    if (!r || r.duplicate) throw new Error("expected new message");
+    expect(notified).toEqual([
+      { name: "org:org_1", id: r.envelope.id },
+      { name: "inbox:ibx_test", id: r.envelope.id },
+    ]);
+    expect(queued).toEqual([{ kind: "fanout", eventId: r.envelope.id }]);
+  });
+
+  it("still accepts mail when publishing fails", async () => {
+    quiet();
+    const hub = { idFromName: (n: string) => n, get: () => ({ notify: async () => Promise.reject(new Error("DO down")) }) };
+    const { deps, message } = setup({ to: "test@send0.email", raw: fixture("forwarded.eml") });
+    const r = await handleEmail(message, cfg, { ...deps, hub, queue: { send: async () => Promise.reject(new Error("queue down")) } });
+    expect(r?.duplicate).toBe(false);
+    expect(message.rejected).toBeUndefined();
+  });
+
   it("treats a retried delivery as a duplicate", async () => {
     quiet();
     const { deps, message } = setup({ to: "test@send0.email" });

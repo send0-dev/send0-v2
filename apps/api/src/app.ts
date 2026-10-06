@@ -4,6 +4,8 @@ import { requireApiKey } from "./auth";
 import { ApiError, errorBody } from "./errors";
 import { idempotency } from "./idempotency";
 import { apiKeyRoutes } from "./routes/api-keys";
+import { eventRoutes } from "./routes/events";
+import { webhookRoutes } from "./routes/webhooks";
 import { inboxRoutes } from "./routes/inboxes";
 import { inboxMessageRoutes, messageRoutes } from "./routes/messages";
 import { threadRoutes } from "./routes/threads";
@@ -29,6 +31,8 @@ export function createApp(deps: AppDeps) {
   v1.route("/inboxes/:inboxId/messages", inboxMessageRoutes);
   v1.route("/inboxes", inboxRoutes);
   v1.route("/messages", messageRoutes);
+  v1.route("/webhooks", webhookRoutes);
+  v1.route("/events", eventRoutes);
   app.route("/v1", v1);
 
   app.notFound((c) => c.json(errorBody(c, new ApiError(404, "route_not_found", `No route ${c.req.method} ${c.req.path}.`)), 404));

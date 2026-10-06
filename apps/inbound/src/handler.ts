@@ -1,7 +1,7 @@
 import type { BlobStore } from "@send0/adapters/blob";
 import { newId, parseInbound, type ParsedMessage } from "@send0/core";
 import type { Db } from "@send0/db";
-import { findInboxByAddress, ingestMessage, type IngestResult } from "@send0/pipeline";
+import { findInboxByAddress, ingestMessage, publish, type HubNamespaceLike, type IngestResult, type QueueLike } from "@send0/pipeline";
 import { checkRecipient } from "./recipient";
 
 /** Cloudflare Email Routing accepts up to 25 MiB per message. */
@@ -15,6 +15,9 @@ export interface InboundConfig {
 export interface InboundDeps {
   db: Db;
   blobs: BlobStore;
+  /** Real-time hubs and the webhook queue; events still reach webhooks via the outbox sweep if these fail */
+  hub?: HubNamespaceLike;
+  queue?: QueueLike;
 }
 
 /** The parts of ForwardableEmailMessage we use, so tests can pass a plain object. */
@@ -105,5 +108,6 @@ export async function handleEmail(
     receivedAt: now,
   });
   console.log(JSON.stringify({ ...summarize(key, parsed, result), inbox_id: inbox.id }));
+  if (!result.duplicate) await publish({ hub: deps.hub, queue: deps.queue }, inbox.orgId, result.envelope);
   return result;
 }

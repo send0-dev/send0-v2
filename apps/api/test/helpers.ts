@@ -2,6 +2,7 @@ import { newApiKey, newId } from "@send0/core";
 import { schema, type Db } from "@send0/db";
 import { createTestDb } from "@send0/db/testing";
 import { createApp } from "../src/app";
+import type { AppDeps } from "../src/types";
 
 export interface TestEnv {
   db: Db;
@@ -14,7 +15,7 @@ export interface TestEnv {
   call: (method: string, path: string, opts?: { key?: string | null; body?: unknown; headers?: Record<string, string> }) => Promise<{ status: number; body: any; headers: Headers }>;
 }
 
-export async function setup(opts: { now?: () => Date } = {}): Promise<TestEnv> {
+export async function setup(opts: { now?: () => Date; hub?: AppDeps["hub"]; queue?: AppDeps["queue"] } = {}): Promise<TestEnv> {
   const { db, close } = await createTestDb();
   const orgId = newId("org");
   await db.insert(schema.orgs).values({ id: orgId, name: "Test org" });
@@ -29,6 +30,8 @@ export async function setup(opts: { now?: () => Date } = {}): Promise<TestEnv> {
   const app = createApp({
     db,
     now: opts.now,
+    hub: opts.hub,
+    queue: opts.queue,
     files: { signedGetUrl: async (key, o) => `https://files.test/${key}?expires=${o.expiresIn}&name=${encodeURIComponent(o.filename ?? "")}` },
   });
 

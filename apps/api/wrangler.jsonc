@@ -9,6 +9,16 @@
   "routes": [{ "pattern": "api.send0.dev", "custom_domain": true }],
   // Postgres (Neon) through Hyperdrive. Create with: wrangler hyperdrive create send0-db --connection-string=...
   "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d4b5efae692848d08e04fa2dd1bab031" }],
+  // Real-time hubs: one per inbox and one per org (SQLite-backed, available on the free plan).
+  "durable_objects": { "bindings": [{ "name": "HUB", "class_name": "Hub" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Hub"] }],
+  // Webhook fan-out and delivery attempts, including delayed retries.
+  "queues": {
+    "producers": [{ "binding": "EVENTS", "queue": "send0-events" }],
+    "consumers": [{ "queue": "send0-events", "max_batch_size": 10, "max_batch_timeout": 1, "max_retries": 10 }]
+  },
+  // Outbox safety net. Hourly, so Neon's free compute can still scale to zero.
+  "triggers": { "crons": ["0 * * * *"] },
   "vars": {
     "S3_BUCKET": "send0-raw-mail-aps1",
     "S3_REGION": "ap-south-1"

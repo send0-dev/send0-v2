@@ -3,6 +3,7 @@ import { newId, resolveThread, type ParsedMessage } from "@send0/core";
 import { schema, type Db } from "@send0/db";
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import type { InboxRecord } from "./inbox-lookup";
+import { toEnvelope, type EventEnvelope } from "./events";
 import { serializeMessage } from "./serialize";
 
 const { threads, messages, attachments, events, usage } = schema;
@@ -25,6 +26,7 @@ export type IngestResult =
       threadId: string;
       threadMatchedBy: "in-reply-to" | "references" | "subject" | null;
       event: { id: string; type: "message.received"; orgId: string; inboxId: string; payload: Record<string, unknown> };
+      envelope: EventEnvelope;
     };
 
 class Duplicate extends Error {}
@@ -186,6 +188,7 @@ export async function ingestMessage(db: Db, blobs: BlobStore, input: IngestInput
         payload: { data: serializeMessage(message, attRows) } as Record<string, unknown>,
       };
       await tx.insert(events).values({ ...event, createdAt: input.receivedAt });
+      const envelope = toEnvelope({ ...event, createdAt: input.receivedAt });
 
       const period = input.receivedAt.toISOString().slice(0, 7);
       await tx
@@ -193,7 +196,7 @@ export async function ingestMessage(db: Db, blobs: BlobStore, input: IngestInput
         .values({ orgId: inbox.orgId, period, received: 1 })
         .onConflictDoUpdate({ target: [usage.orgId, usage.period], set: { received: sql`${usage.received} + 1` } });
 
-      return { duplicate: false as const, messageId, threadId, threadMatchedBy: match.matchedBy, event };
+      return { duplicate: false as const, messageId, threadId, threadMatchedBy: match.matchedBy, event, envelope };
     });
   } catch (err) {
     // Lost a race with a concurrent delivery of the same message.
