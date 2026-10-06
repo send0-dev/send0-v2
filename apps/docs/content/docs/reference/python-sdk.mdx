@@ -1,0 +1,95 @@
+---
+title: Python SDK
+description: "send0 on PyPI: sync and async clients with typed models."
+---
+
+```bash
+pip install send0
+```
+
+Python 3.10+. Depends on `httpx` and `pydantic`. Models are generated from the [OpenAPI spec](https://api.send0.dev/openapi.json).
+
+## Sign-up flow
+
+```python
+from send0 import Send0
+
+send0 = Send0()  # reads SEND0_API_KEY
+
+inbox = send0.inboxes.create(name="signup-agent")
+msg = send0.inboxes.wait(inbox.id, from_="*@github.com", timeout=60)
+
+if msg and msg.extracted and msg.extracted.otp:
+    print(msg.extracted.otp)
+
+send0.messages.reply(msg.id, text="Thanks, confirmed.")
+```
+
+`from` is a Python keyword, so the filter argument and the sender field are both `from_`.
+
+## Async
+
+```python
+from send0 import AsyncSend0
+
+async with AsyncSend0() as send0:
+    inbox = await send0.inboxes.create(name="async-agent")
+    msg = await send0.inboxes.wait(inbox.id, timeout=60)
+    async for m in await send0.messages.list(inbox.id):
+        ...
+```
+
+`AsyncSend0` has exactly the same methods as `Send0`; its source is generated from the sync client.
+
+## Configuration
+
+```python
+Send0(
+    api_key="s0_live_…",               # default: SEND0_API_KEY
+    base_url="https://api.send0.dev",  # for self-hosted send0
+    timeout=60,                        # seconds; wait() and stream() extend this
+    max_retries=2,                     # network errors, 429 and 5xx
+    http_client=httpx.Client(...),     # optional, e.g. proxies
+)
+```
+
+## Methods
+
+Same shape as the [TypeScript SDK](/reference/typescript-sdk), in snake_case:
+
+| | |
+|---|---|
+| **inboxes** | `create` · `list` · `get` · `update` · `delete` · `wait(inbox_id, from_=, subject=, direction=, since=, timeout=)` |
+| **messages** | `list(inbox_id, from_=, subject=, q=, direction=, since=, thread_id=)` · `get` · `send` · `reply` · `forward` · `attachment` · `raw_url` |
+| **threads** | `list` · `get(inbox_id, thread_id, include_html=)` |
+| **drafts** | `list` · `get` · `send` · `reject` |
+| **webhooks** | `create` · `list` · `get` · `update` · `delete` · `rotate_secret` · `test` · `deliveries` · `retry_delivery` · `verify` |
+| **api_keys** | `create` · `list` · `revoke` |
+| **events** | `stream(inbox_id=, last_event_id=)`: iterator that reconnects and resumes |
+
+`update()` arguments you leave out stay unchanged; pass `None` to clear a field (for example `display_name=None`).
+
+## Errors
+
+```python
+from send0 import Send0Error
+
+try:
+    send0.messages.send(inbox.id, to="someone@example.com", subject="Hi", text="…")
+except Send0Error as err:
+    if err.code == "recipient_not_allowed":
+        ...  # reply-only: only reply to people who wrote first
+    print(err.status, err.code, err.request_id)
+```
+
+Retries use backoff and honour `Retry-After`. Every POST carries a stable `Idempotency-Key`, so retries never send twice.
+
+## Webhooks
+
+```python
+from send0 import verify_webhook
+
+ok = verify_webhook(raw_body, headers.get("send0-signature"), secret)
+```
+
+Pages are iterable: `for m in send0.messages.list(inbox.id): ...` walks every page.

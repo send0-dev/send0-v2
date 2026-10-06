@@ -408,6 +408,20 @@ const jsonSchema = (s: z.ZodType) => {
 
 const ref = (name: string) => ({ $ref: `#/components/schemas/${name}` });
 
+/**
+ * Zod emits `format: date-time` plus a long regex for timestamps. The format says it all,
+ * and the regex trips code generators (e.g. Python models apply it to parsed datetimes).
+ */
+function dropDatetimePatterns<T>(node: T): T {
+  if (Array.isArray(node)) node.forEach(dropDatetimePatterns);
+  else if (node && typeof node === "object") {
+    const obj = node as Record<string, unknown>;
+    if (obj.format === "date-time" && "pattern" in obj) delete obj.pattern;
+    Object.values(obj).forEach(dropDatetimePatterns);
+  }
+  return node;
+}
+
 /** The OpenAPI 3.1 document for the public API. */
 export function buildOpenApi(
   opts: { serverUrl?: string; version?: string } = {}
@@ -517,8 +531,8 @@ export function buildOpenApi(
     };
   }
 
-  return {
-    openapi: "3.1.0",
+  return dropDatetimePatterns({
+    openapi: "3.1.0" as const,
     info: {
       title: "send0 API",
       version: opts.version ?? "1.0.0",
@@ -548,5 +562,5 @@ export function buildOpenApi(
       },
       schemas: components.schemas,
     },
-  };
+  });
 }

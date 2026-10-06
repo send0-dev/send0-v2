@@ -1,0 +1,8 @@
+{
+  "name": "@send0/sdk-python",
+  "private": true,
+  "scripts": {
+    "generate": "uv run datamodel-codegen --input ../sdk/openapi.json --input-file-type openapi --output src/send0/_models.py --output-model-type pydantic_v2.BaseModel --target-python-version 3.10 --extra-fields allow --use-standard-collections --use-union-operator --use-annotated --use-schema-description --use-field-description --enum-field-as-literal all --disable-timestamp --formatters black && uv run python scripts/gen_async.py",
+    "test": "uv run pytest -q"
+  }
+}
