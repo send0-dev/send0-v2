@@ -19,7 +19,8 @@ export default async function Page(props: PageProps<'/[[...slug]]'>) {
   if (!page) notFound();
 
   const MDX = page.data.body;
-  const markdownUrl = basePath + getPageMarkdownUrl(page).url;
+  // Relative: the copy button and the Markdown link add basePath (/docs) themselves.
+  const markdownUrl = getPageMarkdownUrl(page).url;
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
