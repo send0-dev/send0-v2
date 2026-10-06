@@ -1,4 +1,4 @@
-export type AuthErrorStatus = 400 | 401 | 403 | 404 | 409 | 410 | 429;
+export type AuthErrorStatus = 400 | 401 | 403 | 404 | 409 | 410 | 429 | 502;
 
 /** A failure the dashboard shows to the user. `field` names the form input it belongs to. */
 export class AuthError extends Error {

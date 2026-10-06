@@ -93,7 +93,14 @@ export class InviteService {
       await this.revokeOpen(tx, ws.id, email, now);
       await tx.insert(invites).values(row);
     });
-    await this.sendInvite(ws.name, inviter, email, input.role, token);
+    try {
+      await this.sendInvite(ws.name, inviter, email, input.role, token);
+    } catch (err) {
+      if (err instanceof AuthError && err.code === "email_failed") {
+        throw new AuthError(502, "email_failed", `The invitation was saved, but the email to ${email} didn't send. Use “Resend invitation” to try again.`);
+      }
+      throw err;
+    }
     return { id: row.id!, email, role: input.role, invitedBy: inviter.name, expiresAt: row.expiresAt, createdAt: now };
   }
 

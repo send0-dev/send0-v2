@@ -53,7 +53,10 @@ export class AuthContext {
     if (Math.random() < 0.02) await this.db.delete(rateLimits).where(lt(rateLimits.expiresAt, now));
   }
 
-  /** Sends account email (verification, resets, invites) from the system address. */
+  /**
+   * Sends account email (verification, resets, invites) from the system address.
+   * A delivery failure becomes a 502 `email_failed` the person can act on (try again), never a crash.
+   */
   async sendEmail(to: string, mail: SystemEmail): Promise<void> {
     const { mailer, from } = this.deps;
     if (!mailer) {
@@ -61,6 +64,24 @@ export class AuthContext {
       return;
     }
     const id = newId("msg");
+    try {
+      await this.deliver(mailer, from, to, mail, id);
+    } catch (err) {
+      console.error(JSON.stringify({ event: "auth.email_failed", subject: mail.subject, error: String(err) }));
+      throw new AuthError(502, "email_failed", "We couldn't send the email just now. Try again in a few minutes.");
+    }
+  }
+
+  async trySendEmail(to: string, mail: SystemEmail): Promise<boolean> {
+    try {
+      await this.sendEmail(to, mail);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async deliver(mailer: Mailer, from: AuthDeps["from"], to: string, mail: SystemEmail, id: string) {
     await mailer.sendRaw({
       from: from.email,
       recipients: [to],

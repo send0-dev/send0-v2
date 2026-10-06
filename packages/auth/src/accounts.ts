@@ -73,7 +73,7 @@ export class AccountService {
     if (input.ip) await this.ctx.rateLimit("signup:ip", input.ip, 5, 3600_000);
     const email = await this.checkNewAccount(input.email, input.password);
     const user = await this.createUser({ email, password: input.password, name: input.name });
-    await this.sendVerification(user);
+    await this.sendVerification(user).catch(() => {});
     const session = await this.sessions.create(user.id, input);
     return { user, session };
   }
@@ -117,7 +117,8 @@ export class AccountService {
     const user = await this.findByEmail(email);
     if (!user) return;
     const token = await this.issueToken(user.id, "reset_password", RESET_TTL_MS);
-    await this.ctx.sendEmail(user.email, resetPasswordEmail({ name: user.name, link: this.ctx.link(`/reset-password?token=${token}`) }));
+    // Never fails visibly: a failure only for existing accounts would reveal which emails have one.
+    await this.ctx.trySendEmail(user.email, resetPasswordEmail({ name: user.name, link: this.ctx.link(`/reset-password?token=${token}`) }));
   }
 
   async resetPassword(input: { token: string; password: string } & SessionMeta) {
@@ -137,7 +138,7 @@ export class AccountService {
       .where(eq(users.id, userId))
       .returning();
     await this.sessions.endAll(userId);
-    await this.ctx.sendEmail(user!.email, passwordChangedEmail({ name: user!.name, appUrl: this.ctx.deps.appUrl }));
+    await this.ctx.trySendEmail(user!.email, passwordChangedEmail({ name: user!.name, appUrl: this.ctx.deps.appUrl }));
     const session = await this.sessions.create(userId, input);
     return { user: user!, session };
   }
@@ -149,7 +150,7 @@ export class AccountService {
     if (problem) throw new AuthError(400, "weak_password", problem, "next");
     await this.ctx.db.update(users).set({ passwordHash: await hashPassword(input.next) }).where(eq(users.id, user.id));
     await this.sessions.endAll(user.id, input.keepSessionId); // other devices are signed out; this one stays
-    await this.ctx.sendEmail(user.email, passwordChangedEmail({ name: user.name, appUrl: this.ctx.deps.appUrl }));
+    await this.ctx.trySendEmail(user.email, passwordChangedEmail({ name: user.name, appUrl: this.ctx.deps.appUrl }));
   }
 
   async updateProfile(user: User, input: { name?: string | null }): Promise<User> {
