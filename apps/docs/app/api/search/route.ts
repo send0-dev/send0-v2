@@ -1,17 +1,10 @@
 import { source } from '@/lib/source';
-import { basePath } from '@/lib/shared';
 import { createFromSource } from 'fumadocs-core/search/server';
 
 export const revalidate = false;
 
+// Result URLs stay relative to the app (e.g. /api-keys): the search dialog navigates with
+// Next's router, which adds basePath (/docs) itself.
 export const { staticGET: GET } = createFromSource(source, {
   language: 'english',
-  // Pages are served under basePath; the static index must link there.
-  buildIndex: (page) => ({
-    id: page.url,
-    url: basePath + (page.url === '/' ? '' : page.url),
-    title: page.data.title ?? '',
-    description: page.data.description,
-    structuredData: page.data.structuredData,
-  }),
 });
