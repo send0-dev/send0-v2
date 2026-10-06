@@ -11,19 +11,19 @@ export interface TestEnv {
   adminKey: string;
   close: () => Promise<void>;
   /** Make an API key for the org with the given scopes/inboxes. */
-  makeKey: (opts?: { scopes?: string[]; inboxIds?: string[] | null; orgId?: string }) => Promise<string>;
+  makeKey: (opts?: { scopes?: string[]; inboxIds?: string[] | null; orgId?: string; mode?: "live" | "test" }) => Promise<string>;
   call: (method: string, path: string, opts?: { key?: string | null; body?: unknown; headers?: Record<string, string> }) => Promise<{ status: number; body: any; headers: Headers }>;
 }
 
-export async function setup(opts: { now?: () => Date; hub?: AppDeps["hub"]; queue?: AppDeps["queue"] } = {}): Promise<TestEnv> {
+export async function setup(opts: { now?: () => Date; hub?: AppDeps["hub"]; queue?: AppDeps["queue"]; mailer?: AppDeps["mailer"]; publish?: AppDeps["publish"]; sesEvents?: AppDeps["sesEvents"] } = {}): Promise<TestEnv> {
   const { db, close } = await createTestDb();
   const orgId = newId("org");
   await db.insert(schema.orgs).values({ id: orgId, name: "Test org" });
   await db.insert(schema.domains).values({ id: "dom_shared", name: "send0.email", kind: "shared", status: "verified" });
 
-  const makeKey: TestEnv["makeKey"] = async ({ scopes = ["admin"], inboxIds = null, orgId: org = orgId } = {}) => {
-    const k = await newApiKey("live");
-    await db.insert(schema.apiKeys).values({ id: newId("key"), orgId: org, name: "test", prefix: k.prefix, hash: k.hash, mode: "live", scopes, inboxIds });
+  const makeKey: TestEnv["makeKey"] = async ({ scopes = ["admin"], inboxIds = null, orgId: org = orgId, mode = "live" } = {}) => {
+    const k = await newApiKey(mode);
+    await db.insert(schema.apiKeys).values({ id: newId("key"), orgId: org, name: "test", prefix: k.prefix, hash: k.hash, mode, scopes, inboxIds });
     return k.key;
   };
   const adminKey = await makeKey();
@@ -32,6 +32,9 @@ export async function setup(opts: { now?: () => Date; hub?: AppDeps["hub"]; queu
     now: opts.now,
     hub: opts.hub,
     queue: opts.queue,
+    mailer: opts.mailer,
+    publish: opts.publish,
+    sesEvents: opts.sesEvents,
     files: { signedGetUrl: async (key, o) => `https://files.test/${key}?expires=${o.expiresIn}&name=${encodeURIComponent(o.filename ?? "")}` },
   });
 

@@ -11,3 +11,4 @@ export * from "./subject";
 export * from "./threading";
 export * from "./match";
 export * from "./webhook-signature";
+export * from "./mime";

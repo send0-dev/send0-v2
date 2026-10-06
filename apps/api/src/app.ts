@@ -5,9 +5,11 @@ import { ApiError, errorBody } from "./errors";
 import { idempotency } from "./idempotency";
 import { apiKeyRoutes } from "./routes/api-keys";
 import { eventRoutes } from "./routes/events";
+import { sesWebhookRoutes } from "./routes/ses-webhook";
 import { webhookRoutes } from "./routes/webhooks";
 import { inboxRoutes } from "./routes/inboxes";
 import { inboxMessageRoutes, messageRoutes } from "./routes/messages";
+import { draftRoutes, inboxDraftRoutes, inboxSendRoutes, messageSendRoutes } from "./routes/send";
 import { threadRoutes } from "./routes/threads";
 import type { AppDeps, AppEnv } from "./types";
 
@@ -24,13 +26,20 @@ export function createApp(deps: AppDeps) {
   app.get("/", (c) => c.json({ name: "send0 API", docs: "https://send0.dev", version: "v1" }));
   app.get("/health", (c) => c.json({ ok: true }));
 
+  // SES delivery events from SNS (token-protected, no API key).
+  app.route("/internal/ses-events", sesWebhookRoutes);
+
   const v1 = new Hono<AppEnv>();
   v1.use(requireApiKey, idempotency);
   v1.route("/api-keys", apiKeyRoutes);
   v1.route("/inboxes/:inboxId/threads", threadRoutes);
   v1.route("/inboxes/:inboxId/messages", inboxMessageRoutes);
+  v1.route("/inboxes/:inboxId/messages", inboxSendRoutes);
+  v1.route("/inboxes/:inboxId/drafts", inboxDraftRoutes);
   v1.route("/inboxes", inboxRoutes);
   v1.route("/messages", messageRoutes);
+  v1.route("/messages", messageSendRoutes);
+  v1.route("/drafts", draftRoutes);
   v1.route("/webhooks", webhookRoutes);
   v1.route("/events", eventRoutes);
   app.route("/v1", v1);

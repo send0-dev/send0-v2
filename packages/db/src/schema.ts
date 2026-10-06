@@ -36,6 +36,11 @@ export const orgs = pgTable("orgs", {
   name: text().notNull(),
   plan: text({ enum: ["free", "pro", "scale"] }).notNull().default("free"),
   status: text({ enum: ["active", "suspended"] }).notNull().default("active"),
+  /** Outbound messages allowed per UTC day. New orgs start low; raised as reputation builds. */
+  dailySendLimit: integer().notNull().default(50),
+  /** Set when sending is paused (complaint/bounce thresholds or by hand). Receiving keeps working. */
+  sendingPausedAt: timestamp({ withTimezone: true }),
+  sendingPausedReason: text(),
   createdAt: createdAt(),
 });
 

@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./blob": "./src/blob/index.ts"
+    "./blob": "./src/blob/index.ts",
+    "./mailer": "./src/mailer/index.ts"
   },
   "scripts": {
     "test": "vitest run",

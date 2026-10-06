@@ -1,6 +1,7 @@
 import type { SignedUrlStore } from "@send0/adapters/blob";
+import type { Mailer } from "@send0/adapters/mailer";
 import type { Db } from "@send0/db";
-import type { QueueLike } from "@send0/pipeline";
+import type { EventEnvelope, QueueLike } from "@send0/pipeline";
 import type { HubClient } from "./realtime/client";
 
 export type Scope = "read" | "send" | "admin";
@@ -23,6 +24,12 @@ export interface AppDeps {
   hub?: HubClient;
   /** Event queue for webhook delivery */
   queue?: QueueLike;
+  /** Outbound transport (SES). Without it, live sends fail with a clear error. */
+  mailer?: Mailer;
+  /** Push a committed event to real-time hubs and the webhook queue */
+  publish?: (orgId: string, envelope: EventEnvelope) => Promise<void>;
+  /** SNS → SES events endpoint: shared secret in the URL, and the only topic we accept */
+  sesEvents?: { token: string; topicArn: string };
   /** Defer work past the response (ctx.waitUntil on Workers). */
   waitUntil?: (p: Promise<unknown>) => void;
   now?: () => Date;

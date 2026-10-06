@@ -1,6 +1,7 @@
 import { S3BlobStore } from "@send0/adapters/blob";
+import { SesMailer } from "@send0/adapters/mailer";
 import { createDb } from "@send0/db";
-import type { QueueMessage } from "@send0/pipeline";
+import { publish, type QueueMessage } from "@send0/pipeline";
 import { createApp } from "./app";
 import { durableHubClient } from "./realtime/client";
 import { processQueueMessage, sweep } from "./webhooks/dispatch";
@@ -23,6 +24,18 @@ export default {
       files,
       hub: durableHubClient(env.HUB),
       queue: env.EVENTS,
+      // Only when its keys exist: a missing secret disables sending instead of breaking every route.
+      mailer:
+        env.SES_ACCESS_KEY_ID && env.SES_SECRET_ACCESS_KEY
+          ? new SesMailer({
+              region: env.SES_REGION,
+              configurationSet: env.SES_CONFIGURATION_SET,
+              accessKeyId: env.SES_ACCESS_KEY_ID,
+              secretAccessKey: env.SES_SECRET_ACCESS_KEY,
+            })
+          : undefined,
+      publish: (orgId, envelope) => publish({ hub: env.HUB as never, queue: env.EVENTS }, orgId, envelope),
+      sesEvents: env.SES_EVENTS_TOKEN ? { token: env.SES_EVENTS_TOKEN, topicArn: env.SES_EVENTS_TOPIC_ARN } : undefined,
       waitUntil: (p) => ctx.waitUntil(p),
     });
     return app.fetch(request, env, ctx);
