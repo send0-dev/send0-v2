@@ -4,6 +4,12 @@
   "license": "AGPL-3.0-only",
   "private": true,
   "type": "module",
+  "exports": {
+    "./app": "./src/app.ts",
+    "./types": "./src/types.ts",
+    "./webhooks/dispatch": "./src/webhooks/dispatch.ts",
+    "./maintenance": "./src/maintenance.ts"
+  },
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
