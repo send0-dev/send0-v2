@@ -5,3 +5,4 @@ export * from "./events";
 export * from "./hub-state";
 export * from "./hub-client";
 export * from "./receive";
+export * from "./mail-domains";

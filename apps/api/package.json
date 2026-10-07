@@ -8,7 +8,9 @@
     "./app": "./src/app.ts",
     "./types": "./src/types.ts",
     "./webhooks/dispatch": "./src/webhooks/dispatch.ts",
-    "./maintenance": "./src/maintenance.ts"
+    "./maintenance": "./src/maintenance.ts",
+    "./realtime/hub-do": "./src/realtime/hub-do.ts",
+    "./realtime/client": "./src/realtime/client.ts"
   },
   "scripts": {
     "dev": "wrangler dev",

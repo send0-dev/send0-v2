@@ -32,7 +32,8 @@ export interface SesConfig {
   accessKeyId: string;
   secretAccessKey: string;
   region: string;
-  configurationSet: string;
+  /** Unset: SES applies the account's default configuration set, if any (no event publishing otherwise) */
+  configurationSet?: string;
 }
 
 const TAG_VALUE = /[^A-Za-z0-9_.@-]/g;

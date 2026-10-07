@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
 import type { ServerConfig } from "./config";
-import { seedMailDomains } from "./domains";
+import { seedMailDomains } from "@send0/pipeline";
 import { createHttpApp } from "./http";
 import { createServices, type Services } from "./services";
 import { startSmtpServer, type SmtpServer } from "./smtp";

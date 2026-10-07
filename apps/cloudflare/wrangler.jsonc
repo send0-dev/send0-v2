@@ -1,0 +1,50 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // send0 in one Worker: the API, the dashboard, inbound mail, webhooks and the cron, on your own account.
+  "name": "send0",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  // The dashboard SPA (apps/web's build). API and dashboard routes run the Worker first; any other
+  // path is a static file, or the app shell for client-side routes.
+  "assets": {
+    "directory": "../web/dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Keep in step with WORKER_PATHS in src/http.ts.
+    "run_worker_first": ["/healthz", "/v1/*", "/mcp", "/mcp/*", "/openapi.json", "/internal/*", "/health", "/auth/*", "/api/*"],
+  },
+  // Your Postgres (Neon's free tier works) through Hyperdrive:
+  //   wrangler hyperdrive create send0-db --connection-string="postgres://..."
+  // then put its id here. `wrangler dev` uses localConnectionString instead.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000000",
+      "localConnectionString": "postgres://postgres:send0@127.0.0.1:55432/send0_cf_dev",
+    },
+  ],
+  // Raw mail and attachments.
+  "r2_buckets": [{ "binding": "BLOBS", "bucket_name": "send0-blobs" }],
+  // Webhook fan-out and delivery attempts, including delayed retries.
+  "queues": {
+    "producers": [{ "binding": "EVENTS", "queue": "send0-events" }],
+    "consumers": [{ "queue": "send0-events", "max_batch_size": 10, "max_batch_timeout": 1, "max_retries": 10 }],
+  },
+  // Real-time hubs: one per inbox and one per org (SQLite-backed, available on the free plan).
+  "durable_objects": { "bindings": [{ "name": "HUB", "class_name": "Hub" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Hub"] }],
+  // Outbox safety net, deleted-workspace purge, and a migration check.
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "vars": {
+    // Domains you receive mail on (comma-separated). Route each one's catch-all to this Worker in Email Routing.
+    "MAIL_DOMAINS": "agents.example.com",
+    // The region of your verified SES identity.
+    "SES_REGION": "us-east-1",
+    // Only OWNER_EMAIL can create the first account; everyone else joins by invite.
+    "ALLOW_SIGNUP": "false",
+    // Secrets (wrangler secret put, or the Deploy button's prompts): see .dev.vars.example.
+  },
+  "observability": { "enabled": true },
+}

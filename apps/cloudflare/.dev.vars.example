@@ -1,0 +1,18 @@
+# Settings the Deploy to Cloudflare button asks for. For `wrangler dev`, copy this to .dev.vars
+# (values there override wrangler.jsonc's vars). Never commit .dev.vars.
+
+# Signs download links. At least 32 characters: openssl rand -hex 32
+SECRET_KEY=
+
+# The email of the first account, who becomes the owner. Sign-up is closed to everyone else.
+OWNER_EMAIL=
+
+# Domains you receive mail on, comma-separated, like agents.acme.com. The first is the default for new inboxes.
+MAIL_DOMAINS=
+
+# An IAM user allowed ses:SendRawEmail for your verified SES identity. Without them, sending is off.
+SES_ACCESS_KEY_ID=
+SES_SECRET_ACCESS_KEY=
+
+# Sender of verification, password-reset and invite email. Defaults to noreply@<first mail domain>.
+MAIL_FROM=

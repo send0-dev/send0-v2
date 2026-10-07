@@ -1,7 +1,7 @@
 import { schema } from "@send0/db";
 import { createTestDb } from "@send0/db/testing";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { seedMailDomains } from "../src/domains";
+import { seedMailDomains } from "../src/mail-domains";
 
 describe("seedMailDomains", () => {
   let t: Awaited<ReturnType<typeof createTestDb>>;

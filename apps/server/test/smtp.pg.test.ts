@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import nodemailer from "nodemailer";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { loadConfig, type ServerConfig } from "../src/config";
-import { seedMailDomains } from "../src/domains";
+import { seedMailDomains } from "@send0/pipeline";
 import { startServer } from "../src/server";
 import { createServices, type Services } from "../src/services";
 import { startSmtpServer, type SmtpServer } from "../src/smtp";

@@ -1,0 +1,36 @@
+{
+  "name": "@send0/cloudflare",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-only",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "check": "wrangler types --env-file .dev.vars.example && tsc --noEmit",
+    "test": "vitest run",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@send0/adapters": "workspace:*",
+    "@send0/api": "workspace:*",
+    "@send0/auth": "workspace:*",
+    "@send0/config": "workspace:*",
+    "@send0/core": "workspace:*",
+    "@send0/db": "workspace:*",
+    "@send0/pipeline": "workspace:*",
+    "@send0/web": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "hono": "^4.13.13",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@types/node": "^24",
+    "jsonc-parser": "^3.3.1",
+    "postgres": "^3.4.9",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.3",
+    "wrangler": "^4.147.0"
+  }
+}
