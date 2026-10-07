@@ -2,8 +2,7 @@ import type { BlobReader, SignedUrlStore, TokenUrlSigner } from "@send0/adapters
 import type { Mailer } from "@send0/adapters/mailer";
 import type { Limits } from "@send0/config";
 import type { Db } from "@send0/db";
-import type { EventEnvelope, QueueLike } from "@send0/pipeline";
-import type { HubClient } from "./realtime/client";
+import type { EventEnvelope, HubClient, QueueLike } from "@send0/pipeline";
 
 export type Scope = "read" | "send" | "admin";
 export const SCOPES: readonly Scope[] = ["read", "send", "admin"];

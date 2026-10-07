@@ -1,6 +1,5 @@
-import { formatSse, hubName, HubState, type EventEnvelope } from "@send0/pipeline";
+import { formatSse, hubName, HubState, type EventEnvelope, type HubClient } from "@send0/pipeline";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import type { HubClient } from "../src/realtime/client";
 import { deliver, fixture, setup, type TestEnv } from "./helpers";
 
 const env = (id: string, over: Partial<EventEnvelope> & { data?: any } = {}): EventEnvelope => ({
