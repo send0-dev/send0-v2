@@ -149,7 +149,6 @@ export class SmtpMailer implements Mailer {
 
   /** `tags` are ignored: they are an SES configuration-set concept with no SMTP equivalent. */
   async sendRaw(input: SendRawInput): Promise<{ providerMessageId: string }> {
-    // nodemailer only reads the stream once the relay has accepted DATA, so this flags "the body is on the wire".
     let bodyStarted = false;
     const body = Buffer.from(input.raw, "utf8");
     const raw = new Readable({

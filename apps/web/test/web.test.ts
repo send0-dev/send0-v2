@@ -129,8 +129,9 @@ describe("API proxy", () => {
     expect((await b("GET", "/api/internal/ses-events")).status).toBe(404);
   });
 
-  it("has a permission rule for every public API operation", () => {
-    const missing = operations.filter((op) => !apiAction(op.method, op.path.replace(/\{[^}]+\}/g, "x_1")));
+  it("has a permission rule for every API operation the dashboard can proxy", () => {
+    // Public routes (signed file links) carry their own credential and never go through the dashboard.
+    const missing = operations.filter((op) => !op.public && !apiAction(op.method, op.path.replace(/\{[^}]+\}/g, "x_1")));
     expect(missing.map((op) => `${op.method} ${op.path}`)).toEqual([]);
   });
 });

@@ -15,7 +15,7 @@ const logError = (event: string, err: unknown, extra: Record<string, unknown> = 
 export class PgBossQueue implements QueueLike {
   private constructor(
     private readonly boss: PgBoss,
-    private readonly retry: { retryLimit: number; retryDelay: number; retryBackoff: boolean },
+    private readonly retry: { retryLimit: number; retryDelay: number; retryBackoff: boolean; retryDelayMax: number },
     private readonly pollingIntervalSeconds: number,
   ) {}
 
@@ -27,7 +27,8 @@ export class PgBossQueue implements QueueLike {
     const boss = new PgBoss({ connectionString: opts.url, schema: "pgboss" });
     boss.on("error", (err) => logError("pg_boss.error", err)); // an unhandled 'error' event would crash the process
     await boss.start();
-    const retry = { retryLimit: 10, retryDelay: opts.retryDelaySeconds ?? 30, retryBackoff: true };
+    // Backoff is capped at an hour, so the 10th retry still lands within a day.
+    const retry = { retryLimit: 10, retryDelay: opts.retryDelaySeconds ?? 30, retryBackoff: true, retryDelayMax: 3600 };
     await boss.createQueue(EVENTS_QUEUE, retry); // ON CONFLICT DO NOTHING, so safe on every boot
     return new PgBossQueue(boss, retry, opts.pollingIntervalSeconds ?? 2);
   }
