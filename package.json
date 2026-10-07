@@ -17,6 +17,7 @@
     "format": "prettier --write --cache .",
     "format:check": "prettier --check --cache .",
     "verify": "pnpm format:check && pnpm lint && pnpm check && pnpm test",
+    "smoke:selfhost": "node selfhost/smoke.mjs all",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {

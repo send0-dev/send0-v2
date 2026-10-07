@@ -59,3 +59,20 @@ jobs:
       - run: uv sync --locked
       - run: uv run mypy src
       - run: uv run pytest -q
+
+  selfhost:
+    name: Self-host smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      # Builds the image from this checkout (compose.smoke.yml tags it send0:smoke) and starts the stack.
+      - run: node selfhost/smoke.mjs up
+      - run: node selfhost/smoke.mjs test
+      - if: failure()
+        run: node selfhost/smoke.mjs logs
+      - if: always()
+        run: node selfhost/smoke.mjs down

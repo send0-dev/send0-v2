@@ -1,0 +1,28 @@
+# Overrides compose.yml for the smoke test (selfhost/smoke.mjs): Mailpit stands in for the relay, the
+# settings are fixed test values instead of .env, ports bind to 127.0.0.1 only, and Caddy is off.
+services:
+  send0:
+    image: send0:smoke
+    pull_policy: build
+    env_file: !reset []
+    environment:
+      DOMAIN: localhost
+      PUBLIC_URL: http://localhost:3000
+      MAIL_DOMAIN: agents.smoke.test
+      OWNER_EMAIL: owner@smoke.test
+      SECRET_KEY: smoke-test-only-0123456789abcdef0123456789abcdef
+      SMTP_URL: smtp://mailpit:1025?require_tls=false
+    ports: !override
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:2525:2525"
+    depends_on:
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:8025:8025"
+
+  caddy:
+    profiles: [disabled]
