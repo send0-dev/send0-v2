@@ -186,7 +186,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -278,7 +286,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -361,7 +377,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -508,7 +532,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -590,7 +622,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -752,7 +792,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1105,7 +1153,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1240,7 +1296,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1419,7 +1483,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1502,7 +1574,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1585,7 +1665,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1641,6 +1729,24 @@
           },
           "404": {
             "description": "The file no longer exists, or this install does not serve signed links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests from this address (`rate_limited`); see Retry-After",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1732,7 +1838,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2008,7 +2122,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2356,7 +2478,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2460,7 +2590,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2561,7 +2699,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2678,7 +2824,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2796,7 +2950,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -2919,7 +3081,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3000,7 +3170,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3094,7 +3272,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3188,7 +3374,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3328,7 +3522,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3420,7 +3622,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3503,7 +3713,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3641,7 +3859,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3722,7 +3948,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3815,7 +4049,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -3908,7 +4150,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4024,7 +4274,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4126,7 +4384,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4214,7 +4480,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4350,7 +4624,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4442,7 +4724,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4516,7 +4806,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4611,7 +4909,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -4694,7 +5000,15 @@
             }
           },
           "429": {
-            "description": "Rate or daily limit reached",
+            "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {

@@ -32,6 +32,7 @@ export async function setup(
     files?: AppDeps["files"];
     mailDomains?: string[];
     limits?: Limits;
+    rateLimiter?: AppDeps["rateLimiter"];
   } = {},
 ): Promise<TestEnv> {
   const { db, close } = await createTestDb();
@@ -66,6 +67,7 @@ export async function setup(
     publish: opts.publish,
     sesEvents: opts.sesEvents,
     fileServer: opts.fileServer,
+    rateLimiter: opts.rateLimiter,
     files: opts.files ?? {
       signedGetUrl: async (key, o) => `https://files.test/${key}?expires=${o.expiresIn}&name=${encodeURIComponent(o.filename ?? "")}`,
     },

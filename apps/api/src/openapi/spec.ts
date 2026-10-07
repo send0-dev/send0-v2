@@ -562,17 +562,21 @@ export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}
       ? ([
           ["403", "The download link is invalid or has expired"],
           ["404", "The file no longer exists, or this install does not serve signed links"],
+          ["429", "Too many requests from this address (`rate_limited`); see Retry-After"],
         ] as const)
       : ([
           ["400", "Invalid request"],
           ["401", "Missing or invalid API key"],
           ["403", "Not allowed (scope, policy or account state)"],
           ["404", "Not found, or not visible to this key"],
-          ["429", "Rate or daily limit reached"],
+          ["429", "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached"],
         ] as const);
     for (const [status, description] of errors) {
       responses[status] = {
         description,
+        ...(status === "429"
+          ? { headers: { "Retry-After": { description: "Seconds to wait before retrying", schema: { type: "integer" } } } }
+          : {}),
         content: { "application/json": { schema: ref("Error") } },
       };
     }

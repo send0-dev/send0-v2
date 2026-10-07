@@ -108,6 +108,7 @@ async function templateWranglerConfig(extraModules) {
     "  // The dashboard SPA, prebuilt in public/. API and dashboard routes",
   );
   replaceText("    // Keep in step with WORKER_PATHS in src/http.ts.\n", "");
+  replaceText("    // Keep in step with RATE_LIMITS in apps/api/src/rate-limit.ts.\n", "");
   replaceText(
     "  // then put its id here. `wrangler dev` uses localConnectionString instead.\n",
     "  // then put its id here. The Deploy to Cloudflare button asks for the connection string instead.\n",
@@ -156,6 +157,9 @@ function packageJson(version, wranglerVersion) {
         BLOBS: { description: "R2 bucket for raw mail and attachments." },
         EVENTS: { description: "Queue for webhook fan-out and delivery retries." },
         HUB: { description: "Durable Object for real-time events: SSE, WebSocket and the `wait` long-poll." },
+        RL_KEY: { description: "Rate limit: requests per API key (or dashboard user), 600 a minute." },
+        RL_KEY_SEND: { description: "Rate limit: sends, replies, forwards and draft approvals per API key, 60 a minute." },
+        RL_IP: { description: "Rate limit: failed authentication and download links per client IP, 60 a minute." },
         MAIL_DOMAINS: {
           description:
             "Domains you receive mail on, comma-separated, like `agents.acme.com`. Each must be on Cloudflare with **Email Routing** enabled.",

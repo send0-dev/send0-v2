@@ -37,3 +37,17 @@ description: Endpoints, authentication and the OpenAPI 3.1 spec.
 | `POST` `GET`                  | `/v1/api-keys` · `DELETE /v1/api-keys/{api_key_id}`                                                                            | admin                                |
 
 Conventions: [errors, idempotency and pagination](/reference/errors).
+
+## Rate limits
+
+Requests are counted per minute:
+
+| Applies to                                                                       | Limit     | Counted per         |
+| -------------------------------------------------------------------------------- | --------- | ------------------- |
+| Every request with an API key (and the dashboard)                                | 600 / min | API key (or person) |
+| Requests that send mail: send, reply, forward, `POST /v1/drafts/{draft_id}/send` | 60 / min  | API key (or person) |
+| Requests with a missing or invalid API key, and signed download links            | 60 / min  | Client IP           |
+
+Over a limit, the API answers `429` with the code `rate_limited` and a `Retry-After` header giving the seconds to wait. The SDKs wait that long and retry on their own. `/health` and `/openapi.json` aren't limited.
+
+Don't poll for new mail. One `GET /v1/inboxes/{inbox_id}/messages/wait` counts as one request however long it waits, and it returns as soon as a matching message arrives. For everything else, use [webhooks](/realtime/webhooks) or the [event stream](/realtime/events-stream), which push new mail and events to you as they happen.

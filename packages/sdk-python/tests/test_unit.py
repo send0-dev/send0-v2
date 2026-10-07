@@ -67,6 +67,27 @@ def test_retries_keep_the_idempotency_key(client, monkeypatch):
 
 
 @respx.mock
+def test_429_waits_for_retry_after(client, monkeypatch):
+    slept: list[float] = []
+    monkeypatch.setattr("time.sleep", slept.append)
+    limited = httpx.Response(429, headers={"retry-after": "7"}, json={"error": {"code": "rate_limited", "message": "slow down"}})
+    route = respx.get(f"{BASE}/v1/inboxes").mock(side_effect=[limited, httpx.Response(200, json={"object": "list", "data": [], "next_cursor": None})])
+    assert client.inboxes.list().data == []
+    assert route.call_count == 2 and slept == [7.0]
+
+
+@respx.mock
+def test_429_surfaces_rate_limited_after_retries(monkeypatch):
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    respx.get(f"{BASE}/v1/inboxes").mock(
+        return_value=httpx.Response(429, headers={"retry-after": "1"}, json={"error": {"code": "rate_limited", "message": "slow down"}})
+    )
+    with pytest.raises(Send0Error) as e:
+        Send0("s0_test_x", base_url=BASE, max_retries=1).inboxes.list()
+    assert (e.value.status, e.value.code) == (429, "rate_limited")
+
+
+@respx.mock
 def test_no_retry_on_4xx(client):
     route = respx.get(f"{BASE}/v1/inboxes").mock(return_value=httpx.Response(400, json={"error": {"code": "invalid_request", "message": "bad"}}))
     with pytest.raises(Send0Error):

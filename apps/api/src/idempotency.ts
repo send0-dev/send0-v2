@@ -55,8 +55,9 @@ export const idempotency = createMiddleware<AppEnv>(async (c, next) => {
   let stored = false;
   try {
     await next();
-    // Store successful and client-error responses; drop the claim on server errors so a retry can run.
-    if (c.res.status < 500 && c.res.headers.get("content-type")?.includes("application/json")) {
+    // Store successful and client-error responses; drop the claim on server errors and 429s (which
+    // say "try again later") so a retry with the same key can run.
+    if (c.res.status < 500 && c.res.status !== 429 && c.res.headers.get("content-type")?.includes("application/json")) {
       const body = await c.res.clone().json();
       await db.update(idempotencyKeys).set({ responseStatus: c.res.status, responseBody: body }).where(where);
       stored = true;

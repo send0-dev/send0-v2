@@ -3,6 +3,7 @@ import type { Mailer } from "@send0/adapters/mailer";
 import type { Limits } from "@send0/config";
 import type { Db } from "@send0/db";
 import type { EventEnvelope, HubClient, QueueLike } from "@send0/pipeline";
+import type { RateLimiter } from "./rate-limit";
 import type { SnsVerifyResult } from "./sending/sns-signature";
 
 export type Scope = "read" | "send" | "admin";
@@ -47,6 +48,8 @@ export interface AppDeps {
    * SNS signature check (defaults to verifySnsMessage; tests inject one with a test certificate).
    */
   sesEvents?: { token: string; topicArn: string; verify?: (msg: unknown) => Promise<SnsVerifyResult> };
+  /** Per-key and per-IP request limits (see rate-limit.ts). Without one, nothing is limited. */
+  rateLimiter?: RateLimiter;
   /** Defer work past the response (ctx.waitUntil on Workers). */
   waitUntil?: (p: Promise<unknown>) => void;
   now?: () => Date;

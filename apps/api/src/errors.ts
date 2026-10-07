@@ -11,6 +11,8 @@ export class ApiError extends Error {
     readonly code: string,
     message: string,
     readonly param?: string,
+    /** Response headers that go with the error, e.g. Retry-After on a 429 */
+    readonly headers?: Record<string, string>,
   ) {
     super(message);
   }

@@ -1,4 +1,5 @@
 import type { Mailer } from "@send0/adapters/mailer";
+import { MemoryRateLimiter } from "@send0/api/rate-limit";
 import type { AppDeps } from "@send0/api/types";
 import { createAuth, type Auth } from "@send0/auth";
 import { createDb, type Db } from "@send0/db";
@@ -96,6 +97,8 @@ export async function createServices(config: ServerConfig): Promise<Services> {
     queue: liveQueue,
     mailer,
     publish,
+    // One process, so in-memory counters are exact.
+    rateLimiter: new MemoryRateLimiter(),
     waitUntil: background.waitUntil,
   };
 

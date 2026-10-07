@@ -99,10 +99,11 @@ Plain settings are **vars** in `wrangler.jsonc`. Secrets are set with the Deploy
 
 `wrangler.jsonc` declares these. The Deploy button creates the resources.
 
-| Binding      | Type                          | Default name   |
-| ------------ | ----------------------------- | -------------- |
-| `HYPERDRIVE` | Hyperdrive                    | Your Postgres  |
-| `BLOBS`      | R2 bucket                     | `send0-blobs`  |
-| `EVENTS`     | Queue (producer and consumer) | `send0-events` |
-| `HUB`        | Durable Object                | class `Hub`    |
-| `ASSETS`     | Static assets                 | The dashboard  |
+| Binding                        | Type                          | Default name                                  |
+| ------------------------------ | ----------------------------- | --------------------------------------------- |
+| `HYPERDRIVE`                   | Hyperdrive                    | Your Postgres                                 |
+| `BLOBS`                        | R2 bucket                     | `send0-blobs`                                 |
+| `EVENTS`                       | Queue (producer and consumer) | `send0-events`                                |
+| `HUB`                          | Durable Object                | class `Hub`                                   |
+| `ASSETS`                       | Static assets                 | The dashboard                                 |
+| `RL_KEY` `RL_KEY_SEND` `RL_IP` | Rate Limiting                 | [API rate limits](/reference/api#rate-limits) |

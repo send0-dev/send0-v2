@@ -17,6 +17,17 @@
     "producers": [{ "binding": "EVENTS", "queue": "send0-events" }],
     "consumers": [{ "queue": "send0-events", "max_batch_size": 10, "max_batch_timeout": 1, "max_retries": 10 }],
   },
+  // Request limits per 60 s (keep in step with RATE_LIMITS in src/rate-limit.ts). namespace_id is any
+  // number unique within the Cloudflare account. If a binding is missing, that rule falls back to
+  // per-isolate counters.
+  "ratelimits": [
+    // Every request made with an API key (or by a dashboard user)
+    { "name": "RL_KEY", "namespace_id": "1001", "simple": { "limit": 600, "period": 60 } },
+    // On top of that, requests that send mail: send, reply, forward, approve a draft
+    { "name": "RL_KEY_SEND", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } },
+    // Per client IP: failed authentication and signed download links
+    { "name": "RL_IP", "namespace_id": "1003", "simple": { "limit": 60, "period": 60 } },
+  ],
   // Outbox safety net. Hourly, so Neon's free compute can still scale to zero.
   "triggers": { "crons": ["0 * * * *"] },
   "vars": {

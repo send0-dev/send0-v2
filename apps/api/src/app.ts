@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { requireApiKey } from "./auth";
 import { ApiError, errorBody } from "./errors";
 import { idempotency } from "./idempotency";
+import { limitByIp } from "./rate-limit";
 import { buildOpenApi } from "./openapi/spec";
 import { apiKeyRoutes } from "./routes/api-keys";
 import { eventRoutes } from "./routes/events";
@@ -49,6 +50,8 @@ export function createApp(deps: AppDeps) {
   app.route("/internal/ses-events", sesWebhookRoutes);
 
   // App-signed download links: the token is the credential, so this sits before v1's API-key auth.
+  // Unauthenticated, so limited per client address like a failed API key.
+  app.use("/v1/files/*", limitByIp);
   app.route("/v1/files", fileRoutes);
 
   const v1 = new Hono<AppEnv>();
@@ -72,7 +75,7 @@ export function createApp(deps: AppDeps) {
   app.notFound((c) => c.json(errorBody(c, new ApiError(404, "route_not_found", `No route ${c.req.method} ${c.req.path}.`)), 404));
 
   app.onError((err, c) => {
-    if (err instanceof ApiError) return c.json(errorBody(c, err), err.status);
+    if (err instanceof ApiError) return c.json(errorBody(c, err), err.status, err.headers);
     if (err instanceof HTTPException && err.status < 500) {
       return c.json(errorBody(c, new ApiError(err.status as 400, "invalid_request", err.message || "Invalid request.")), err.status);
     }

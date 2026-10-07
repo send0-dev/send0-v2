@@ -1,6 +1,7 @@
 import { R2BlobStore, TokenUrlSigner } from "@send0/adapters/blob";
 import { SesMailer, type Mailer } from "@send0/adapters/mailer";
 import { durableHubClient } from "@send0/api/realtime/client";
+import { bindingRateLimiter, MemoryRateLimiter } from "@send0/api/rate-limit";
 import type { AppDeps } from "@send0/api/types";
 import { createAuth, type Auth } from "@send0/auth";
 import type { Db } from "@send0/db";
@@ -11,7 +12,12 @@ import type { CloudflareConfig, SesSettings } from "./config";
 export type DbFactory = (connectionString: string, opts: { max: number }) => Db;
 
 /** The bindings this Worker uses, as wrangler.jsonc declares them. */
-export type Bindings = Pick<Env, "HYPERDRIVE" | "BLOBS" | "EVENTS" | "HUB" | "ASSETS">;
+export type Bindings = Pick<Env, "HYPERDRIVE" | "BLOBS" | "EVENTS" | "HUB" | "ASSETS"> &
+  // Rate Limiting bindings. Optional: without one, that rule falls back to per-isolate counters.
+  Partial<Pick<Env, "RL_KEY" | "RL_KEY_SEND" | "RL_IP">>;
+
+/** Per-isolate counters, used only for a rule whose Rate Limiting binding is missing. */
+const fallbackLimiter = new MemoryRateLimiter();
 
 /** Makes the outbound mailer from the SES settings. Swapped for a recording fake in tests. */
 export type MailerFactory = (ses: SesSettings) => Mailer;
@@ -56,6 +62,7 @@ export function requestServices(
     queue: env.EVENTS,
     mailer,
     publish: publisher(env),
+    rateLimiter: bindingRateLimiter({ key: env.RL_KEY, key_send: env.RL_KEY_SEND, ip: env.RL_IP }, fallbackLimiter),
     ...(config.sesEvents ? { sesEvents: config.sesEvents } : {}),
     waitUntil: (p) => ctx.waitUntil(p),
   };
