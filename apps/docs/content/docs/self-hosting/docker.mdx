@@ -16,7 +16,7 @@ The examples use `mail.example.com` for the dashboard and API (`DOMAIN`) and `ag
 
 ### Check the prerequisites
 
-- A Linux server with a public IP, and Docker with Compose 2.24 or later (`docker compose version`).
+- A Linux server with a public IP, and Docker with Docker Compose v2 (`docker compose version`).
 - A domain whose DNS you control.
 - **Inbound port 25 open.** Mail servers always deliver on port 25. Many cloud providers block it by default; some unblock it on request.
 - A way to send: an SMTP relay (Postmark, Resend, Mailgun, SES SMTP, Google Workspace) or Amazon SES. The relay must be allowed to send from your mail domain.

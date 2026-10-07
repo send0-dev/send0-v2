@@ -77,6 +77,10 @@ export function loadConfig(input: object): CloudflareConfig {
     if (!(err instanceof ConfigError)) throw err;
     problems.push(...err.problems);
   }
+  // Email Routing's results are always trusted, as Docker always trusts its own MX; extra ids add to it.
+  if (core && !core.trustedAuthservIds.includes(CLOUDFLARE_AUTHSERV_ID)) {
+    core = { ...core, trustedAuthservIds: [...core.trustedAuthservIds, CLOUDFLARE_AUTHSERV_ID] };
+  }
   if (core?.mailDomains.some((d) => EXAMPLE_DOMAIN.test(d))) {
     problems.push("MAIL_DOMAINS: replace the example domain with the domain(s) you receive mail on, like agents.acme.com");
   }

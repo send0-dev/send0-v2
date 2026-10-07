@@ -53,7 +53,7 @@ send0's SMTP server checks SPF, DKIM, DMARC and ARC for each message itself. It 
 
 SPF is checked against the IP that connected to send0. If another server relays mail to send0, SPF sees that server's IP.
 
-On Cloudflare, Email Routing checks the message and send0 reads the `Authentication-Results` it writes as `mx.cloudflare.net`.
+On Cloudflare, Email Routing checks the message and send0 reads the `Authentication-Results` it writes as `mx.cloudflare.net`. That id is always trusted; `TRUSTED_AUTHSERV_IDS` adds to it.
 
 ### IPv6 and Docker's proxy
 
@@ -146,6 +146,7 @@ smtps://user:password@host:465    TLS from the start
 - When the URL has a user or password and the host isn't `localhost` or a loopback address, STARTTLS is **required**. If the relay doesn't offer it, sending fails instead of exposing the password.
 - Add `?require_tls=false` only for a relay on a private network without TLS. Add `?require_tls=true` to require STARTTLS even without credentials. Both accept `true`, `false`, `1` or `0`.
 - Port 465 uses TLS from the start, so it needs `smtps://`. `smtp://…:465` is rejected.
+- send0 checks `SMTP_URL` when it starts, with the rest of the configuration. A problem shows up in the `Invalid configuration:` list and in `send0 doctor`, naming the rule but never the password.
 - Percent-encode special characters in the user and password. `@` becomes `%40`, `/` becomes `%2F`, `:` becomes `%3A`:
 
   ```bash

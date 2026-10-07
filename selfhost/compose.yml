@@ -20,9 +20,6 @@ services:
 
   send0:
     image: ghcr.io/send0-dev/send0:${SEND0_VERSION:-latest}
-    build:
-      context: ..
-      dockerfile: apps/server/Dockerfile
     restart: unless-stopped
     env_file: .env
     environment:

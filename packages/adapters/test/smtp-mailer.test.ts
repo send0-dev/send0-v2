@@ -2,7 +2,7 @@ import type { AddressInfo } from "node:net";
 import { SMTPServer, type SMTPServerOptions } from "smtp-server";
 import { afterEach, describe, expect, it } from "vitest";
 import { MailerError } from "../src/mailer";
-import { SmtpMailer, type SmtpMailerOptions } from "../src/node/smtp-mailer";
+import { parseSmtpUrl, SmtpMailer, type SmtpMailerOptions } from "../src/node/smtp-mailer";
 
 const RAW = "From: a@send0.email\r\nTo: b@example.com\r\nSubject: Hi\r\nMessage-ID: <msg_1@send0.email>\r\n\r\nHello =\r\n.dot line\r\n";
 const USER = "relay-user";
@@ -294,5 +294,42 @@ describe("SmtpMailer", () => {
       .catch((e: unknown) => e);
     expect(err).toBeInstanceOf(MailerError);
     expect((err as MailerError).retryable).toBe(false);
+  });
+});
+
+describe("parseSmtpUrl", () => {
+  it("reads host, port, TLS mode and decoded credentials without connecting", () => {
+    expect(parseSmtpUrl("smtp://us%40er:p%2Fss@relay.dev:587")).toEqual({
+      host: "relay.dev",
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      auth: { user: "us@er", pass: "p/ss" },
+    });
+    expect(parseSmtpUrl("smtps://relay.dev:465")).toEqual({ host: "relay.dev", port: 465, secure: true, requireTLS: false });
+    expect(parseSmtpUrl("smtp://u:p@localhost:25")).toMatchObject({ requireTLS: false });
+    expect(parseSmtpUrl("smtp://u:p@relay.dev:587?require_tls=0")).toMatchObject({ requireTLS: false });
+    expect(parseSmtpUrl("smtp://relay.dev:587?require_tls=true")).toMatchObject({ requireTLS: true });
+  });
+
+  it("names each problem, never the password", () => {
+    const cases: [string, RegExp][] = [
+      ["smtp://u:hunter2@relay.dev", /missing a port/],
+      ["smtp://u:hunter2@relay.dev:465", /port 465 uses implicit TLS/],
+      ["smtp://u:hunter2@relay.dev:587?require_tls=maybe", /require_tls must be true, false, 1 or 0/],
+      ["smtp://u:hunter2%zz@relay.dev:587", /not valid percent-encoding/],
+      ["http://u:hunter2@relay.dev:587", /smtp:\/\/ or smtps:\/\//],
+    ];
+    for (const [url, message] of cases) {
+      let err: unknown;
+      try {
+        parseSmtpUrl(url);
+      } catch (e) {
+        err = e;
+      }
+      expect(err, url).toBeInstanceOf(Error);
+      expect((err as Error).message).toMatch(message);
+      expect((err as Error).message).not.toContain("hunter2");
+    }
   });
 });

@@ -4,7 +4,7 @@ Postgres, the send0 server and Caddy on one machine, run by Docker Compose. The 
 **[send0.dev/docs/self-hosting](https://send0.dev/docs/self-hosting/docker)**: DNS, mail setup, every setting, upgrades, backups
 and troubleshooting.
 
-You need a Linux server with Docker (Compose 2.24 or later) and inbound port 25 open, a hostname for the dashboard and API
+You need a Linux server with Docker (Docker Compose v2) and inbound port 25 open, a hostname for the dashboard and API
 (`DOMAIN`), a domain for your inboxes (`MAIL_DOMAIN`), and an outbound SMTP relay or Amazon SES.
 
 ## Quickstart

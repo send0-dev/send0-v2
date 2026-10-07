@@ -11,14 +11,14 @@ Set these in `.env`, next to `compose.yml`. Compose passes the whole file to the
 
 ### Required
 
-| Name                | Default  | Required                        | Description                                                                                                                                                          |
-| ------------------- | -------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DOMAIN`            | none     | Yes                             | The hostname people and SDKs use, like `mail.example.com`. A hostname only: no scheme, port or path. Caddy gets an HTTPS certificate for it.                         |
-| `MAIL_DOMAIN`       | `DOMAIN` | No                              | The domain your inboxes live on, like `agents.example.com`. Point its MX at `DOMAIN`. Set this or `MAIL_DOMAINS`, not both.                                          |
-| `OWNER_EMAIL`       | none     | Yes, unless `ALLOW_SIGNUP=true` | The only email that can create the first account, which becomes the owner. Must be an email address.                                                                 |
-| `SECRET_KEY`        | none     | Yes                             | Signs download links for files on local disk. At least 32 characters: `openssl rand -hex 32`.                                                                        |
-| `POSTGRES_PASSWORD` | none     | Yes (compose)                   | Used by the `postgres` service and inside `DATABASE_URL`, so keep it URL-safe: `openssl rand -hex 24`. Read by compose, not by send0.                                |
-| `SMTP_URL`          | none     | Yes, when `MAILER=smtp`         | The outbound relay: `smtp://user:pass@host:587` (STARTTLS) or `smtps://user:pass@host:465`. Must include a port. See [SMTP_URL](/self-hosting/email-setup#smtp_url). |
+| Name                | Default  | Required                        | Description                                                                                                                                                                            |
+| ------------------- | -------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DOMAIN`            | none     | Yes                             | The hostname people and SDKs use, like `mail.example.com`. A hostname only: no scheme, port or path. Caddy gets an HTTPS certificate for it.                                           |
+| `MAIL_DOMAIN`       | `DOMAIN` | No                              | The domain your inboxes live on, like `agents.example.com`. Point its MX at `DOMAIN`. Set this or `MAIL_DOMAINS`, not both.                                                            |
+| `OWNER_EMAIL`       | none     | Yes, unless `ALLOW_SIGNUP=true` | The only email that can create the first account, which becomes the owner. Must be an email address.                                                                                   |
+| `SECRET_KEY`        | none     | Yes                             | Signs download links for files on local disk. At least 32 characters: `openssl rand -hex 32`.                                                                                          |
+| `POSTGRES_PASSWORD` | none     | Yes (compose)                   | Used by the `postgres` service and inside `DATABASE_URL`, so keep it URL-safe: `openssl rand -hex 24`. Read by compose, not by send0.                                                  |
+| `SMTP_URL`          | none     | Yes, when `MAILER=smtp`         | The outbound relay: `smtp://user:pass@host:587` (STARTTLS) or `smtps://user:pass@host:465`. Must include a port. Checked at start. See [SMTP_URL](/self-hosting/email-setup#smtp_url). |
 
 ### Mail
 
@@ -92,7 +92,7 @@ Plain settings are **vars** in `wrangler.jsonc`. Secrets are set with the Deploy
 | `SES_CONFIGURATION_SET` | none                          | No                              | The SES configuration set to send with. Unset, SES uses the account's default configuration set, if any.                                                                                  |
 | `SES_EVENTS_TOKEN`      | none                          | Set both or neither             | At least 32 characters. The secret in the SNS subscription URL `https://<your URL>/internal/ses-events?token=…`.                                                                          |
 | `SES_EVENTS_TOPIC_ARN`  | none                          | Set both or neither             | The SNS topic that carries SES events. Messages from any other topic are refused.                                                                                                         |
-| `TRUSTED_AUTHSERV_IDS`  | `mx.cloudflare.net`           | No                              | Comma-separated authserv-ids whose `Authentication-Results` headers are trusted. Setting it replaces the default, so include `mx.cloudflare.net`.                                         |
+| `TRUSTED_AUTHSERV_IDS`  | `mx.cloudflare.net`           | No                              | Comma-separated authserv-ids whose `Authentication-Results` headers are trusted. `mx.cloudflare.net` is always trusted; these add to it.                                                  |
 | `LIMITS`                | `none`                        | No                              | `hosted` turns on the hosted service's limits; `none` turns them off.                                                                                                                     |
 
 ### Bindings

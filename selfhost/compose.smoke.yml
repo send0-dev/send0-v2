@@ -2,7 +2,11 @@
 # settings are fixed test values instead of .env, ports bind to 127.0.0.1 only, and Caddy is off.
 services:
   send0:
+    # Built from this checkout (paths are relative to this folder). compose.yml itself only pulls the published image.
     image: send0:smoke
+    build:
+      context: ..
+      dockerfile: apps/server/Dockerfile
     pull_policy: build
     env_file: !reset []
     environment:

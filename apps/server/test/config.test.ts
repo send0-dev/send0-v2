@@ -174,6 +174,23 @@ describe("loadConfig", () => {
     ]);
   });
 
+  it("checks SMTP_URL the way the mailer will read it", () => {
+    expect(problems({ ...base, SMTP_URL: "smtp://u:hunter2-smtp-pass@relay.dev" })).toEqual([
+      "SMTP_URL: is missing a port (usually 587 for smtp://, 465 for smtps://)",
+    ]);
+    expect(problems({ ...base, SMTP_URL: "smtp://u:hunter2-smtp-pass@relay.dev:465" })).toEqual([
+      "SMTP_URL: port 465 uses implicit TLS; use smtps:// instead of smtp://",
+    ]);
+    expect(problems({ ...base, SMTP_URL: "smtp://u:hunter2-smtp-pass@relay.dev:587?require_tls=maybe" })).toEqual([
+      "SMTP_URL: option require_tls must be true, false, 1 or 0",
+    ]);
+    expect(problems({ ...base, SMTP_URL: "smtp://u:hunter2-smtp-pass%zz@relay.dev:587" })).toEqual([
+      "SMTP_URL: credentials are not valid percent-encoding (encode special characters such as @ and / in the password)",
+    ]);
+    for (const p of problems({ ...base, SMTP_URL: "smtp://u:hunter2-smtp-pass@relay.dev:465" })) expect(p).not.toContain("hunter2");
+    expect(loadConfig({ ...base, SMTP_URL: "smtp://relay.internal:25?require_tls=false" }).mailer).toMatchObject({ kind: "smtp" });
+  });
+
   it("configures S3 blobs, with an optional endpoint", () => {
     const s3 = { BLOB_DRIVER: "s3", S3_BUCKET: "mail", S3_REGION: "us-east-1", S3_ACCESS_KEY_ID: "id", S3_SECRET_ACCESS_KEY: "key" };
     expect(loadConfig({ ...base, ...s3 }).blob).toEqual({
