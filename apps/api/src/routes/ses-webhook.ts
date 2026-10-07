@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { ApiError } from "../errors";
 import { handleSesEvent, type SesEvent } from "../sending/ses-events";
+import { verifySnsMessage } from "../sending/sns-signature";
 import type { AppEnv } from "../types";
 
 interface SnsEnvelope {
@@ -21,7 +22,8 @@ function timingSafeEqual(a: string, b: string) {
 
 /**
  * SNS → SES delivery events. Mounted outside /v1 (no API key): protected by a long random
- * token in the subscription URL, and only our own topic is accepted.
+ * token in the subscription URL, only our own topic is accepted, and every message must carry
+ * a valid SNS signature before we act on it (including fetching a SubscribeURL).
  */
 export const sesWebhookRoutes = new Hono<AppEnv>().post("/", async (c) => {
   const cfg = c.get("deps").sesEvents;
@@ -29,11 +31,19 @@ export const sesWebhookRoutes = new Hono<AppEnv>().post("/", async (c) => {
 
   let msg: SnsEnvelope;
   try {
-    msg = JSON.parse(await c.req.text());
+    msg = JSON.parse(await c.req.text()) as SnsEnvelope;
   } catch {
     throw new ApiError(400, "invalid_request", "Expected an SNS JSON message.");
   }
+  if (typeof msg !== "object" || msg === null) throw new ApiError(400, "invalid_request", "Expected an SNS JSON message.");
   if (msg.TopicArn !== cfg.topicArn) throw new ApiError(403, "forbidden", "Unexpected topic.");
+
+  const now = c.get("deps").now;
+  const verified = await (cfg.verify ?? ((m: unknown) => verifySnsMessage(m, { now })))(msg);
+  if (!verified.ok) {
+    console.warn(JSON.stringify({ event: "sns.signature_rejected", reason: verified.reason }));
+    throw new ApiError(403, "forbidden", "Invalid SNS signature.");
+  }
 
   if (msg.Type === "SubscriptionConfirmation") {
     const url = new URL(msg.SubscribeURL ?? "");
