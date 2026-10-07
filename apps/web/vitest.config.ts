@@ -13,7 +13,7 @@ export default defineConfig({
     projects: [
       {
         resolve: { alias },
-        test: { name: "worker", include: ["test/**/*.test.ts"], environment: "node", testTimeout: 20_000, hookTimeout: 20_000 },
+        test: { name: "worker", include: ["test/**/*.test.ts"], environment: "node", testTimeout: 60_000, hookTimeout: 60_000 },
       },
       {
         plugins: [react()],
@@ -23,7 +23,7 @@ export default defineConfig({
           include: ["src/**/*.test.{ts,tsx}"],
           environment: "jsdom",
           setupFiles: ["src/test/setup.ts"],
-          testTimeout: 20_000,
+          testTimeout: 60_000,
         },
       },
     ],

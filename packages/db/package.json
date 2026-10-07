@@ -13,7 +13,7 @@
   },
   "scripts": {
     "generate": "drizzle-kit generate && tsx scripts/bundle-migrations.ts",
-    "test": "vitest run --testTimeout=20000 --hookTimeout=20000",
+    "test": "vitest run --testTimeout=60000 --hookTimeout=60000",
     "check": "tsc --noEmit",
     "bundle-migrations": "tsx scripts/bundle-migrations.ts"
   },

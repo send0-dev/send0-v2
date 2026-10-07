@@ -10,7 +10,7 @@
     "./node/pg-boss-queue": "./src/node/pg-boss-queue.ts"
   },
   "scripts": {
-    "test": "vitest run --testTimeout=20000 --hookTimeout=60000",
+    "test": "vitest run --testTimeout=60000 --hookTimeout=60000",
     "check": "tsc --noEmit"
   },
   "dependencies": {

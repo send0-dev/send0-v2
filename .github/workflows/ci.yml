@@ -43,7 +43,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm check
       # The Python SDK's tests run in their own job below, with uv.
-      - run: pnpm exec turbo run test --filter=!@send0/sdk-python
+      # Two packages at a time: each boots in-memory Postgres (PGlite), which starves a 2-core runner.
+      - run: pnpm exec turbo run test --filter=!@send0/sdk-python --concurrency=2
       - run: pnpm build
 
   python-sdk:
