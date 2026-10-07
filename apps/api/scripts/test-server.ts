@@ -48,6 +48,7 @@ const api = createApp({
   hub: hubClient,
   queue: { send: async () => {} },
   mailer: { sendRaw: async () => ({ providerMessageId: `ses-${Date.now()}` }) },
+  mailDomains: ["send0.email"],
 });
 
 const root = new Hono();

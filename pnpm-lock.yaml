@@ -224,6 +224,9 @@ importers:
       '@send0/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@send0/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@send0/db':
         specifier: workspace:*
         version: link:../../packages/db

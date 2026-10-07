@@ -62,6 +62,7 @@ const web = createWebApp({
   auth,
   appUrl,
   secureCookies: false,
+  instance: { mailDomains: ["send0.email"] },
   gateway: async (req, as) =>
     createApi({
       db,
@@ -69,6 +70,7 @@ const web = createWebApp({
       hub: hubClient,
       queue: { send: async () => {} },
       mailer: recordMail,
+      mailDomains: ["send0.email"],
       publish,
       presetAuth: { orgId: as.orgId, keyId: as.userId, mode: "live", scopes: as.scopes, inboxIds: null, actor: "user" },
     }).fetch(req),

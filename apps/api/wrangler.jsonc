@@ -20,6 +20,7 @@
   // Outbox safety net. Hourly, so Neon's free compute can still scale to zero.
   "triggers": { "crons": ["0 * * * *"] },
   "vars": {
+    "MAIL_DOMAINS": "send0.email",
     "S3_BUCKET": "send0-raw-mail-aps1",
     "S3_REGION": "ap-south-1",
     "SES_REGION": "ap-south-1",

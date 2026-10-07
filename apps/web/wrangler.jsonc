@@ -15,6 +15,7 @@
   "placement": { "mode": "targeted", "region": "aws:ap-southeast-1" },
   "vars": {
     "APP_URL": "https://app.send0.dev",
+    "MAIL_DOMAINS": "send0.email",
     "MAIL_FROM": "noreply@send0.dev",
     "SES_REGION": "ap-south-1",
     "SES_CONFIGURATION_SET": "send0-default",

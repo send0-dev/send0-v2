@@ -1,5 +1,6 @@
 import { S3BlobStore } from "@send0/adapters/blob";
 import { SesMailer } from "@send0/adapters/mailer";
+import { parseCoreConfig } from "@send0/config";
 import { createDb } from "@send0/db";
 import { publish, type QueueMessage } from "@send0/pipeline";
 import { WorkerEntrypoint } from "cloudflare:workers";
@@ -14,8 +15,11 @@ export { Hub } from "./realtime/hub-do";
 const db = (env: Env, max = 5) => createDb(env.HYPERDRIVE.connectionString, { max });
 
 function makeDeps(env: Env, ctx: ExecutionContext): AppDeps {
+  const core = parseCoreConfig(env);
   return {
     db: db(env),
+    mailDomains: core.mailDomains,
+    limits: core.limits,
     // Read-only credentials: this key can GetObject under raw/ and att/ and nothing else.
     files: new S3BlobStore({
       bucket: env.S3_BUCKET,
