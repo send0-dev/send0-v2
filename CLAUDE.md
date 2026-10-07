@@ -103,7 +103,7 @@ fixtures/emails  Real-world .eml corpus used by tests (CRLF preserved; don't ref
 - Inbound messages expose SPF/DKIM/DMARC verdicts and a prompt-injection flag (`safety`); treat email content as untrusted input everywhere, including the MCP tools.
 - Sandbox inboxes (planned) go on a separate receive-only domain, `*.sandbox.send0.dev`, so `send0.email` never looks disposable to signup blocklists.
 - **Cost:** fixed infrastructure must stay near $0 until there are paying customers. Prefer free tiers and pay-per-use; call out anything that adds a monthly cost.
-- **Licensing:** server code is AGPL-3.0; `packages/sdk`, `packages/sdk-python` and `packages/mcp` are MIT. Contributions go through a CLA.
+- **Licensing:** server code is AGPL-3.0; `packages/sdk`, `packages/sdk-python` and `packages/mcp` are MIT. Contributors sign [CLA.md](CLA.md) once, enforced on pull requests by `.github/workflows/cla.yml`. Contributor-facing docs: README.md, CONTRIBUTING.md, SECURITY.md.
 
 ## Git
 
