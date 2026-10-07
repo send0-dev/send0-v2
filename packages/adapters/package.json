@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     "./blob": "./src/blob/index.ts",
-    "./mailer": "./src/mailer/index.ts"
+    "./mailer": "./src/mailer/index.ts",
+    "./node/fs-blob": "./src/node/fs-blob.ts"
   },
   "scripts": {
     "test": "vitest run",

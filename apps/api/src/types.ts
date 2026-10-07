@@ -1,4 +1,4 @@
-import type { SignedUrlStore } from "@send0/adapters/blob";
+import type { BlobReader, SignedUrlStore, TokenUrlSigner } from "@send0/adapters/blob";
 import type { Mailer } from "@send0/adapters/mailer";
 import type { Limits } from "@send0/config";
 import type { Db } from "@send0/db";
@@ -27,6 +27,8 @@ export interface AppDeps {
   limits?: Limits;
   /** Hands out pre-signed download links for raw mail and attachments */
   files: SignedUrlStore;
+  /** Serves `GET /v1/files/:token` for app-signed links (local disk, R2). Hosted S3 pre-signs instead and leaves this unset. */
+  fileServer?: { signer: Pick<TokenUrlSigner, "verify">; reader: BlobReader };
   /** Real-time hubs (Durable Objects). Optional so routes can degrade gracefully. */
   hub?: HubClient;
   /** Event queue for webhook delivery */

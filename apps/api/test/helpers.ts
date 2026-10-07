@@ -28,6 +28,8 @@ export async function setup(
     mailer?: AppDeps["mailer"];
     publish?: AppDeps["publish"];
     sesEvents?: AppDeps["sesEvents"];
+    fileServer?: AppDeps["fileServer"];
+    files?: AppDeps["files"];
     mailDomains?: string[];
     limits?: Limits;
   } = {},
@@ -63,7 +65,8 @@ export async function setup(
     mailer: opts.mailer,
     publish: opts.publish,
     sesEvents: opts.sesEvents,
-    files: {
+    fileServer: opts.fileServer,
+    files: opts.files ?? {
       signedGetUrl: async (key, o) => `https://files.test/${key}?expires=${o.expiresIn}&name=${encodeURIComponent(o.filename ?? "")}`,
     },
   });

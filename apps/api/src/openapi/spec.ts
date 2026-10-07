@@ -22,10 +22,12 @@ export interface Operation {
   summary: string;
   description?: string;
   scope: Scope;
+  /** No API key: the signed link in the URL is the credential. */
+  public?: boolean;
   query?: z.ZodObject;
   body?: z.ZodType;
   /** status → component schema name, or a special kind */
-  responses: Record<number, string | { redirect: string } | { sse: true }>;
+  responses: Record<number, string | { redirect: string } | { sse: true } | { binary: string }>;
 }
 
 const P = {
@@ -37,6 +39,7 @@ const P = {
   webhook: { name: "webhook_id", description: "Webhook id (whk_…)" },
   delivery: { name: "delivery_id", description: "Delivery id (dlv_…)" },
   draft: { name: "draft_id", description: "Draft id (drf_…)" },
+  token: { name: "token", description: "Signed download token, taken from a download link" },
 };
 
 /** Every public endpoint. A test checks this list against the app's real routes, both ways. */
@@ -162,6 +165,18 @@ export const operations: Operation[] = [
         redirect: "Pre-signed download link for the raw message, valid 15 minutes",
       },
     },
+  },
+  {
+    method: "get",
+    path: "/v1/files/{token}",
+    operationId: "downloadFile",
+    tag: "Messages",
+    scope: "read",
+    public: true,
+    summary: "Download a file from a signed link",
+    description:
+      "Only on installs that store files locally or in R2 (hosted send0.dev uses pre-signed S3 links instead). Needs no API key: the link is the credential, and it expires.",
+    responses: { 200: { binary: "The file's bytes, as an attachment" } },
   },
   {
     method: "get",
@@ -519,6 +534,11 @@ export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}
           description: r,
           content: { "application/json": { schema: ref(r) } },
         };
+      else if ("binary" in r)
+        responses[status] = {
+          description: r.binary,
+          content: { "application/octet-stream": { schema: { type: "string", format: "binary" } } },
+        };
       else if ("redirect" in r)
         responses[status] = {
           description: r.redirect,
@@ -538,13 +558,19 @@ export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}
           "x-send0-event-schema": ref("Event"),
         };
     }
-    for (const [status, description] of [
-      ["400", "Invalid request"],
-      ["401", "Missing or invalid API key"],
-      ["403", "Not allowed (scope, policy or account state)"],
-      ["404", "Not found, or not visible to this key"],
-      ["429", "Rate or daily limit reached"],
-    ] as const) {
+    const errors = op.public
+      ? ([
+          ["403", "The download link is invalid or has expired"],
+          ["404", "The file no longer exists, or this install does not serve signed links"],
+        ] as const)
+      : ([
+          ["400", "Invalid request"],
+          ["401", "Missing or invalid API key"],
+          ["403", "Not allowed (scope, policy or account state)"],
+          ["404", "Not found, or not visible to this key"],
+          ["429", "Rate or daily limit reached"],
+        ] as const);
+    for (const [status, description] of errors) {
       responses[status] = {
         description,
         content: { "application/json": { schema: ref("Error") } },
@@ -557,7 +583,7 @@ export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}
       summary: op.summary,
       ...(op.description ? { description: op.description } : {}),
       tags: [op.tag],
-      "x-send0-scope": op.scope,
+      ...(op.public ? { security: [] } : { "x-send0-scope": op.scope }),
       parameters: [
         ...pathParams,
         ...queryParams,

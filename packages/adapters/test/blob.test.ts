@@ -78,3 +78,20 @@ describe("R2BlobStore", () => {
     });
   });
 });
+
+describe("R2BlobStore.get", () => {
+  it("returns the body, content type and size", async () => {
+    const body = new Response("hi").body!;
+    const bucket = {
+      put: async () => null,
+      get: async (k: string) => (k === "k" ? { body, size: 2, httpMetadata: { contentType: "text/plain" } } : null),
+    } as never;
+    const got = await new R2BlobStore(bucket).get("k");
+    expect(got).toMatchObject({ contentType: "text/plain", size: 2 });
+    expect(await new Response(got!.body).text()).toBe("hi");
+  });
+
+  it("returns null when the object is missing", async () => {
+    expect(await new R2BlobStore({ put: async () => null, get: async () => null } as never).get("nope")).toBeNull();
+  });
+});

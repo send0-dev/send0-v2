@@ -13,3 +13,14 @@ export interface BlobStore {
 export interface SignedUrlStore {
   signedGetUrl(key: string, opts: { expiresIn: number; filename?: string | null; contentType?: string }): Promise<string>;
 }
+
+export interface StoredBlob {
+  body: ReadableStream<Uint8Array>;
+  contentType: string | null;
+  size: number | null;
+}
+
+/** Stores the API can stream files back from (local disk, R2 binding). */
+export interface BlobReader {
+  get(key: string): Promise<StoredBlob | null>;
+}

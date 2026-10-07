@@ -7,6 +7,7 @@ import { idempotency } from "./idempotency";
 import { buildOpenApi } from "./openapi/spec";
 import { apiKeyRoutes } from "./routes/api-keys";
 import { eventRoutes } from "./routes/events";
+import { fileRoutes } from "./routes/files";
 import { sesWebhookRoutes } from "./routes/ses-webhook";
 import { webhookRoutes } from "./routes/webhooks";
 import { inboxRoutes } from "./routes/inboxes";
@@ -46,6 +47,9 @@ export function createApp(deps: AppDeps) {
 
   // SES delivery events from SNS (token-protected, no API key).
   app.route("/internal/ses-events", sesWebhookRoutes);
+
+  // App-signed download links: the token is the credential, so this sits before v1's API-key auth.
+  app.route("/v1/files", fileRoutes);
 
   const v1 = new Hono<AppEnv>();
   v1.use(requireApiKey, idempotency);

@@ -1597,6 +1597,61 @@
         }
       }
     },
+    "/v1/files/{token}": {
+      "get": {
+        "operationId": "downloadFile",
+        "summary": "Download a file from a signed link",
+        "description": "Only on installs that store files locally or in R2 (hosted send0.dev uses pre-signed S3 links instead). Needs no API key: the link is the credential, and it expires.",
+        "tags": [
+          "Messages"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "description": "Signed download token, taken from a download link",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file's bytes, as an attachment",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The download link is invalid or has expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The file no longer exists, or this install does not serve signed links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/messages/{message_id}/attachments/{attachment_id}": {
       "get": {
         "operationId": "getAttachment",
