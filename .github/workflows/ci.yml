@@ -28,7 +28,8 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm check
-      - run: pnpm test
+      # The Python SDK's tests run in their own job below, with uv.
+      - run: pnpm exec turbo run test --filter=!@send0/sdk-python
       - run: pnpm build
 
   python-sdk:
