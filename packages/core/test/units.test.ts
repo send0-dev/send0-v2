@@ -109,6 +109,47 @@ describe("parseAuthResults", () => {
   it("accepts subdomains of a trusted id", () => {
     expect(parseAuthResults([h("inbound-smtp.us-east-1.amazonses.com; spf=pass")], ["amazonses.com"]).spf).toBe("pass");
   });
+
+  // Property values (smtp.helo, smtp.mailfrom, header.from) are sender-controlled and copied into our header.
+  it.each([
+    ['mx.acme.dev; spf=none smtp.helo="a;dkim=pass;dmarc=pass"; dkim=none; dmarc=none', "quoted HELO"],
+    [
+      'mx.acme.dev; spf=fail smtp.mailfrom="\\"x;dmarc=pass;dkim=pass\\"@evil.test"; dkim=none; dmarc=fail header.from=paypal.com',
+      "quoted MAIL FROM",
+    ],
+    ["mx.acme.dev; spf=none (comment; dkim=pass; dmarc=pass) smtp.mailfrom=a@evil.test; dkim=none; dmarc=none", "comment"],
+    ["mx.acme.dev; spf=none smtp.mailfrom=x@evil.test dmarc=pass; dkim=none dkim=pass; dmarc=none", "extra method=result after the first"],
+  ])("never reads verdicts out of property values or comments (%#: %s)", (value) => {
+    const r = parseAuthResults([h(value)], ["mx.acme.dev"]);
+    expect(r.dkim).not.toBe("pass");
+    expect(r.dmarc).not.toBe("pass");
+  });
+
+  it("reads each result's leading method=result, ignoring properties and comments", () => {
+    const r = parseAuthResults(
+      [
+        h(
+          'mx.cloudflare.net (cloudflare); dkim=pass (2048-bit key) header.d=acme.com header.i=@acme.com; spf=pass (mx.cloudflare.net: domain of a@acme.com designates 1.2.3.4) smtp.mailfrom=a@acme.com; dmarc=pass reason="strict" header.from=acme.com',
+        ),
+      ],
+      ["mx.cloudflare.net"],
+    );
+    expect(r).toEqual({ spf: "pass", dkim: "pass", dmarc: "pass", source: "mx.cloudflare.net" });
+  });
+
+  it("handles a version on the authserv-id and on methods, and folded lines", () => {
+    const r = parseAuthResults(
+      [h("mx.cloudflare.net 1;\r\n\tspf/1=softfail smtp.mailfrom=a@b.com;\r\n dmarc=fail")],
+      ["mx.cloudflare.net"],
+    );
+    expect(r).toMatchObject({ spf: "softfail", dmarc: "fail", dkim: "none" });
+  });
+
+  it("returns none for 'none' results and unknown values", () => {
+    const r = parseAuthResults([h("mx.cloudflare.net; none")], ["mx.cloudflare.net"]);
+    expect(r).toMatchObject({ spf: "none", dkim: "none", dmarc: "none", source: "mx.cloudflare.net" });
+    expect(parseAuthResults([h("mx.cloudflare.net; spf=bogus")], ["mx.cloudflare.net"]).spf).toBe("none");
+  });
 });
 
 describe("detectPromptInjection", () => {
