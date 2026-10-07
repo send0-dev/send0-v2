@@ -264,6 +264,9 @@ importers:
       '@types/smtp-server':
         specifier: ^3.5.13
         version: 3.5.13
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       nodemailer:
         specifier: ^10.0.15
         version: 10.0.15
