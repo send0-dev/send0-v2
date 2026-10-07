@@ -1,0 +1,127 @@
+:root {
+  color-scheme: light;
+
+  /* Paper and ink */
+  --paper: #faf6ef;
+  --paper-alt: #f3ede2;
+  --card: #fffdf8;
+  --ink: #1e1a16;
+  --muted: #6e655b; /* 5.3:1 on paper */
+  --faint: #9a8f82; /* decorative only, never body text */
+  --hairline: #e6ddcf;
+  --rule: #d6c9b5;
+
+  /* Postal colours */
+  --postal: #ff4f00; /* brand orange: fills, stamps, highlights */
+  --postal-ink: #c23a00; /* orange text on paper, 5.0:1 */
+  --on-postal: #1e1a16; /* ink on brand orange, 5.2:1 */
+  --airmail-blue: #2f5da8;
+  --airmail-red: #d23b2e;
+
+  /* Tints (illustration fills, quiet panels) */
+  --sage: #dce7d3;
+  --sky: #dce8f4;
+  --butter: #fbeec4;
+  --blush: #fbe0cf;
+
+  /* States */
+  --ok: #2f7a3d;
+  --ok-tint: #e2efdc;
+
+  /* Code panels stay warm dark in both themes */
+  --code-bg: #1f1b17;
+  --code-bar: #2a251f;
+  --code-fg: #ede4d6;
+  --code-muted: #a39581;
+  --code-line: #3a332b;
+  --code-key: #ff8f5c;
+  --code-str: #b9d48f;
+  --code-fn: #8fb8f0;
+  --code-num: #f2c66d;
+
+  /* Depth: warm, low, paper-like */
+  --shadow-sm: 0 1px 0 rgb(60 40 20 / 0.06), 0 2px 6px -2px rgb(60 40 20 / 0.12);
+  --shadow: 0 1px 0 rgb(60 40 20 / 0.05), 0 12px 32px -16px rgb(60 40 20 / 0.32);
+  --shadow-lg: 0 2px 0 rgb(60 40 20 / 0.04), 0 28px 60px -28px rgb(60 40 20 / 0.42);
+
+  /* Type */
+  --font-display: "Fraunces", "Fraunces Fallback", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Layout and rhythm (8px base) */
+  --max: 1200px;
+  --gutter: 20px;
+  --section: 80px;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --stroke: 1.75px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+    --section: 96px;
+  }
+}
+
+/* Night shift: same desk, lamp on. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #171411;
+    --paper-alt: #1d1915;
+    --card: #221d18;
+    --ink: #f3eadb;
+    --muted: #b8ab97;
+    --faint: #7d7264;
+    --hairline: #2f2923;
+    --rule: #433a31;
+    --postal: #ff6a26;
+    --postal-ink: #ff8f5c;
+    --on-postal: #1a120c;
+    --airmail-blue: #86a8e6;
+    --airmail-red: #ef7565;
+    --sage: #27301f;
+    --sky: #1d2836;
+    --butter: #352d19;
+    --blush: #3a2417;
+    --ok: #8fd19a;
+    --ok-tint: #1f2e1f;
+    --code-bg: #110e0b;
+    --code-bar: #1a1612;
+    --code-line: #3a322a;
+    --shadow-sm: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 6px -2px rgb(0 0 0 / 0.5);
+    --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 34px -16px rgb(0 0 0 / 0.7);
+    --shadow-lg: 0 2px 0 rgb(0 0 0 / 0.3), 0 30px 60px -28px rgb(0 0 0 / 0.8);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #171411;
+  --paper-alt: #1d1915;
+  --card: #221d18;
+  --ink: #f3eadb;
+  --muted: #b8ab97;
+  --faint: #7d7264;
+  --hairline: #2f2923;
+  --rule: #433a31;
+  --postal: #ff6a26;
+  --postal-ink: #ff8f5c;
+  --on-postal: #1a120c;
+  --airmail-blue: #86a8e6;
+  --airmail-red: #ef7565;
+  --sage: #27301f;
+  --sky: #1d2836;
+  --butter: #352d19;
+  --blush: #3a2417;
+  --ok: #8fd19a;
+  --ok-tint: #1f2e1f;
+  --code-bg: #110e0b;
+  --code-bar: #1a1612;
+  --code-line: #3a322a;
+  --shadow-sm: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 6px -2px rgb(0 0 0 / 0.5);
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 34px -16px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 2px 0 rgb(0 0 0 / 0.3), 0 30px 60px -28px rgb(0 0 0 / 0.8);
+}

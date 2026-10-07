@@ -1,0 +1,89 @@
+---
+// The back of a postcard: a picture side and a message side, split by a ruled line, with a stamp box.
+interface Props {
+  tint?: "sage" | "sky" | "butter" | "blush";
+  tilt?: number;
+  class?: string;
+}
+const { tint = "sky", tilt = 0, class: cls } = Astro.props;
+---
+
+<article class:list={["postcard", cls]} style={`--tilt:${tilt}deg`}>
+  <div class:list={["picture", tint]}>
+    <slot name="picture" />
+  </div>
+  <div class="message">
+    <span class="stamp-box" aria-hidden="true"></span>
+    <slot />
+  </div>
+</article>
+
+<style>
+  .postcard {
+    position: relative;
+    display: grid;
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+    transform: rotate(var(--tilt));
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .postcard:hover {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  @media (min-width: 640px) {
+    .postcard {
+      grid-template-columns: 200px minmax(0, 1fr);
+    }
+  }
+  .picture {
+    display: grid;
+    place-items: center;
+    max-height: 190px;
+    padding: 16px;
+    margin: 10px;
+    border-radius: 3px;
+  }
+  .sage {
+    background: var(--sage);
+  }
+  .sky {
+    background: var(--sky);
+  }
+  .butter {
+    background: var(--butter);
+  }
+  .blush {
+    background: var(--blush);
+  }
+  .message {
+    position: relative;
+    padding: 24px 26px 26px;
+  }
+  @media (min-width: 640px) {
+    .message {
+      border-left: 1px solid var(--hairline);
+      margin-block: 16px;
+      padding: 4px 26px 4px 24px;
+    }
+  }
+  .stamp-box {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 40px;
+    border: 1.5px dashed var(--rule);
+    border-radius: 2px;
+  }
+  @media (min-width: 640px) {
+    .stamp-box {
+      top: 0;
+      right: 20px;
+    }
+  }
+</style>

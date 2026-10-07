@@ -1,0 +1,22 @@
+---
+// The red-and-blue edge of an airmail envelope, used as a section divider (2–3 times a page).
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<div class:list={["airmail", cls]} aria-hidden="true"></div>
+
+<style>
+  .airmail {
+    height: 7px;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--airmail-red) 0 9px,
+      transparent 9px 14px,
+      var(--airmail-blue) 14px 23px,
+      transparent 23px 28px
+    );
+  }
+</style>

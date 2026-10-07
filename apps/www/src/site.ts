@@ -7,6 +7,19 @@ export const site = {
   // Shows GitHub links and "building in public" copy (the repo went public on 2026-10-07).
   repoPublic: true,
   github: "https://github.com/send0-dev/send0-v2",
+  githubApi: "https://api.github.com/repos/send0-dev/send0-v2",
+  version: "v0.1.1",
+  docs: {
+    home: "/docs",
+    quickstart: "/docs/quickstart/typescript",
+    mcp: "/docs/quickstart/mcp",
+    selfHost: "/docs/self-hosting",
+    docker: "/docs/self-hosting/docker",
+    cloudflare: "/docs/self-hosting/cloudflare",
+    webhooks: "/docs/realtime/webhooks",
+    waiting: "/docs/concepts/waiting",
+    llms: "/docs/llms-full.txt",
+  },
   founderGithub: "https://github.com/kunal-dd",
   email: {
     hello: "hello@send0.dev",

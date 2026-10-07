@@ -1,0 +1,71 @@
+---
+// A postage stamp: perforated paper edge, a framed tinted face, a denomination in the corner.
+interface Props {
+  tint?: "sage" | "sky" | "butter" | "blush";
+  value?: string;
+  class?: string;
+  tilt?: number;
+}
+const { tint = "butter", value, class: cls, tilt = 0 } = Astro.props;
+---
+
+<div class:list={["stamp-wrap", cls]} style={`--tilt:${tilt}deg`}>
+  <div class="stamp">
+    <div class:list={["face", tint]}>
+      {value && (
+        <span class="value mono" aria-hidden="true">
+          {value}
+        </span>
+      )}
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .stamp-wrap {
+    filter: drop-shadow(0 1px 0 rgb(60 40 20 / 0.08)) drop-shadow(0 8px 14px rgb(60 40 20 / 0.12));
+    transform: rotate(var(--tilt));
+    transition: transform 0.25s ease;
+  }
+  .stamp {
+    --r: 4.5px;
+    padding: 11px;
+    background: var(--card);
+    /* Perforations: holes on a grid, with the content box kept solid. */
+    mask:
+      radial-gradient(var(--r) at var(--r) var(--r), #0000 97%, #000) calc(-1 * var(--r)) calc(-1 * var(--r)) / 15px 15px round,
+      linear-gradient(#000 0 0) content-box;
+    mask-composite: add;
+    height: 100%;
+  }
+  .face {
+    position: relative;
+    height: 100%;
+    padding: 20px 20px 18px;
+    border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+    outline: 4px solid var(--card);
+    outline-offset: -6px;
+  }
+  .sage {
+    background: var(--sage);
+  }
+  .sky {
+    background: var(--sky);
+  }
+  .butter {
+    background: var(--butter);
+  }
+  .blush {
+    background: var(--blush);
+  }
+  .value {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    opacity: 0.6;
+  }
+</style>
