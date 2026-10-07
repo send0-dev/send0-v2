@@ -106,6 +106,21 @@ fixtures/emails  Real-world .eml corpus used by tests (CRLF preserved; don't ref
 - **Cost:** fixed infrastructure must stay near $0 until there are paying customers. Prefer free tiers and pay-per-use; call out anything that adds a monthly cost.
 - **Licensing:** server code is AGPL-3.0; `packages/sdk`, `packages/sdk-python` and `packages/mcp` are MIT. Contributors sign [CLA.md](CLA.md) once, enforced on pull requests by `.github/workflows/cla.yml`. Contributor-facing docs: README.md, CONTRIBUTING.md, SECURITY.md.
 
+## Releasing
+
+Tag `vX.Y.Z` (or `vX.Y.Z-rc.N`) on `main` and push the tag (`git tag v0.1.0 && git push origin v0.1.0`). `.github/workflows/release.yml` then publishes both self-host editions:
+
+- **Docker:** `ghcr.io/send0-dev/send0` for linux/amd64 and linux/arm64, tagged `X.Y.Z`, `X.Y`, `latest` and `sha-…` (a pre-release gets only its full version).
+- **Deploy to Cloudflare template:** `apps/cloudflare/scripts/build-template.mjs` builds a self-contained folder (prebuilt Worker, dashboard, `wrangler.jsonc`, README), which is force-pushed as one commit to `main` of `send0-dev/send0-cloudflare`. Build it locally with `pnpm --filter @send0/cloudflare template /tmp/send0-cloudflare` (a relative path is relative to `apps/cloudflare`).
+
+To publish an existing tag again, run the workflow by hand (Actions > Release > Run workflow) with the tag.
+
+One-time setup:
+
+1. Create the public repo `send0-dev/send0-cloudflare`.
+2. Make an SSH key (`ssh-keygen -t ed25519 -C send0-release -f template_deploy_key -N ""`). Add the public half to send0-cloudflare as a deploy key with write access, and the private half to send0-v2 as the Actions secret `TEMPLATE_DEPLOY_KEY`. Without the secret, the template job skips with a notice.
+3. After the first release, make the `send0` container package public (org > Packages > send0 > Package settings > Change visibility) and connect it to the send0-v2 repository.
+
 ## Git
 
 - Branch from `main`; keep commits focused. Messages are an imperative sentence describing the change (`Add the remote MCP endpoint`, `Fix docs search 404s`), with a body explaining why when it isn't obvious.
