@@ -237,10 +237,13 @@ export const Usage = reg(
   z.strictObject({
     object: z.literal("usage"),
     plan: z.enum(["free", "pro", "scale"]),
-    inboxes: z.strictObject({ used: z.number().int(), limit: z.number().int() }),
+    inboxes: z.strictObject({
+      used: z.number().int(),
+      limit: z.number().int().nullable().describe("null when the install has no inbox cap (self-hosted)"),
+    }),
     sends_today: z.strictObject({
       used: z.number().int(),
-      limit: z.number().int(),
+      limit: z.number().int().nullable().describe("null when the install has no daily cap (self-hosted)"),
       resets_at: ts.describe("Midnight UTC, when the daily count starts over"),
     }),
     sending: z.strictObject({

@@ -50,7 +50,7 @@
       "post": {
         "operationId": "createInbox",
         "summary": "Create an inbox",
-        "description": "Creates `name@send0.email` (or on a verified custom domain). Omit `name` for a random address.",
+        "description": "Creates `name@<domain>` on the install's default mail domain (send0.email on send0.dev), or on `domain` if given. Omit `name` for a random address.",
         "tags": [
           "Inboxes"
         ],
@@ -4732,9 +4732,7 @@
             "type": "string"
           },
           "size": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "inline": {
             "type": "boolean"
@@ -4773,9 +4771,7 @@
             "type": "string"
           },
           "size": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "inline": {
             "type": "boolean"
@@ -5031,9 +5027,7 @@
             }
           },
           "size": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "sent_at": {
             "anyOf": [
@@ -5115,9 +5109,7 @@
             }
           },
           "message_count": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "labels": {
             "type": "array",
@@ -5216,9 +5208,7 @@
             }
           },
           "message_count": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "labels": {
             "type": "array",
@@ -5350,9 +5340,7 @@
             ]
           },
           "retention_days": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "metadata": {
             "type": "object",
@@ -5456,9 +5444,7 @@
             ]
           },
           "retention_days": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "metadata": {
             "type": "object",
@@ -5980,16 +5966,12 @@
             ]
           },
           "attempts": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
+            "type": "integer"
           },
           "last_status_code": {
             "anyOf": [
               {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               },
               {
                 "type": "null"
@@ -6005,9 +5987,7 @@
           "last_duration_ms": {
             "anyOf": [
               {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               },
               {
                 "type": "null"
@@ -6255,14 +6235,18 @@
             "type": "object",
             "properties": {
               "used": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               },
               "limit": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "null when the install has no inbox cap (self-hosted)"
               }
             },
             "required": [
@@ -6275,14 +6259,18 @@
             "type": "object",
             "properties": {
               "used": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               },
               "limit": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "null when the install has no daily cap (self-hosted)"
               },
               "resets_at": {
                 "type": "string",
@@ -6357,30 +6345,20 @@
               "type": "object",
               "properties": {
                 "received": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "type": "integer"
                 },
                 "sent": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "type": "integer"
                 },
                 "delivered": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "type": "integer"
                 },
                 "bounced": {
                   "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991,
                   "description": "Bounces and complaints"
                 },
                 "failed": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "type": "integer"
                 },
                 "date": {
                   "type": "string",
@@ -6402,30 +6380,20 @@
             "type": "object",
             "properties": {
               "received": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               },
               "sent": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               },
               "delivered": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               },
               "bounced": {
                 "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991,
                 "description": "Bounces and complaints"
               },
               "failed": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
+                "type": "integer"
               }
             },
             "required": [

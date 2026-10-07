@@ -49,7 +49,8 @@ export const operations: Operation[] = [
     tag: "Inboxes",
     scope: "send",
     summary: "Create an inbox",
-    description: "Creates `name@send0.email` (or on a verified custom domain). Omit `name` for a random address.",
+    description:
+      "Creates `name@<domain>` on the install's default mail domain (send0.email on send0.dev), or on `domain` if given. Omit `name` for a random address.",
     body: inboxCreateBody,
     responses: { 201: "Inbox" },
   },
@@ -467,6 +468,18 @@ function dropDatetimePatterns<T>(node: T): T {
   return node;
 }
 
+/** Zod's safe-integer bounds on every `.int()` are noise, and they make Python codegen wrap nullable ints in RootModels. */
+function dropSafeIntegerBounds<T>(node: T): T {
+  if (Array.isArray(node)) node.forEach(dropSafeIntegerBounds);
+  else if (node && typeof node === "object") {
+    const obj = node as Record<string, unknown>;
+    if (obj.minimum === Number.MIN_SAFE_INTEGER) delete obj.minimum;
+    if (obj.maximum === Number.MAX_SAFE_INTEGER) delete obj.maximum;
+    Object.values(obj).forEach(dropSafeIntegerBounds);
+  }
+  return node;
+}
+
 /** The OpenAPI 3.1 document for the public API. */
 export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}) {
   const components = z.toJSONSchema(registry, {
@@ -572,27 +585,29 @@ export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}
     };
   }
 
-  return dropDatetimePatterns({
-    openapi: "3.1.0" as const,
-    info: {
-      title: "send0 API",
-      version: opts.version ?? "1.0.0",
-      description: "Email inboxes for AI agents: create an address, receive, wait, reply, and get webhooks. https://send0.dev",
-      license: { name: "AGPL-3.0", identifier: "AGPL-3.0-only" },
-    },
-    servers: [{ url: opts.serverUrl ?? "https://api.send0.dev" }],
-    security: [{ bearerAuth: [] }],
-    tags: ["Inboxes", "Messages", "Threads", "Drafts", "Webhooks", "Events", "API keys", "Usage"].map((name) => ({ name })),
-    paths,
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          description: "API key: s0_live_… or s0_test_…",
-        },
+  return dropSafeIntegerBounds(
+    dropDatetimePatterns({
+      openapi: "3.1.0" as const,
+      info: {
+        title: "send0 API",
+        version: opts.version ?? "1.0.0",
+        description: "Email inboxes for AI agents: create an address, receive, wait, reply, and get webhooks. https://send0.dev",
+        license: { name: "AGPL-3.0", identifier: "AGPL-3.0-only" },
       },
-      schemas: components.schemas,
-    },
-  });
+      servers: [{ url: opts.serverUrl ?? "https://api.send0.dev" }],
+      security: [{ bearerAuth: [] }],
+      tags: ["Inboxes", "Messages", "Threads", "Drafts", "Webhooks", "Events", "API keys", "Usage"].map((name) => ({ name })),
+      paths,
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            description: "API key: s0_live_… or s0_test_…",
+          },
+        },
+        schemas: components.schemas,
+      },
+    }),
+  );
 }

@@ -15,6 +15,10 @@ describe("OpenAPI document", () => {
     expect(new Set(operations.map((o) => o.operationId)).size).toBe(operations.length);
   });
 
+  it("has no safe-integer bounds on integers", () => {
+    expect(JSON.stringify(buildOpenApi())).not.toContain("9007199254740991");
+  });
+
   it("documents exactly the routes the app serves", async () => {
     const t = await setup();
     const served = new Set(

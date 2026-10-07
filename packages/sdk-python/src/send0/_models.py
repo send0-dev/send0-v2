@@ -2,7 +2,7 @@
 #   filename:  openapi.json
 
 from __future__ import annotations
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 from typing import Annotated, Any, Literal
 
 
@@ -44,7 +44,7 @@ class Attachment(BaseModel):
     id: str
     filename: str | None
     content_type: str
-    size: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    size: int
     inline: bool
     content_id: str | None
 
@@ -56,7 +56,7 @@ class AttachmentDownload(BaseModel):
     id: str
     filename: str | None
     content_type: str
-    size: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    size: int
     inline: bool
     content_id: str | None
     object: Literal['attachment']
@@ -137,7 +137,7 @@ class Message(BaseModel):
     Plus-address tag, e.g. task42 for bot+task42@
     """
     attachments: list[Attachment]
-    size: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    size: int
     sent_at: AwareDatetime | None
     received_at: AwareDatetime | None
     created_at: AwareDatetime
@@ -169,7 +169,7 @@ class Thread(BaseModel):
     inbox_id: str
     subject: str
     participants: list[str]
-    message_count: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    message_count: int
     labels: list[str]
     latest_message: LatestMessage | None
     """
@@ -188,7 +188,7 @@ class ThreadWithMessages(BaseModel):
     inbox_id: str
     subject: str
     participants: list[str]
-    message_count: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    message_count: int
     labels: list[str]
     latest_message: LatestMessage | None
     """
@@ -212,7 +212,7 @@ class Inbox(BaseModel):
     mode: Literal['live', 'sandbox']
     send_policy: Literal['open', 'reply_only', 'approval']
     status: Literal['active', 'suspended', 'deleted']
-    retention_days: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    retention_days: int
     metadata: dict[str, str | float | bool | None]
     expires_at: AwareDatetime | None
     created_at: AwareDatetime
@@ -232,7 +232,7 @@ class DeletedInbox(BaseModel):
     mode: Literal['live', 'sandbox']
     send_policy: Literal['open', 'reply_only', 'approval']
     status: Literal['active', 'suspended', 'deleted']
-    retention_days: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    retention_days: int
     metadata: dict[str, str | float | bool | None]
     expires_at: AwareDatetime | None
     created_at: AwareDatetime
@@ -344,14 +344,6 @@ class WebhookTestResult(BaseModel):
     delivery_id: str
 
 
-class LastStatusCode(RootModel[int]):
-    root: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-
-
-class LastDurationMs(RootModel[int]):
-    root: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-
-
 class Delivery(BaseModel):
     model_config = ConfigDict(
         extra='allow',
@@ -362,10 +354,10 @@ class Delivery(BaseModel):
     event_id: str
     event_type: str | None
     status: Literal['pending', 'succeeded', 'failed']
-    attempts: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    last_status_code: LastStatusCode | None
+    attempts: int
+    last_status_code: int | None
     last_error: str | None
-    last_duration_ms: LastDurationMs | None
+    last_duration_ms: int | None
     next_attempt_at: AwareDatetime | None
     created_at: AwareDatetime
     updated_at: AwareDatetime
@@ -423,16 +415,22 @@ class Inboxes(BaseModel):
     model_config = ConfigDict(
         extra='allow',
     )
-    used: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    limit: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    used: int
+    limit: int | None
+    """
+    null when the install has no inbox cap (self-hosted)
+    """
 
 
 class SendsToday(BaseModel):
     model_config = ConfigDict(
         extra='allow',
     )
-    used: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    limit: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    used: int
+    limit: int | None
+    """
+    null when the install has no daily cap (self-hosted)
+    """
     resets_at: AwareDatetime
     """
     Midnight UTC, when the daily count starts over
@@ -463,14 +461,14 @@ class Day(BaseModel):
     model_config = ConfigDict(
         extra='allow',
     )
-    received: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    sent: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    delivered: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    bounced: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    received: int
+    sent: int
+    delivered: int
+    bounced: int
     """
     Bounces and complaints
     """
-    failed: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    failed: int
     date: str
     """
     YYYY-MM-DD, UTC
@@ -481,14 +479,14 @@ class Totals(BaseModel):
     model_config = ConfigDict(
         extra='allow',
     )
-    received: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    sent: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    delivered: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
-    bounced: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    received: int
+    sent: int
+    delivered: int
+    bounced: int
     """
     Bounces and complaints
     """
-    failed: Annotated[int, Field(ge=-9007199254740991, le=9007199254740991)]
+    failed: int
 
 
 class Stats(BaseModel):

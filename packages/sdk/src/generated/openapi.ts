@@ -16,7 +16,7 @@ export interface paths {
         put?: never;
         /**
          * Create an inbox
-         * @description Creates `name@send0.email` (or on a verified custom domain). Omit `name` for a random address.
+         * @description Creates `name@<domain>` on the install's default mail domain (send0.email on send0.dev), or on `domain` if given. Omit `name` for a random address.
          */
         post: operations["createInbox"];
         delete?: never;
@@ -888,11 +888,13 @@ export interface components {
             plan: "free" | "pro" | "scale";
             inboxes: {
                 used: number;
-                limit: number;
+                /** @description null when the install has no inbox cap (self-hosted) */
+                limit: number | null;
             };
             sends_today: {
                 used: number;
-                limit: number;
+                /** @description null when the install has no daily cap (self-hosted) */
+                limit: number | null;
                 /**
                  * Format: date-time
                  * @description Midnight UTC, when the daily count starts over
