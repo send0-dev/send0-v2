@@ -8,12 +8,14 @@
     ".": "./src/index.ts",
     "./testing": "./src/testing.ts",
     "./testing-pg": "./src/testing-pg.ts",
-    "./migrate": "./src/migrate.ts"
+    "./migrate": "./src/migrate.ts",
+    "./migrate-bundled": "./src/migrate-bundled.ts"
   },
   "scripts": {
-    "generate": "drizzle-kit generate",
+    "generate": "drizzle-kit generate && tsx scripts/bundle-migrations.ts",
     "test": "vitest run --testTimeout=20000 --hookTimeout=20000",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "bundle-migrations": "tsx scripts/bundle-migrations.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.3",
@@ -24,6 +26,7 @@
     "@types/node": "^24",
     "drizzle-kit": "^0.31.11",
     "typescript": "^5.9.0",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "tsx": "^4.20.0"
   }
 }

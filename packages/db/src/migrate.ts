@@ -4,13 +4,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
+import { MIGRATION_LOCK_ID } from "./migration-lock";
 
 /** The migrations shipped with this package; a bundled build passes its own folder instead. */
 export const DEFAULT_MIGRATIONS_FOLDER = fileURLToPath(new URL("../migrations", import.meta.url).href);
 const defaultFolder = DEFAULT_MIGRATIONS_FOLDER;
-
-/** Fixed pg_advisory_lock key ("send0" + "mig" in ASCII hex) so concurrent booting containers migrate one at a time. */
-const MIGRATION_LOCK_ID = 0x73656e6430_6d6967n;
 
 /**
  * Applies pending migrations under a Postgres advisory lock, so several containers can boot at once.
