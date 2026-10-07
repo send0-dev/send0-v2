@@ -24,7 +24,7 @@ Click the button. Cloudflare copies the template to your GitHub or GitLab accoun
 | R2 bucket      | `send0-blobs` (binding `BLOBS`)   | Raw mail and attachments                          |
 | Queue          | `send0-events` (binding `EVENTS`) | Webhook fan-out and delivery retries              |
 | Hyperdrive     | binding `HYPERDRIVE`              | Pooled connections to your Postgres               |
-| Durable Object | class `Hub` (binding `HUB`)       | SSE, WebSocket and the `wait` long-poll           |
+| Durable Object | class `Hub` (binding `HUB`)       | The SSE event stream and the `wait` long-poll     |
 | Cron trigger   | `0 * * * *` (hourly)              | Outbox safety net and purge of deleted workspaces |
 
 It asks for:
