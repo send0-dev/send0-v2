@@ -2,6 +2,19 @@ import { workspaceHeaders } from "@/lib/active-workspace";
 import { AppError } from "@/lib/api";
 import type { Role } from "@send0/auth/permissions";
 
+/**
+ * The install can't start: the one-Worker edition answers every route with a plain-text 5xx listing
+ * its config problems (variable names only, never values). `details` is that text.
+ */
+export class NotConfiguredError extends AppError {
+  constructor(
+    status: number,
+    readonly details: string,
+  ) {
+    super(status, "not_configured", "send0 isn't configured yet.");
+  }
+}
+
 /** Calls the dashboard Worker's /auth/* endpoints (accounts, workspaces, members, invites). */
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response;
@@ -18,6 +31,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const data = (res.headers.get("content-type")?.includes("json") ? await res.json() : null) as
     (T & { error?: { code?: string; message?: string; field?: string } }) | null;
   if (!res.ok) {
+    if (res.status >= 500 && res.headers.get("content-type")?.startsWith("text/plain"))
+      throw new NotConfiguredError(res.status, await res.text());
     const e = data?.error;
     throw new AppError(res.status, e?.code ?? "error", e?.message ?? `Request failed (${res.status}).`, e?.field ?? undefined);
   }

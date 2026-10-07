@@ -209,9 +209,12 @@ bucket, the queue, the Hyperdrive connection and the Durable Object, and asks fo
 | \`SES_ACCESS_KEY_ID\`, \`SES_SECRET_ACCESS_KEY\` | The IAM user's keys |
 
 Optional settings, added later as variables under Workers & Pages > send0 > Settings:
-\`MAIL_FROM\` (sender of account email; defaults to \`noreply@\` your first mail domain), \`PUBLIC_URL\`
-(a fixed origin such as \`https://mail.acme.com\`), \`SES_CONFIGURATION_SET\`, and
-\`SES_EVENTS_TOKEN\` with \`SES_EVENTS_TOPIC_ARN\` (see step 2).
+\`MAIL_FROM\` (sender of account email; defaults to \`noreply@\` your first mail domain), \`PUBLIC_URL\`,
+\`SES_CONFIGURATION_SET\`, and \`SES_EVENTS_TOKEN\` with \`SES_EVENTS_TOPIC_ARN\` (see step 2).
+
+\`PUBLIC_URL\`: set it if you add a custom domain, to that origin (like \`https://mail.acme.com\`).
+send0 then redirects every other hostname, including workers.dev, to it, so sign-in, download
+links and webhooks all use one URL. Unset, each request's own origin is used.
 
 If a setting is wrong, every page shows which one and why (never its value) until you fix it.
 
@@ -229,7 +232,7 @@ If a setting is wrong, every page shows which one and why (never its value) unti
    - Optional, for delivery, bounce and complaint events: create an SNS topic, set it as the event
      destination of a configuration set (and set \`SES_CONFIGURATION_SET\`), set \`SES_EVENTS_TOKEN\`
      (32+ random characters) and \`SES_EVENTS_TOPIC_ARN\`, then add an HTTPS subscription to
-     \`https://<your Worker URL>/internal/ses-events?token=<SES_EVENTS_TOKEN>\`. send0 confirms it.
+     \`https://<your send0 URL>/internal/ses-events?token=<SES_EVENTS_TOKEN>\` (your \`PUBLIC_URL\` if set). send0 confirms it.
 3. **Sign up.** Open the Worker URL (\`https://send0.<your subdomain>.workers.dev\`, or a custom domain
    you attach), sign up as \`OWNER_EMAIL\` and follow the verification email. Then create inboxes and
    API keys from the dashboard, and invite your team.

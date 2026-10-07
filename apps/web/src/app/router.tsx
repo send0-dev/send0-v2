@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
-import { RequireStage } from "@/app/guards";
+import { RequireConfigured, RequireStage } from "@/app/guards";
 import { AppShell } from "@/app/layouts/app-shell";
 import { AuthLayout } from "@/app/layouts/auth-layout";
 import { NotFound, RouteError } from "@/app/route-error";
@@ -61,6 +61,7 @@ const appRoutes: RouteObject[] = withErrorBoundaries([
 
 export const router = createBrowserRouter([
   {
+    element: <RequireConfigured />,
     errorElement: <RouteError />,
     children: [
       {

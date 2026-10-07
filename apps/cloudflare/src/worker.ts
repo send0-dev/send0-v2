@@ -1,12 +1,12 @@
 import { purgeDeletedOrgs } from "@send0/api/maintenance";
 import { processQueueMessage, sweep } from "@send0/api/webhooks/dispatch";
 import { R2BlobStore } from "@send0/adapters/blob";
-import { createDb } from "@send0/db";
+import { createDb, type Db } from "@send0/db";
 import { receiveMessage, type QueueMessage } from "@send0/pipeline";
-import { bootDatabase, onceUntilSuccess } from "./boot";
+import { bootDatabase, bootGate } from "./boot";
 import { configCache, configErrorResponse, type CloudflareConfig } from "./config";
 import { createHttpApp } from "./http";
-import { publicUrlFor } from "./public-url";
+import { canonicalRedirect, publicUrlFor } from "./public-url";
 import { createMailer, requestServices, type DbFactory, type MailerFactory } from "./services";
 
 /** Test seams. Production uses the defaults; tests pass PGlite so no Postgres or workerd is needed. */
@@ -15,6 +15,8 @@ export interface WorkerOptions {
   createDb?: DbFactory;
   /** Builds the outbound mailer from the SES settings (default: SES over HTTPS) */
   createMailer?: MailerFactory;
+  /** How long an invocation waits for its boot (default BOOT_TIMEOUT_MS) */
+  bootTimeoutMs?: number;
 }
 
 const logError = (event: string, err: unknown, extra: Record<string, unknown> = {}) =>
@@ -36,9 +38,9 @@ export function createWorker(opts: WorkerOptions = {}) {
   const makeDb: DbFactory = opts.createDb ?? ((cs, o) => createDb(cs, o));
   const makeMailer = opts.createMailer ?? createMailer;
   const configFor = configCache();
-  const boot = onceUntilSuccess();
-  const ready = (env: Env, config: CloudflareConfig) => () =>
-    boot(() => bootDatabase(makeDb(env.HYPERDRIVE.connectionString, { max: 1 }), config.mailDomains));
+  const boot = bootGate(opts.bootTimeoutMs);
+  // Each invocation boots with its own client (the one it then works with), never sharing in-flight work.
+  const ready = (db: Db, config: CloudflareConfig) => () => boot(() => bootDatabase(db, config.mailDomains));
 
   const configOrThrow = (env: Env): CloudflareConfig => {
     const result = configFor(env);
@@ -51,16 +53,19 @@ export function createWorker(opts: WorkerOptions = {}) {
       const result = configFor(env);
       if (!result.ok) return configErrorResponse(result.problems);
       const { config } = result;
+      const redirect = canonicalRedirect(config.publicUrl, request);
+      if (redirect) return redirect;
       const db = makeDb(env.HYPERDRIVE.connectionString, { max: 5 });
       const services = requestServices(env, ctx, config, db, publicUrlFor(config.publicUrl, request), makeMailer);
-      return createHttpApp(services, config, env.ASSETS, ready(env, config)).fetch(request);
+      return createHttpApp(services, config, env.ASSETS, ready(db, config)).fetch(request);
     },
 
-    // Email Routing's catch-all. A thrown error makes the sending server retry later.
+    // Email Routing's catch-all. An uncaught error is logged by the runtime; Email Routing may not
+    // retry the message, so refusals that matter are made with setReject inside receiveMessage.
     async email(message, env) {
       const config = configOrThrow(env);
-      await ready(env, config)();
       const db = makeDb(env.HYPERDRIVE.connectionString, { max: 2 });
+      await ready(db, config)();
       await receiveMessage(
         message,
         { mailDomains: config.mailDomains, trustedAuthservIds: config.trustedAuthservIds },
@@ -71,8 +76,8 @@ export function createWorker(opts: WorkerOptions = {}) {
     // Webhook fan-out and delivery attempts, as the hosted API Worker does them.
     async queue(batch, env) {
       const config = configOrThrow(env);
-      await ready(env, config)();
       const db = makeDb(env.HYPERDRIVE.connectionString, { max: 2 });
+      await ready(db, config)();
       for (const msg of batch.messages) {
         try {
           await processQueueMessage(db, env.EVENTS, msg.body);
@@ -86,11 +91,11 @@ export function createWorker(opts: WorkerOptions = {}) {
       await sweep(db, env.EVENTS, new Date()).catch((err: unknown) => logError("sweep.error", err));
     },
 
-    // The outbox safety net and the purge of deleted workspaces; also keeps migrations current.
+    // Hourly: the outbox safety net and the purge of deleted workspaces (boot also runs here if needed).
     async scheduled(_controller, env) {
       const config = configOrThrow(env);
-      await ready(env, config)();
       const db = makeDb(env.HYPERDRIVE.connectionString, { max: 1 });
+      await ready(db, config)();
       const now = new Date();
       const swept = await sweep(db, env.EVENTS, now);
       if (swept.events || swept.deliveries) console.log(JSON.stringify({ event: "sweep", ...swept }));

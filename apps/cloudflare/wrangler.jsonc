@@ -6,6 +6,7 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "preview_urls": false,
   // The dashboard SPA (apps/web's build). API and dashboard routes run the Worker first; any other
   // path is a static file, or the app shell for client-side routes.
   "assets": {
@@ -35,8 +36,9 @@
   // Real-time hubs: one per inbox and one per org (SQLite-backed, available on the free plan).
   "durable_objects": { "bindings": [{ "name": "HUB", "class_name": "Hub" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Hub"] }],
-  // Outbox safety net, deleted-workspace purge, and a migration check.
-  "triggers": { "crons": ["*/15 * * * *"] },
+  // Hourly outbox safety net and deleted-workspace purge. The queue consumer already sweeps after every
+  // batch and each isolate migrates on first use, so this stays rare and lets Neon scale to zero.
+  "triggers": { "crons": ["0 * * * *"] },
   "vars": {
     // Domains you receive mail on (comma-separated). Route each one's catch-all to this Worker in Email Routing.
     "MAIL_DOMAINS": "agents.example.com",

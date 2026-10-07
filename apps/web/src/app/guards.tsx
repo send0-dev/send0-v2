@@ -1,6 +1,9 @@
 import { Navigate, Outlet, useLocation, useSearchParams } from "react-router";
 import { ErrorState } from "@/components/error-state";
 import { FullPageSpinner } from "@/app/layouts/full-page-spinner";
+import { NotConfigured } from "@/app/layouts/not-configured";
+import { useInstance } from "@/features/session/api/use-instance";
+import { NotConfiguredError } from "@/lib/auth-client";
 import { useMe } from "@/features/session/api/use-me";
 import { STAGE_HOME, stageOf, type Stage } from "@/features/session/stage";
 
@@ -31,4 +34,15 @@ export function RequireStage({ allow }: { allow: Stage[] }) {
         ? `?next=${encodeURIComponent(next)}`
         : "";
   return <Navigate to={target + keepNext} replace />;
+}
+
+/**
+ * Swaps the whole app for a setup screen when the install's config is broken (the one-Worker edition
+ * answers /auth/instance with its config problems). Anything else renders the app straight away;
+ * pages handle their own loading and errors.
+ */
+export function RequireConfigured() {
+  const instance = useInstance();
+  if (instance.error instanceof NotConfiguredError) return <NotConfigured details={instance.error.details} />;
+  return <Outlet />;
 }

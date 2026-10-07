@@ -71,6 +71,7 @@ describe("build-template.mjs", () => {
     expect(cfg.durable_objects).toEqual(source.durable_objects);
     expect(cfg.migrations).toEqual(source.migrations);
     expect(cfg.triggers).toEqual(source.triggers);
+    expect(cfg.triggers.crons).toEqual(["0 * * * *"]);
     expect(cfg.vars).toEqual(source.vars);
     expect(readFileSync(path.join(out, "wrangler.jsonc"), "utf8")).not.toMatch(/localConnectionString|src\/http\.ts/);
   });
@@ -106,6 +107,7 @@ describe("build-template.mjs", () => {
     const readme = readFileSync(path.join(out, "README.md"), "utf8");
     expect(readme).toContain("https://deploy.workers.cloudflare.com/?url=https://github.com/send0-dev/send0-cloudflare");
     expect(readme).toContain(`send0-dev/send0-v2@${SHA.slice(0, 12)}`);
+    expect(readme).toContain("`PUBLIC_URL`: set it if you add a custom domain");
     expect(readFileSync(path.join(out, "LICENSE"), "utf8")).toContain("GNU AFFERO GENERAL PUBLIC LICENSE");
   });
 

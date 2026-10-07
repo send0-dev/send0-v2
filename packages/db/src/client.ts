@@ -11,6 +11,7 @@ export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
  * so keep `max` small and skip the type-fetching round trip.
  */
 export function createDb(connectionString: string, opts: { max?: number } = {}): Db {
-  const client = postgres(connectionString, { max: opts.max ?? 5, fetch_types: false });
+  // NOTICEs (e.g. "schema already exists, skipping" from migrations) are noise in Worker logs.
+  const client = postgres(connectionString, { max: opts.max ?? 5, fetch_types: false, onnotice: () => {} });
   return drizzle(client, { schema, casing: "snake_case" }) as unknown as Db;
 }

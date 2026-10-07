@@ -17,3 +17,8 @@ SES_SECRET_ACCESS_KEY=
 
 # Sender of verification, password-reset and invite email. Defaults to noreply@<first mail domain>.
 MAIL_FROM=
+
+# Optional. The one URL people and SDKs use, like https://mail.acme.com. Set it if you add a custom
+# domain: requests to any other hostname (such as workers.dev) are redirected there. Unset, each
+# request's own origin is used.
+PUBLIC_URL=

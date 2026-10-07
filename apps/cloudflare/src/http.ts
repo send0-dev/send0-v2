@@ -2,6 +2,7 @@ import { createApp } from "@send0/api/app";
 import { createWebApp, type Gateway } from "@send0/web/worker";
 import { sql } from "drizzle-orm";
 import { Hono, type MiddlewareHandler } from "hono";
+import { BootTimeoutError } from "./boot";
 import type { CloudflareConfig } from "./config";
 import type { RequestServices } from "./services";
 
@@ -54,6 +55,10 @@ export function createHttpApp(
       await ready();
     } catch (err) {
       console.error(JSON.stringify({ event: "boot.failed", error: String(err) }));
+      if (err instanceof BootTimeoutError) {
+        c.header("retry-after", "5");
+        return c.json({ error: { code: "starting_up", message: "send0 is starting up. Retry in a few seconds." } }, 503);
+      }
       return c.json({ error: { code: "unavailable", message: "send0 couldn't reach its database. Try again shortly." } }, 503);
     }
     await next();

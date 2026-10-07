@@ -34,13 +34,24 @@ async function bundled(url: string): Promise<void> {
   }
 }
 
-/** What each migrator leaves behind: its bookkeeping rows and the tables and columns it created. */
+/** What each migrator leaves behind: its bookkeeping rows and the tables, indexes, constraints and columns it created. */
 async function snapshot(url: string) {
   return {
     migrations: await query(url, "SELECT id, hash, created_at::text FROM drizzle.__drizzle_migrations ORDER BY id"),
     tables: await query(
       url,
       "SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema IN ('public', 'drizzle') ORDER BY 1, 2",
+    ),
+    indexes: await query(
+      url,
+      "SELECT schemaname, tablename, indexname, indexdef FROM pg_indexes WHERE schemaname IN ('public', 'drizzle') ORDER BY 1, 2, 3",
+    ),
+    constraints: await query(
+      url,
+      `SELECT table_schema, table_name, constraint_name, constraint_type, is_deferrable, initially_deferred
+       FROM information_schema.table_constraints WHERE table_schema IN ('public', 'drizzle')
+       -- NOT NULL checks are named after OIDs, which differ per database; columns.is_nullable covers them.
+       AND constraint_name !~ '^[0-9]+_[0-9]+_[0-9]+_not_null$' ORDER BY 1, 2, 3`,
     ),
     columns: await query(
       url,
