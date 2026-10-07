@@ -35,7 +35,8 @@ export class ConfigError extends Error {
 
 /** Strings are trimmed and lowercased, and blank means unset. Other values (booleans) pass through. */
 const normalize = (v: unknown) => (typeof v === "string" ? v.trim().toLowerCase() || undefined : v);
-const optional = <T extends z.ZodType>(inner: T) => z.preprocess(normalize, inner.optional()).optional();
+/** Lowercases strings, so only use it for case-insensitive settings. */
+const blankIsUnset = <T extends z.ZodType>(inner: T) => z.preprocess(normalize, inner.optional()).optional();
 
 const toList = (v: string) => [
   ...new Set(
@@ -45,7 +46,9 @@ const toList = (v: string) => [
       .filter(Boolean),
   ),
 ];
-const flag = z.union([z.boolean(), z.enum(["true", "false", "1", "0"]).transform((v) => v === "true" || v === "1")]);
+const flag = z.union([z.boolean(), z.enum(["true", "false", "1", "0"]).transform((v) => v === "true" || v === "1")], {
+  error: "must be true, false, 1 or 0",
+});
 const DOMAIN = /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+([a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
 
 const schema = z.object({
@@ -53,9 +56,9 @@ const schema = z.object({
     .string({ error: "is required (comma-separated domains, like agents.acme.com)" })
     .transform(toList)
     .pipe(z.array(z.string().regex(DOMAIN, "must be domain names, like agents.acme.com")).min(1, "needs at least one domain")),
-  TRUSTED_AUTHSERV_IDS: optional(z.string().transform(toList)),
-  LIMITS: optional(z.enum(["hosted", "none"])),
-  ALLOW_SIGNUP: optional(flag),
+  TRUSTED_AUTHSERV_IDS: blankIsUnset(z.string().transform(toList)),
+  LIMITS: blankIsUnset(z.enum(["hosted", "none"], { error: "must be hosted or none" })),
+  ALLOW_SIGNUP: blankIsUnset(flag),
 });
 
 /**

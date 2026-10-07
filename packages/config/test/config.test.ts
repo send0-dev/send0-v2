@@ -78,5 +78,7 @@ describe("parseCoreConfig", () => {
     expect(problems).toMatch(/LIMITS/);
     expect(problems).toMatch(/ALLOW_SIGNUP/);
     expect((error as ConfigError).problems).toHaveLength(3);
+    expect(problems).toContain("LIMITS: must be hosted or none");
+    expect(problems).toContain("ALLOW_SIGNUP: must be true, false, 1 or 0");
   });
 });
