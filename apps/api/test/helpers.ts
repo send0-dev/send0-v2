@@ -1,3 +1,4 @@
+import type { Limits } from "@send0/config";
 import { newApiKey, newId } from "@send0/core";
 import { schema, type Db } from "@send0/db";
 import { createTestDb } from "@send0/db/testing";
@@ -27,12 +28,22 @@ export async function setup(
     mailer?: AppDeps["mailer"];
     publish?: AppDeps["publish"];
     sesEvents?: AppDeps["sesEvents"];
+    mailDomains?: string[];
+    limits?: Limits;
   } = {},
 ): Promise<TestEnv> {
   const { db, close } = await createTestDb();
   const orgId = newId("org");
   await db.insert(schema.orgs).values({ id: orgId, name: "Test org" });
-  await db.insert(schema.domains).values({ id: "dom_shared", name: "send0.email", kind: "shared", status: "verified" });
+  const mailDomains = opts.mailDomains ?? ["send0.email"];
+  await db.insert(schema.domains).values(
+    mailDomains.map((name, i) => ({
+      id: i ? `dom_shared_${i}` : "dom_shared",
+      name,
+      kind: "shared" as const,
+      status: "verified" as const,
+    })),
+  );
 
   const makeKey: TestEnv["makeKey"] = async ({ scopes = ["admin"], inboxIds = null, orgId: org = orgId, mode = "live" } = {}) => {
     const k = await newApiKey(mode);
@@ -44,6 +55,8 @@ export async function setup(
   const adminKey = await makeKey();
   const app = createApp({
     db,
+    mailDomains,
+    limits: opts.limits,
     now: opts.now,
     hub: opts.hub,
     queue: opts.queue,

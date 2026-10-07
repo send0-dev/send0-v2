@@ -1,3 +1,4 @@
+import { HOSTED_LIMITS } from "@send0/config";
 import { isReservedLocalPart, isValidLocalPart, newId } from "@send0/core";
 import { schema } from "@send0/db";
 import { and, count, eq, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
@@ -11,7 +12,6 @@ import { validate } from "../validation";
 
 const { inboxes, domains, orgs } = schema;
 
-export const DEFAULT_DOMAIN = "send0.email";
 export const PLAN_INBOX_LIMITS: Record<string, number> = { free: 5, pro: 100, scale: 1000 };
 
 type InboxRow = typeof inboxes.$inferSelect;
@@ -84,7 +84,7 @@ export const inboxRoutes = new Hono<AppEnv>()
     const auth = c.get("auth");
     requireScope(auth, "send");
     if (auth.inboxIds) throw forbidden("Keys limited to specific inboxes can't create new inboxes.");
-    const { db } = c.get("deps");
+    const { db, mailDomains, limits = HOSTED_LIMITS } = c.get("deps");
     const body = c.req.valid("json");
 
     const localPart = body.name ?? randomLocalPart();
@@ -93,7 +93,7 @@ export const inboxRoutes = new Hono<AppEnv>()
     }
     if (isReservedLocalPart(localPart)) throw invalid(`"${localPart}" is reserved. Pick another name.`, "name");
 
-    const domainName = body.domain ?? DEFAULT_DOMAIN;
+    const domainName = body.domain?.toLowerCase() ?? mailDomains[0]!;
     const [domain] = await db
       .select()
       .from(domains)
@@ -107,13 +107,15 @@ export const inboxRoutes = new Hono<AppEnv>()
     if (!domain) throw invalid(`${domainName} isn't a domain this account can use. Add and verify it first.`, "domain");
 
     const [org] = await db.select({ plan: orgs.plan }).from(orgs).where(eq(orgs.id, auth.orgId));
-    const limit = PLAN_INBOX_LIMITS[org?.plan ?? "free"] ?? PLAN_INBOX_LIMITS.free!;
-    const [{ n }] = (await db
-      .select({ n: count() })
-      .from(inboxes)
-      .where(and(eq(inboxes.orgId, auth.orgId), isNull(inboxes.deletedAt)))) as [{ n: number }];
-    if (n >= limit) {
-      throw new ApiError(402, "plan_limit_reached", `Your plan allows ${limit} inboxes. Delete one or upgrade.`);
+    if (limits.planInboxCap) {
+      const limit = PLAN_INBOX_LIMITS[org?.plan ?? "free"] ?? PLAN_INBOX_LIMITS.free!;
+      const [{ n }] = (await db
+        .select({ n: count() })
+        .from(inboxes)
+        .where(and(eq(inboxes.orgId, auth.orgId), isNull(inboxes.deletedAt)))) as [{ n: number }];
+      if (n >= limit) {
+        throw new ApiError(402, "plan_limit_reached", `Your plan allows ${limit} inboxes. Delete one or upgrade.`);
+      }
     }
 
     const [row] = await db

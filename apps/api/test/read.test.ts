@@ -122,6 +122,7 @@ describe("stats", () => {
   const at = async (path: string): Promise<any> => {
     const app = createApp({
       db: t.db,
+      mailDomains: ["send0.email"],
       files: { signedGetUrl: async () => "x" },
       now: () => new Date("2026-10-06T12:00:00Z"),
       presetAuth: { orgId: t.orgId, keyId: "key_x", mode: "live", scopes: ["read"], inboxIds: null },

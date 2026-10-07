@@ -1,3 +1,4 @@
+import { HOSTED_LIMITS } from "@send0/config";
 import { schema } from "@send0/db";
 import { and, count, eq, gte, isNull, ne } from "drizzle-orm";
 import { Hono } from "hono";
@@ -12,7 +13,7 @@ const { orgs, inboxes, messages } = schema;
 export const usageRoutes = new Hono<AppEnv>().get("/", async (c) => {
   const auth = c.get("auth");
   requireScope(auth, "read");
-  const { db, now = () => new Date() } = c.get("deps");
+  const { db, now = () => new Date(), limits = HOSTED_LIMITS } = c.get("deps");
   const at = now();
   const [[org], [inboxCount], [sent]] = await Promise.all([
     db.select().from(orgs).where(eq(orgs.id, auth.orgId)),
@@ -36,8 +37,8 @@ export const usageRoutes = new Hono<AppEnv>().get("/", async (c) => {
   return c.json({
     object: "usage" as const,
     plan: org!.plan,
-    inboxes: { used: inboxCount!.n, limit: PLAN_INBOX_LIMITS[org!.plan] ?? PLAN_INBOX_LIMITS.free! },
-    sends_today: { used: sent!.n, limit: org!.dailySendLimit, resets_at: resetsAt.toISOString() },
+    inboxes: { used: inboxCount!.n, limit: limits.planInboxCap ? (PLAN_INBOX_LIMITS[org!.plan] ?? PLAN_INBOX_LIMITS.free!) : null },
+    sends_today: { used: sent!.n, limit: limits.dailySendCap ? org!.dailySendLimit : null, resets_at: resetsAt.toISOString() },
     sending: {
       paused: !!org!.sendingPausedAt,
       reason: org!.sendingPausedReason,

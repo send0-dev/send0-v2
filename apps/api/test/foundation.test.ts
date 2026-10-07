@@ -210,6 +210,7 @@ describe("dashboard gateway (preset auth)", () => {
     const { createApp } = await import("../src/app");
     const app = createApp({
       db: t.db,
+      mailDomains: ["send0.email"],
       files: null as never,
       presetAuth: {
         orgId: t.orgId,

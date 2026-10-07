@@ -234,6 +234,7 @@ describe("approval", () => {
     ).body;
     const member = createApp({
       db: t.db,
+      mailDomains: ["send0.email"],
       files: { signedGetUrl: async () => "x" },
       mailer: { sendRaw: async (m) => (outbox.push(m), { providerMessageId: "ses-member" }) },
       presetAuth: { orgId: t.orgId, keyId: "usr_member", mode: "live", scopes: ["read", "send"], inboxIds: null, actor: "user" },
@@ -247,6 +248,7 @@ describe("approval", () => {
     await t.db.update(schema.orgs).set({ status: "suspended" }).where(eq(schema.orgs.id, t.orgId));
     const member = createApp({
       db: t.db,
+      mailDomains: ["send0.email"],
       files: { signedGetUrl: async () => "x" },
       presetAuth: { orgId: t.orgId, keyId: "usr_x", mode: "live", scopes: ["admin"], inboxIds: null, actor: "user" },
     });
@@ -269,7 +271,7 @@ describe("SES events", () => {
   it("records delivery", async () => {
     const m = await sendOne();
     await handleSesEvent(
-      { db: t.db, files: null as never, publish: async (_o, e) => void published.push(e) },
+      { db: t.db, mailDomains: ["send0.email"], files: null as never, publish: async (_o, e) => void published.push(e) },
       evt(m.id, { eventType: "Delivery", delivery: { recipients: ["dana@gmail.com"] } }) as never,
     );
     expect((await t.call("GET", `/v1/messages/${m.id}`)).body.status).toBe("delivered");
@@ -278,7 +280,12 @@ describe("SES events", () => {
 
   it("suppresses permanent bounces and complaints, and never downgrades status", async () => {
     const m = await sendOne();
-    const deps = { db: t.db, files: null as never, publish: async (_o: string, e: EventEnvelope) => void published.push(e) };
+    const deps = {
+      db: t.db,
+      mailDomains: ["send0.email"],
+      files: null as never,
+      publish: async (_o: string, e: EventEnvelope) => void published.push(e),
+    };
     await handleSesEvent(
       deps,
       evt(m.id, { eventType: "Complaint", complaint: { complainedRecipients: [{ emailAddress: "Dana@gmail.com" }] } }) as never,
@@ -295,7 +302,12 @@ describe("SES events", () => {
     await t.db.update(schema.orgs).set({ dailySendLimit: 1000 }).where(eq(schema.orgs.id, t.orgId));
     const ids: string[] = [];
     for (let i = ids.length; i < PAUSE_RULES.minSent; i++) ids.push((await sendOne(`bulk ${i}`)).id);
-    const deps = { db: t.db, files: null as never, publish: async (_o: string, e: EventEnvelope) => void published.push(e) };
+    const deps = {
+      db: t.db,
+      mailDomains: ["send0.email"],
+      files: null as never,
+      publish: async (_o: string, e: EventEnvelope) => void published.push(e),
+    };
     published.length = 0;
     await handleSesEvent(
       deps,

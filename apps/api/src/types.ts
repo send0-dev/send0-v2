@@ -1,5 +1,6 @@
 import type { SignedUrlStore } from "@send0/adapters/blob";
 import type { Mailer } from "@send0/adapters/mailer";
+import type { Limits } from "@send0/config";
 import type { Db } from "@send0/db";
 import type { EventEnvelope, QueueLike } from "@send0/pipeline";
 import type { HubClient } from "./realtime/client";
@@ -20,6 +21,10 @@ export interface AuthContext {
 
 export interface AppDeps {
   db: Db;
+  /** Domains this install receives mail for; the first is the default for new inboxes. */
+  mailDomains: string[];
+  /** Hosted-service limits (plan inbox caps, reply-only free plan, daily send cap). Defaults to HOSTED_LIMITS. */
+  limits?: Limits;
   /** Hands out pre-signed download links for raw mail and attachments */
   files: SignedUrlStore;
   /** Real-time hubs (Durable Objects). Optional so routes can degrade gracefully. */

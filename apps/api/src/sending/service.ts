@@ -1,4 +1,5 @@
 import { MailerError } from "@send0/adapters/mailer";
+import { HOSTED_LIMITS } from "@send0/config";
 import { buildMime, displayNameFromLocalPart, newId, normalizeSubject, rfcMessageId } from "@send0/core";
 import { schema, type MailboxJson } from "@send0/db";
 import { serializeMessage, toEnvelope } from "@send0/pipeline";
@@ -85,7 +86,7 @@ export async function send(
   if (!org) throw new ApiError(404, "not_found", "Organization not found.");
 
   const recipients = [...new Set([...lower(payload.to), ...lower(payload.cc), ...lower(payload.bcc)])];
-  await checkSendPolicy(db, { org, inbox, recipients, now });
+  await checkSendPolicy(db, { org, inbox, recipients, now, mailDomains: deps.mailDomains, limits: deps.limits ?? HOSTED_LIMITS });
 
   if (inbox.sendPolicy === "approval" && !opts.approved) {
     const [draft] = await db

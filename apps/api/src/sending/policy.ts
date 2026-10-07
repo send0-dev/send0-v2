@@ -1,3 +1,4 @@
+import type { Limits } from "@send0/config";
 import { isReservedLocalPart } from "@send0/core";
 import { schema, type Db } from "@send0/db";
 import { and, count, eq, gte, inArray, ne, sql } from "drizzle-orm";
@@ -13,6 +14,9 @@ export interface SendContext {
   /** Lowercased envelope recipients (to + cc + bcc) */
   recipients: string[];
   now: Date;
+  /** Our receiving domains: reserved local parts on them can't be sent to */
+  mailDomains: string[];
+  limits: Limits;
 }
 
 export function startOfUtcDay(d: Date): Date {
@@ -22,9 +26,10 @@ export function startOfUtcDay(d: Date): Date {
 /**
  * Every rule that decides whether a message may leave. Throws the first problem as an ApiError.
  * Order: account state, inbox state, recipients, reply-only, suppression, daily cap.
+ * Plan-based rules apply only when ctx.limits enables them.
  */
 export async function checkSendPolicy(db: Db, ctx: SendContext): Promise<void> {
-  const { org, inbox, recipients, now } = ctx;
+  const { org, inbox, recipients, now, mailDomains, limits } = ctx;
 
   if (org.sendingPausedAt) {
     throw new ApiError(
@@ -38,11 +43,15 @@ export async function checkSendPolicy(db: Db, ctx: SendContext): Promise<void> {
   if (recipients.length === 0) throw new ApiError(400, "invalid_request", "Add at least one recipient.", "to");
   if (recipients.length > MAX_RECIPIENTS)
     throw new ApiError(400, "invalid_request", `At most ${MAX_RECIPIENTS} recipients per message.`, "to");
-  const reserved = recipients.find((r) => r.endsWith("@send0.email") && isReservedLocalPart(r.split("@")[0]!));
+  const reserved = recipients.find((r) => {
+    const [local, domain] = r.split("@") as [string, string];
+    return mailDomains.includes(domain) && isReservedLocalPart(local);
+  });
   if (reserved) throw new ApiError(400, "invalid_request", `${reserved} can't receive mail.`, "to");
 
   // Free accounts are always reply-only, whatever the inbox says.
-  if (inbox.sendPolicy === "reply_only" || org.plan === "free") {
+  const freePlanReplyOnly = limits.freePlanReplyOnly && org.plan === "free";
+  if (inbox.sendPolicy === "reply_only" || freePlanReplyOnly) {
     const known = await db
       .selectDistinct({ email: sql<string>`lower(${messages.from}->>'email')` })
       .from(messages)
@@ -55,7 +64,7 @@ export async function checkSendPolicy(db: Db, ctx: SendContext): Promise<void> {
       throw new ApiError(
         403,
         "recipient_not_allowed",
-        `This inbox can only reply to people who emailed it first${org.plan === "free" ? " (free plan)" : ""}. Not allowed: ${blocked.join(", ")}`,
+        `This inbox can only reply to people who emailed it first${freePlanReplyOnly ? " (free plan)" : ""}. Not allowed: ${blocked.join(", ")}`,
         "to",
       );
     }
@@ -74,22 +83,24 @@ export async function checkSendPolicy(db: Db, ctx: SendContext): Promise<void> {
     );
   }
 
-  const [{ sentToday }] = (await db
-    .select({ sentToday: count() })
-    .from(messages)
-    .where(
-      and(
-        eq(messages.orgId, org.id),
-        eq(messages.direction, "out"),
-        ne(messages.status, "failed"),
-        gte(messages.createdAt, startOfUtcDay(now)),
-      ),
-    )) as [{ sentToday: number }];
-  if (sentToday >= org.dailySendLimit) {
-    throw new ApiError(
-      429,
-      "daily_limit_reached",
-      `This account can send ${org.dailySendLimit} messages per day (UTC). The limit rises as your sending record builds.`,
-    );
+  if (limits.dailySendCap) {
+    const [{ sentToday }] = (await db
+      .select({ sentToday: count() })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.orgId, org.id),
+          eq(messages.direction, "out"),
+          ne(messages.status, "failed"),
+          gte(messages.createdAt, startOfUtcDay(now)),
+        ),
+      )) as [{ sentToday: number }];
+    if (sentToday >= org.dailySendLimit) {
+      throw new ApiError(
+        429,
+        "daily_limit_reached",
+        `This account can send ${org.dailySendLimit} messages per day (UTC). The limit rises as your sending record builds.`,
+      );
+    }
   }
 }

@@ -62,6 +62,9 @@ importers:
       '@send0/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
+      '@send0/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@send0/core':
         specifier: workspace:*
         version: link:../../packages/core
