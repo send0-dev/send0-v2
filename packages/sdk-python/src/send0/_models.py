@@ -409,6 +409,9 @@ class Event(BaseModel):
     created_at: AwareDatetime
     inbox_id: str | None
     data: dict[str, Any]
+    """
+    The payload. message.*: the message (without html). inbox.suspended: { scope: "org" | "inbox", reason, … }; "org" means sending is paused account-wide, "inbox" that one inbox is suspended.
+    """
 
 
 class Inboxes(BaseModel):

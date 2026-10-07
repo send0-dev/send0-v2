@@ -106,6 +106,25 @@ fixtures/emails  Real-world .eml corpus used by tests (CRLF preserved; don't ref
 - **Cost:** fixed infrastructure must stay near $0 until there are paying customers. Prefer free tiers and pay-per-use; call out anything that adds a monthly cost.
 - **Licensing:** server code is AGPL-3.0; `packages/sdk`, `packages/sdk-python` and `packages/mcp` are MIT. Contributors sign [CLA.md](CLA.md) once, enforced on pull requests by `.github/workflows/cla.yml`. Contributor-facing docs: README.md, CONTRIBUTING.md, SECURITY.md.
 
+## Operating hosted send0
+
+Abuse handling runs from an operator CLI against the production database. `DATABASE_URL` comes from the operator's local env; never commit or print it. Write commands print before → after and are dry runs until `--yes`; an unknown id exits non-zero. Logic in `apps/api/src/admin/`, argv in `apps/api/scripts/admin.ts`.
+
+```sh
+pnpm --filter @send0/api admin org <org_id | ibx_id | member email | inbox address>  # plan, status, cap, pause, sends, 30-day rates, inboxes, members
+pnpm --filter @send0/api admin suspend-org <org_id> --reason "…" [--yes]    # API keys and dashboard refused (inbound still accepted)
+pnpm --filter @send0/api admin unsuspend-org <org_id> [--yes]
+pnpm --filter @send0/api admin suspend-inbox <ibx_id> --reason "…" [--yes]  # can't send, inbound refused 5.2.1, inbox.suspended webhook
+pnpm --filter @send0/api admin unsuspend-inbox <ibx_id> [--yes]
+pnpm --filter @send0/api admin pause-sending <org_id> --reason "…" [--yes]  # same state as the auto-pause; inbox.suspended (scope org)
+pnpm --filter @send0/api admin resume-sending <org_id> [--yes]
+pnpm --filter @send0/api admin set-limit <org_id> <n> [--yes]               # daily_send_limit
+pnpm --filter @send0/api admin suppress <org_id> <email> [--reason manual] [--yes]
+pnpm --filter @send0/api admin unsuppress <org_id> <email> [--yes]
+```
+
+Daily caps also rise on their own (`apps/api/src/send-caps.ts`, hourly cron, hosted limits only): `daily_send_limit` doubles, up to free 200 / pro 2,000 / scale 10,000, for active, unpaused orgs older than 3 days with ≥ 20 sends in 7 days, a busiest UTC day at ≥ 80% of the cap, and < 2% hard bounces and < 0.1% complaints over 30 days. It logs `org.limit_raised`, never lowers a cap, and leaves caps set above the ceiling by hand alone.
+
 ## Releasing
 
 Tag `vX.Y.Z` (or `vX.Y.Z-rc.N`) on `main` and push the tag (`git tag v0.1.0 && git push origin v0.1.0`). `.github/workflows/release.yml` then publishes both self-host editions:

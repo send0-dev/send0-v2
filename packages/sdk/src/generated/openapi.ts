@@ -897,6 +897,7 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             inbox_id: string | null;
+            /** @description The payload. message.*: the message (without html). inbox.suspended: { scope: "org" | "inbox", reason, … }; "org" means sending is paused account-wide, "inbox" that one inbox is suspended. */
             data: {
                 [key: string]: unknown;
             };

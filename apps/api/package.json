@@ -19,6 +19,7 @@
     "test": "vitest run",
     "check": "wrangler types --env-file .dev.vars.example && tsc --noEmit",
     "bootstrap": "tsx scripts/bootstrap.ts",
+    "admin": "tsx scripts/admin.ts",
     "openapi": "tsx scripts/export-openapi.ts"
   },
   "dependencies": {

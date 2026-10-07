@@ -227,7 +227,11 @@ export const Event = reg(
       ),
     created_at: ts,
     inbox_id: z.string().nullable(),
-    data: z.record(z.string(), z.unknown()),
+    data: z
+      .record(z.string(), z.unknown())
+      .describe(
+        'The payload. message.*: the message (without html). inbox.suspended: { scope: "org" | "inbox", reason, … }; "org" means sending is paused account-wide, "inbox" that one inbox is suspended.',
+      ),
   }),
   "Envelope for webhooks and the SSE stream",
 );

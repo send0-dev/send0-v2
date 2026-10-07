@@ -6571,7 +6571,8 @@
             "propertyNames": {
               "type": "string"
             },
-            "additionalProperties": {}
+            "additionalProperties": {},
+            "description": "The payload. message.*: the message (without html). inbox.suspended: { scope: \"org\" | \"inbox\", reason, … }; \"org\" means sending is paused account-wide, \"inbox\" that one inbox is suspended."
           }
         },
         "required": [
