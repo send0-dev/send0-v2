@@ -9,7 +9,7 @@
     "preview": "vite build && vite preview",
     "deploy": "vite build && wrangler deploy",
     "test": "vitest run",
-    "check": "wrangler types && tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "check": "wrangler types --env-file .dev.vars.example && tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "dev:local": "vite build && tsx scripts/dev-server.ts 5199",
     "e2e": "node e2e/walk.mjs"
   },

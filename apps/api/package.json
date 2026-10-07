@@ -7,7 +7,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "test": "vitest run",
-    "check": "wrangler types && tsc --noEmit",
+    "check": "wrangler types --env-file .dev.vars.example && tsc --noEmit",
     "bootstrap": "tsx scripts/bootstrap.ts",
     "openapi": "tsx scripts/export-openapi.ts"
   },
