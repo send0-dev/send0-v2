@@ -14,7 +14,7 @@ export function useInboxLiveUpdates(inboxId: string) {
   const qc = useQueryClient();
   useEffect(() => {
     const controller = new AbortController();
-    (async () => {
+    void (async () => {
       try {
         for await (const event of send0.events.stream({ inboxId, signal: controller.signal })) {
           if (event.type.startsWith("message.")) {

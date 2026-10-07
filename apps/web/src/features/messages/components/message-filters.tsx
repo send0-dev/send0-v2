@@ -14,6 +14,12 @@ const ANY = "any";
 export function MessageFilters({ filters, onChange, onClear, active }: { filters: Filters; onChange: <K extends keyof Filters>(key: K, value: Filters[K]) => void; onClear: () => void; active: boolean }) {
   const inboxes = useInboxes();
   const [q, setQ] = useState(filters.q);
+  // Follow the URL when it changes from outside (Clear filters, back/forward).
+  const [urlQ, setUrlQ] = useState(filters.q);
+  if (filters.q !== urlQ) {
+    setUrlQ(filters.q);
+    setQ(filters.q);
+  }
   const debounced = useDebouncedValue(q);
   // Apply the search only when the debounced text itself changes, so clearing filters can't
   // re-apply a stale search.
@@ -23,7 +29,6 @@ export function MessageFilters({ filters, onChange, onClear, active }: { filters
     applied.current = debounced;
     onChange("q", debounced.trim());
   }, [debounced, onChange]);
-  useEffect(() => setQ(filters.q), [filters.q]);
 
   return (
     <>

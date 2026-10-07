@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": ["./worker-configuration.d.ts", "node"] },
-  "include": ["worker", "test", "scripts"]
+  "include": ["worker", "test", "scripts", "vite.config.ts", "vitest.config.ts"]
 }

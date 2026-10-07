@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInboxes } from "@/features/inboxes/api/use-inboxes";
 import { useMessages } from "@/features/messages/api/use-messages";
-import { mailboxShort } from "@/features/messages/components/mailbox";
+import { mailboxShort } from "@/features/messages/mailbox-names";
 
 function Sentence({ m, inbox }: { m: Message; inbox: string }) {
   const who = m.direction === "in" ? mailboxShort(m.from) : inbox;

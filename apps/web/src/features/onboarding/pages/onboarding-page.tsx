@@ -1,5 +1,5 @@
 import type { Inbox } from "@send0/sdk";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogoMark } from "@/components/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInboxes } from "@/features/inboxes/api/use-inboxes";
@@ -19,20 +19,15 @@ export default function OnboardingPage() {
   const hasWorkspace = !!me.data?.workspace;
   const inboxes = useInboxes({ enabled: hasWorkspace });
   const logOut = useLogOut();
-  const [step, setStep] = useState<number | null>(null);
-  const [inbox, setInbox] = useState<Inbox | null>(null);
+  const [chosenStep, setStep] = useState<number | null>(null);
+  const [createdInbox, setInbox] = useState<Inbox | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
 
-  // Work out the starting step once: no workspace → 0, no inbox → 1, otherwise the key step.
-  useEffect(() => {
-    if (step !== null) return;
-    if (!hasWorkspace) return setStep(0);
-    if (!inboxes.isSuccess) return;
-    const first = inboxes.items[0];
-    if (!first) return setStep(1);
-    setInbox(first);
-    setStep(2);
-  }, [step, hasWorkspace, inboxes.isSuccess, inboxes.items]);
+  // Until the person moves on, start from what already exists: no workspace → 0, no inbox → 1,
+  // otherwise the key step.
+  const startStep = !hasWorkspace ? 0 : !inboxes.isSuccess ? null : inboxes.items[0] ? 2 : 1;
+  const step = chosenStep ?? startStep;
+  const inbox = createdInbox ?? inboxes.items[0] ?? null;
 
   const user = me.data?.user;
   return (

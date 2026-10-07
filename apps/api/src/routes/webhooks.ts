@@ -1,7 +1,7 @@
 import { newId, newWebhookSecret } from "@send0/core";
 import { schema } from "@send0/db";
 import { and, eq, isNull } from "drizzle-orm";
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import { z } from "zod";
 import { requireScope } from "../auth";
 import { forbidden, invalid, notFound } from "../errors";
@@ -203,14 +203,14 @@ export const webhookRoutes = new Hono<AppEnv>()
     return c.json(serializeDelivery(row), 202);
   });
 
-async function load(c: { get: (k: any) => any }, id: string): Promise<WebhookRow> {
+async function load(c: Context<AppEnv>, id: string): Promise<WebhookRow> {
   const { orgId } = c.get("auth");
   const [row] = await c.get("deps").db.select().from(webhooks).where(and(eq(webhooks.id, id), eq(webhooks.orgId, orgId)));
   if (!row) throw notFound("webhook", id);
   return row;
 }
 
-async function assertInboxes(c: { get: (k: any) => any }, ids: string[]) {
+async function assertInboxes(c: Context<AppEnv>, ids: string[]) {
   const { orgId } = c.get("auth");
   const found = await c
     .get("deps")

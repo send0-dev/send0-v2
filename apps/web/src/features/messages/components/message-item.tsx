@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { AttachmentList } from "./attachment-list";
 import { AuthBadges } from "./auth-badges";
 import { ExtractedDetails } from "./extracted-details";
-import { mailboxShort } from "./mailbox";
+import { mailboxShort } from "../mailbox-names";
 import { SafetyAlert } from "./safety-alert";
 
 /**

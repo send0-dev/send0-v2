@@ -26,7 +26,7 @@ export function useLogOut() {
     onSuccess: () => {
       qc.setQueryData(sessionKeys.me, SIGNED_OUT);
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== sessionKeys.me[0] });
-      navigate("/login", { replace: true });
+      void navigate("/login", { replace: true });
     },
   });
 }
@@ -38,7 +38,7 @@ export function useSwitchWorkspace() {
     mutationFn: authClient.switchWorkspace,
     onSuccess: async () => {
       await reset();
-      navigate("/", { replace: true });
+      void navigate("/", { replace: true });
     },
   });
 }
@@ -50,7 +50,7 @@ export function useCreateWorkspace() {
     mutationFn: authClient.createWorkspace,
     onSuccess: async () => {
       await reset();
-      navigate("/", { replace: true });
+      void navigate("/", { replace: true });
     },
   });
 }

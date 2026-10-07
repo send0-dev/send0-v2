@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 import { CopyField } from "@/components/copy-field";
 import { Button } from "@/components/ui/button";
 import { ExtractedDetails } from "@/features/messages/components/extracted-details";
-import { mailboxShort } from "@/features/messages/components/mailbox";
+import { mailboxShort } from "@/features/messages/mailbox-names";
 import { useFirstMessage, useFinishOnboarding } from "../api/use-onboarding";
 import { StepHeader } from "../components/step-header";
 import { CodeSnippets } from "./code-snippets";

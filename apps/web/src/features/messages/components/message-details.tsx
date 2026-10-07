@@ -1,7 +1,7 @@
 import type { Message } from "@send0/sdk";
 import { CopyField } from "@/components/copy-field";
 import { formatBytes, formatDateTime } from "@/lib/format";
-import { mailboxLabel } from "./mailbox";
+import { mailboxLabel } from "../mailbox-names";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (

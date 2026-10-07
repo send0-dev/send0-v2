@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormRoo
 import { Input } from "@/components/ui/input";
 import { applyServerError } from "@/lib/form-errors";
 
-export const workspaceNameSchema = z.object({ name: z.string().trim().min(2, "Use 2–60 characters.").max(60, "Use 2–60 characters.") });
+const workspaceNameSchema = z.object({ name: z.string().trim().min(2, "Use 2–60 characters.").max(60, "Use 2–60 characters.") });
 type Values = z.infer<typeof workspaceNameSchema>;
 
 /** One field, one button: used to create a workspace and to rename one. */

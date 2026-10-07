@@ -11,7 +11,7 @@ import { useMessage } from "../api/use-message";
 import { useRawDownload } from "../api/use-attachment-download";
 import { AttachmentList } from "./attachment-list";
 import { AuthBadges } from "./auth-badges";
-import { mailboxShort } from "./mailbox";
+import { mailboxShort } from "../mailbox-names";
 import { ExtractedDetails } from "./extracted-details";
 import { HtmlPreview } from "./html-preview";
 import { MessageDetails } from "./message-details";

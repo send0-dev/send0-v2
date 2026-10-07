@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 
 export type ThemeChoice = "system" | "light" | "dark";
 const STORAGE_KEY = "send0-theme";
@@ -21,19 +21,17 @@ const readChoice = (): ThemeChoice => {
   }
 };
 
+function subscribeToSystemTheme(onChange: () => void) {
+  const mq = matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
 /** Light, dark or follow the system. index.html applies the class before React loads, so there's no flash. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [choice, setChoiceState] = useState<ThemeChoice>(readChoice);
-  const [dark, setDark] = useState(() => (choice === "system" ? systemDark() : choice === "dark"));
-
-  useEffect(() => {
-    if (choice !== "system") return setDark(choice === "dark");
-    const mq = matchMedia("(prefers-color-scheme: dark)");
-    const sync = () => setDark(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, [choice]);
+  const systemIsDark = useSyncExternalStore(subscribeToSystemTheme, systemDark, () => false);
+  const dark = choice === "system" ? systemIsDark : choice === "dark";
 
   useEffect(() => void document.documentElement.classList.toggle("dark", dark), [dark]);
 

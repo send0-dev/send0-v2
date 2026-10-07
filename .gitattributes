@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.eml -text
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
+pnpm-lock.yaml linguist-generated -diff
+packages/sdk/openapi.json linguist-generated
+packages/sdk/src/generated/** linguist-generated
+packages/db/migrations/meta/** linguist-generated

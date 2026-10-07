@@ -1,4 +1,4 @@
-import { schema } from "@send0/db";
+import type { schema } from "@send0/db";
 
 type MessageRow = typeof schema.messages.$inferSelect;
 type AttachmentRow = typeof schema.attachments.$inferSelect;

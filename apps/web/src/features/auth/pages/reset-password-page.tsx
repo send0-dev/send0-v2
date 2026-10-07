@@ -16,7 +16,7 @@ export default function ResetPasswordPage() {
           token={token}
           onDone={() => {
             toast.success("Password changed");
-            navigate("/", { replace: true });
+            void navigate("/", { replace: true });
           }}
         />
       ) : (

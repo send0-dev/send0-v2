@@ -29,7 +29,7 @@ export default function InboxesPage() {
     return q ? inboxes.items.filter((i) => i.address.includes(q) || i.display_name?.toLowerCase().includes(q)) : inboxes.items;
   }, [inboxes.items, filter]);
   useHotkeys({ c: () => canManage && setCreating(true), "/": () => document.getElementById("inbox-filter")?.focus() });
-  useListNavigation({ ids: visible.map((i) => i.id), current: cursor, onMove: setCursor, onOpen: (id) => navigate(`/inboxes/${id}`) });
+  useListNavigation({ ids: visible.map((i) => i.id), current: cursor, onMove: setCursor, onOpen: (id) => void navigate(`/inboxes/${id}`) });
   const newInbox = canManage && (
     <Button variant="primary" size="sm" onClick={() => setCreating(true)} shortcut="C">
       <Plus />

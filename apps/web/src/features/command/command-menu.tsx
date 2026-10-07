@@ -49,7 +49,7 @@ export function CommandMenu() {
             {[...MAIN_NAV, INBOXES, ...WORKSPACE_NAV, ...ACCOUNT]
               .filter((i) => !i.requires || can(role, i.requires))
               .map((item) => (
-                <CommandItem key={item.to} value={`go ${item.label}`} onSelect={() => run(() => navigate(item.to))}>
+                <CommandItem key={item.to} value={`go ${item.label}`} onSelect={() => run(() => void navigate(item.to))}>
                   <item.icon />
                   {item.label}
                   {item.key && (
@@ -64,7 +64,7 @@ export function CommandMenu() {
           {inboxes.items.length > 0 && (
             <CommandGroup heading="Inboxes">
               {inboxes.items.map((i) => (
-                <CommandItem key={i.id} value={`inbox ${i.address} ${i.display_name ?? ""}`} onSelect={() => run(() => navigate(`/inboxes/${i.id}`))}>
+                <CommandItem key={i.id} value={`inbox ${i.address} ${i.display_name ?? ""}`} onSelect={() => run(() => void navigate(`/inboxes/${i.id}`))}>
                   <InboxDot id={i.id} className="size-2.5" />
                   {i.display_name || i.local_part}
                   <span className="ml-auto font-mono text-xs text-faint">{i.address}</span>

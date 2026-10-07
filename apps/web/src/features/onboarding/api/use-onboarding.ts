@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { send0 } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
@@ -17,10 +17,10 @@ export function useEnsureWorkspace() {
  * whenever a wait times out. Counts mail from a minute before the step opened.
  */
 export function useFirstMessage(inboxId: string) {
-  const since = useRef(new Date(Date.now() - 60_000).toISOString());
+  const [since] = useState(() => new Date(Date.now() - 60_000).toISOString());
   return useQuery({
     queryKey: ["onboarding", "first-message", inboxId],
-    queryFn: ({ signal }) => send0.inboxes.wait(inboxId, { timeout: 50, since: since.current }, { signal }),
+    queryFn: ({ signal }) => send0.inboxes.wait(inboxId, { timeout: 50, since }, { signal }),
     refetchInterval: (q) => (q.state.data || q.state.status === "error" ? false : 1),
     refetchIntervalInBackground: true,
     retry: 5,
@@ -39,7 +39,7 @@ export function useFinishOnboarding() {
       return destination;
     },
     onSuccess: async (destination) => {
-      navigate(`/onboarding?next=${encodeURIComponent(destination)}`, { replace: true });
+      void navigate(`/onboarding?next=${encodeURIComponent(destination)}`, { replace: true });
       await reset();
     },
   });

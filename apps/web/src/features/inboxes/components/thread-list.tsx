@@ -4,7 +4,7 @@ import { RelativeTime } from "@/components/relative-time";
 import { cn } from "@/lib/utils";
 
 /** Who to show for a thread: the newest message's sender, else the first other participant. */
-export function threadSender(t: Thread, inboxAddress: string, inboxName: string): { name: string; key: string } {
+function threadSender(t: Thread, inboxAddress: string, inboxName: string): { name: string; key: string } {
   const latest = t.latest_message;
   if (latest?.direction === "out") return { name: inboxName, key: inboxAddress };
   if (latest?.from) return { name: latest.from.name || latest.from.email.split("@")[0]!, key: latest.from.email };

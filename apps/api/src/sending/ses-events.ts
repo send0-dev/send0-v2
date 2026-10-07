@@ -35,7 +35,7 @@ export async function handleSesEvent(deps: AppDeps, evt: SesEvent): Promise<{ ha
 
   let status: Status | null = null;
   let type: string | null = null;
-  let detail: Record<string, unknown> = {};
+  let detail: Record<string, unknown>;
   let suppress: { emails: string[]; reason: "bounce" | "complaint" } | null = null;
 
   switch (evt.eventType) {

@@ -78,7 +78,7 @@ export function WebhookActions({ webhook }: { webhook: Webhook }) {
           del.mutate(webhook.id, {
             onSuccess: () => {
               toast.success("Webhook deleted");
-              navigate("/webhooks", { replace: true });
+              void navigate("/webhooks", { replace: true });
             },
             onError: fail,
           })

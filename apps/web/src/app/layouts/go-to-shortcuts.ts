@@ -15,7 +15,7 @@ export function useGoToShortcuts() {
         e.preventDefault();
         window.clearTimeout(armed.current);
         armed.current = null;
-        navigate(targets.get(e.key)!);
+        void navigate(targets.get(e.key)!);
         return;
       }
       if (e.key === "g") armed.current = window.setTimeout(() => (armed.current = null), 900);

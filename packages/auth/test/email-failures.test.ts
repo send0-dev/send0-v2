@@ -1,6 +1,6 @@
 import { createTestDb } from "@send0/db/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { AuthError, createAuth, type Auth } from "../src";
+import { type AuthError, createAuth, type Auth } from "../src";
 
 let auth: Auth;
 let close: () => Promise<void>;

@@ -17,7 +17,7 @@ export function CreateInboxDialog({ open, onOpenChange }: { open: boolean; onOpe
           onCreated={(inbox) => {
             onOpenChange(false);
             toast.success(`Created ${inbox.address}`);
-            navigate(`/inboxes/${inbox.id}`);
+            void navigate(`/inboxes/${inbox.id}`);
           }}
         />
       </DialogContent>

@@ -32,7 +32,7 @@ export function DeleteInboxSection({ inbox }: { inbox: Inbox }) {
           del.mutate(inbox.id, {
             onSuccess: () => {
               toast.success(`Deleted ${inbox.address}`);
-              navigate("/inboxes", { replace: true });
+              void navigate("/inboxes", { replace: true });
             },
             onError: (e) => toast.error(errorMessage(e)),
           })

@@ -7,9 +7,9 @@ import { ApiError } from "../errors";
 import type { AppDeps, AuthContext } from "../types";
 import { checkSendPolicy } from "./policy";
 
-const { orgs, inboxes, threads, messages, drafts, events, usage } = schema;
+const { orgs, threads, messages, drafts, events, usage } = schema;
 
-type InboxRow = typeof inboxes.$inferSelect;
+type InboxRow = typeof schema.inboxes.$inferSelect;
 
 /** Everything needed to send, independent of whether it came from /messages, /reply, /forward or a draft. */
 export interface SendPayload {

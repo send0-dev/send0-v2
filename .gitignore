@@ -22,9 +22,9 @@ worker-configuration.d.ts
 *.pem
 .secrets*
 
-# Internal planning and AI-assistant context (kept locally, not published)
-/CLAUDE.md
-/AGENTS.md
+# Private maintainer notes and planning docs (CLAUDE.md itself is tracked)
+CLAUDE.local.md
+.claude/settings.local.json
 /docs/
 
 # Logs

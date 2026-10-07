@@ -23,12 +23,11 @@ function receiver(secret: () => string, respond: (n: number) => Response | Promi
 
 let t: TestEnv;
 let inboxA: string;
-let inboxB: string;
 
 beforeAll(async () => {
   t = await setup({ queue });
   inboxA = (await t.call("POST", "/v1/inboxes", { body: { name: "hooks-a" } })).body.id;
-  inboxB = (await t.call("POST", "/v1/inboxes", { body: { name: "hooks-b" } })).body.id;
+  await t.call("POST", "/v1/inboxes", { body: { name: "hooks-b" } }); // a second inbox, so "only A" is a real filter
 });
 afterAll(() => t.close());
 beforeEach(() => void (sent.length = 0));
@@ -70,12 +69,11 @@ describe("webhook management", () => {
 describe("delivery", () => {
   let all: { id: string; secret: string };
   let onlyA: { id: string; secret: string };
-  let sentOnly: { id: string };
 
   beforeAll(async () => {
     all = (await t.call("POST", "/v1/webhooks", { body: { url: "https://all.example.com/h" } })).body;
     onlyA = (await t.call("POST", "/v1/webhooks", { body: { url: "https://a.example.com/h", events: ["message.received"], inbox_ids: [inboxA] } })).body;
-    sentOnly = (await t.call("POST", "/v1/webhooks", { body: { url: "https://sent.example.com/h", events: ["message.sent"] } })).body;
+    await t.call("POST", "/v1/webhooks", { body: { url: "https://sent.example.com/h", events: ["message.sent"] } });
   });
 
   it("fans out to matching webhooks only, idempotently", async () => {

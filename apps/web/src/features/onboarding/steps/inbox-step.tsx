@@ -20,7 +20,7 @@ const schema = z.object({
 type Values = z.infer<typeof schema>;
 
 /** A likely-free default such as "kunal-agent-4f2k": shared addresses are first come, first served. */
-export function suggestAddress(owner: string | null | undefined) {
+function suggestAddress(owner: string | null | undefined) {
   const first = (owner ?? "").toLowerCase().split(/\s+/)[0]!.replace(/[^a-z0-9]/g, "");
   return `${first || "my"}-agent-${Math.random().toString(36).slice(2, 6)}`;
 }

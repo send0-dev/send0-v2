@@ -3,12 +3,12 @@ import { schema, type Db } from "@send0/db";
 import { and, count, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import { ApiError, forbidden } from "../errors";
 
-const { orgs, messages, suppressions } = schema;
+const { messages, suppressions } = schema;
 
 export const MAX_RECIPIENTS = 50;
 
 export interface SendContext {
-  org: typeof orgs.$inferSelect;
+  org: typeof schema.orgs.$inferSelect;
   inbox: typeof schema.inboxes.$inferSelect;
   /** Lowercased envelope recipients (to + cc + bcc) */
   recipients: string[];

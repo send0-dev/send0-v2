@@ -4,7 +4,7 @@ import { schema, type Db } from "@send0/db";
 import { createTestDb } from "@send0/db/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { apiAction, AuthError, can, canManageMember, createAuth, type Auth, type SessionInfo } from "../src";
+import { apiAction, type AuthError, can, canManageMember, createAuth, type Auth, type SessionInfo } from "../src";
 
 let db: Db;
 let close: () => Promise<void>;

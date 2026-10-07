@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage, FormRootError } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { mailboxShort } from "@/features/messages/components/mailbox";
+import { mailboxShort } from "@/features/messages/mailbox-names";
 import { applyServerError } from "@/lib/form-errors";
 import { useIdempotencyKey } from "@/lib/use-idempotency-key";
 import { useReply } from "../api/use-reply";

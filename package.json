@@ -1,6 +1,7 @@
 {
   "name": "send0",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22.12.0"
@@ -9,9 +10,38 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "check": "turbo run check",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "lint": "eslint --cache --cache-location node_modules/.cache/eslint .",
+    "lint:fix": "pnpm lint --fix",
+    "format": "prettier --write --cache .",
+    "format:check": "prettier --check --cache .",
+    "verify": "pnpm format:check && pnpm lint && pnpm check && pnpm test",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,jsonc,md,mdx,css,astro,yaml,yml,html}": "prettier --write"
   },
   "devDependencies": {
-    "turbo": "^2.11.7"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-astro": "^1.1.0",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "simple-git-hooks": "^2.14.0",
+    "turbo": "^2.11.7",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.71.1"
   }
 }

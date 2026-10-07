@@ -45,7 +45,7 @@ describe("buildMime", () => {
       text: "Bonjour, la réunion est déplacée à 15h. 👍\n" + "x".repeat(300),
     });
     expect(raw.split("\r\n").every((l) => l.length <= 998)).toBe(true);
-    expect(/^[\x00-\x7f]*$/.test(raw)).toBe(true); // 7-bit clean
+    expect(/^\p{ASCII}*$/u.test(raw)).toBe(true); // 7-bit clean
     const p = await parseInbound(raw, opts);
     expect(p.subject).toBe("Réunion demain — 会议 " + "très ".repeat(20));
     expect(p.from?.name).toBe("Amélie Durand");

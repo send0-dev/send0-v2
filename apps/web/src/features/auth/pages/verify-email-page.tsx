@@ -21,12 +21,13 @@ export default function VerifyEmailPage() {
     if (!token || started.current) return;
     started.current = true;
     verify.mutate(token, {
-      onSuccess: async () => {
-        const fresh = await me.refetch();
-        navigate(fresh.data?.user ? "/" : "/login?verified=1", { replace: true });
+      onSuccess: () => {
+        void me.refetch().then((fresh) => navigate(fresh.data?.user ? "/" : "/login?verified=1", { replace: true }));
       },
     });
-  }, [token]); // once per token; the ref above guards against StrictMode's second run
+    // Once per token; the ref above guards against StrictMode's second run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   if (!token || verify.isError) {
     return (

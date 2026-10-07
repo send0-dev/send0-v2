@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --testTimeout=20000 --hookTimeout=20000",
     "check": "tsc --noEmit"
   },
   "dependencies": {

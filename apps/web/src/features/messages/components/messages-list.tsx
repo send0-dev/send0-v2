@@ -6,7 +6,7 @@ import { List, ListGroupHeader, ListRow } from "@/components/list";
 import { StatusIcon } from "@/components/status-icon";
 import { Tooltip } from "@/components/ui/tooltip";
 import { groupByDay } from "@/lib/group-by-day";
-import { mailboxShort } from "./mailbox";
+import { mailboxShort } from "../mailbox-names";
 
 const time = new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit" });
 

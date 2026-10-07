@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "printWidth": 140,
+  "plugins": ["prettier-plugin-astro", "prettier-plugin-tailwindcss"],
+  "overrides": [
+    { "files": "*.astro", "options": { "parser": "astro" } },
+    { "files": "apps/web/**", "options": { "tailwindStylesheet": "./apps/web/src/styles.css", "tailwindFunctions": ["cn", "cva"] } },
+    { "files": "apps/docs/**", "options": { "tailwindStylesheet": "./apps/docs/app/global.css", "tailwindFunctions": ["cn"] } },
+    { "files": ["*.md", "*.mdx"], "options": { "printWidth": 100, "proseWrap": "preserve" } }
+  ]
+}

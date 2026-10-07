@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 const isTyping = (t: EventTarget | null) => {
   const el = t as HTMLElement | null;
@@ -11,7 +11,9 @@ const isTyping = (t: EventTarget | null) => {
  */
 export function useHotkeys(map: Record<string, (e: KeyboardEvent) => void>, enabled = true) {
   const ref = useRef(map);
-  ref.current = map;
+  useLayoutEffect(() => {
+    ref.current = map;
+  });
   useEffect(() => {
     if (!enabled) return;
     const onKey = (e: KeyboardEvent) => {

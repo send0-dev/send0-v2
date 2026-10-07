@@ -1,4 +1,4 @@
-import { schema } from "@send0/db";
+import type { schema } from "@send0/db";
 
 /** The public event envelope, identical over webhooks, SSE and the events table. */
 export interface EventEnvelope {

@@ -1,0 +1,23 @@
+# Generated
+pnpm-lock.yaml
+packages/sdk/openapi.json
+packages/sdk/src/generated/
+packages/db/migrations/
+worker-configuration.d.ts
+apps/docs/.source/
+apps/docs/next-env.d.ts
+
+# Build output
+dist/
+out/
+.next/
+.astro/
+.wrangler/
+coverage/
+
+# Not ours to format
+packages/sdk-python/
+fixtures/
+apps/web/e2e/shots/
+/docs/
+/CLAUDE.local.md

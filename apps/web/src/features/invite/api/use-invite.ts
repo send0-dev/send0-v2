@@ -13,7 +13,7 @@ function useJoined() {
   const navigate = useNavigate();
   return async () => {
     await reset();
-    navigate("/", { replace: true });
+    void navigate("/", { replace: true });
   };
 }
 

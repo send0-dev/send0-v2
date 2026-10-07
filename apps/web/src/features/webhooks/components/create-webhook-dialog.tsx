@@ -29,7 +29,7 @@ export function CreateWebhookDialog({ open, onOpenChange }: { open: boolean; onO
         onClose={() => {
           const id = created?.id;
           setCreated(null);
-          if (id) navigate(`/webhooks/${id}`);
+          if (id) void navigate(`/webhooks/${id}`);
         }}
       />
     </>
