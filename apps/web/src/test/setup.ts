@@ -1,7 +1,9 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "./server";
+
+configure({ asyncUtilTimeout: 5000 });
 
 // What Radix and our theme code expect from a browser, missing in jsdom.
 globalThis.ResizeObserver ??= class {

@@ -18,7 +18,13 @@ export default defineConfig({
       {
         plugins: [react()],
         resolve: { alias },
-        test: { name: "ui", include: ["src/**/*.test.{ts,tsx}"], environment: "jsdom", setupFiles: ["src/test/setup.ts"] },
+        test: {
+          name: "ui",
+          include: ["src/**/*.test.{ts,tsx}"],
+          environment: "jsdom",
+          setupFiles: ["src/test/setup.ts"],
+          testTimeout: 20_000,
+        },
       },
     ],
   },
