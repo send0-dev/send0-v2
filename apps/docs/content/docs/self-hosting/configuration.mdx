@@ -1,0 +1,108 @@
+---
+title: Configuration reference
+description: Every setting for the Docker and Cloudflare editions, with defaults and rules.
+---
+
+Both editions read their settings once at start and check all of them together. A bad setting stops send0 with a list of every problem, naming the variable but never its value. Values are trimmed, and blank means unset.
+
+## Docker Compose
+
+Set these in `.env`, next to `compose.yml`. Compose passes the whole file to the `send0` container. After a change, run `docker compose up -d` to recreate the container; `docker compose restart` doesn't reload `.env`. Run `docker compose exec send0 send0 doctor` to check them.
+
+### Required
+
+| Name                | Default  | Required                        | Description                                                                                                                                                          |
+| ------------------- | -------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DOMAIN`            | none     | Yes                             | The hostname people and SDKs use, like `mail.example.com`. A hostname only: no scheme, port or path. Caddy gets an HTTPS certificate for it.                         |
+| `MAIL_DOMAIN`       | `DOMAIN` | No                              | The domain your inboxes live on, like `agents.example.com`. Point its MX at `DOMAIN`. Set this or `MAIL_DOMAINS`, not both.                                          |
+| `OWNER_EMAIL`       | none     | Yes, unless `ALLOW_SIGNUP=true` | The only email that can create the first account, which becomes the owner. Must be an email address.                                                                 |
+| `SECRET_KEY`        | none     | Yes                             | Signs download links for files on local disk. At least 32 characters: `openssl rand -hex 32`.                                                                        |
+| `POSTGRES_PASSWORD` | none     | Yes (compose)                   | Used by the `postgres` service and inside `DATABASE_URL`, so keep it URL-safe: `openssl rand -hex 24`. Read by compose, not by send0.                                |
+| `SMTP_URL`          | none     | Yes, when `MAILER=smtp`         | The outbound relay: `smtp://user:pass@host:587` (STARTTLS) or `smtps://user:pass@host:465`. Must include a port. See [SMTP_URL](/self-hosting/email-setup#smtp_url). |
+
+### Mail
+
+| Name                    | Default                       | Required               | Description                                                                                                                                        |
+| ----------------------- | ----------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MAIL_DOMAINS`          | `MAIL_DOMAIN`                 | No                     | Several mail domains, comma-separated. The first is the default for new inboxes. Each must be a domain name with a TLD, like `agents.example.com`. |
+| `MAIL_FROM`             | `noreply@<first mail domain>` | No                     | Sender of system email: verification, password resets and invites. Must be an email address.                                                       |
+| `MX_HOSTNAME`           | `DOMAIN`                      | No                     | The name this MX uses in its greeting, its self-signed certificate and the `Authentication-Results` it writes. Must be a hostname.                 |
+| `SMTP_TLS_CERT`         | none                          | Set both or neither    | Path inside the container to a certificate (PEM) for inbound STARTTLS. Without it, send0 makes a self-signed certificate for `MX_HOSTNAME`.        |
+| `SMTP_TLS_KEY`          | none                          | Set both or neither    | Path inside the container to that certificate's private key.                                                                                       |
+| `SMTP_MAX_CLIENTS`      | `30`                          | No                     | Concurrent inbound SMTP sessions, from 1 to 10000. Each can buffer a message of about 25 MiB, so this bounds memory.                               |
+| `TRUSTED_AUTHSERV_IDS`  | none                          | No                     | Comma-separated authserv-ids whose `Authentication-Results` headers are trusted. `MX_HOSTNAME` is always trusted.                                  |
+| `MAILER`                | `smtp`                        | No                     | `smtp` (uses `SMTP_URL`) or `ses`.                                                                                                                 |
+| `SES_REGION`            | none                          | Yes, when `MAILER=ses` | The region of your SES identity, like `us-east-1`.                                                                                                 |
+| `SES_ACCESS_KEY_ID`     | none                          | Yes, when `MAILER=ses` | Access key of an IAM user allowed `ses:SendRawEmail`. Add `ses:GetAccount` so `send0 doctor` can check the account.                                |
+| `SES_SECRET_ACCESS_KEY` | none                          | Yes, when `MAILER=ses` | That user's secret key.                                                                                                                            |
+| `SES_CONFIGURATION_SET` | none                          | Yes, when `MAILER=ses` | The SES configuration set to send with.                                                                                                            |
+| `SES_EVENTS_TOKEN`      | none                          | Set both or neither    | Only with `MAILER=ses`. At least 32 characters. The secret in the SNS subscription URL `https://DOMAIN/internal/ses-events?token=…`.               |
+| `SES_EVENTS_TOPIC_ARN`  | none                          | Set both or neither    | Only with `MAILER=ses`. The SNS topic that carries SES events. Messages from any other topic are refused.                                          |
+
+### Storage
+
+| Name                   | Default       | Required                   | Description                                                                                                                                                                      |
+| ---------------------- | ------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BLOB_DRIVER`          | `fs`          | No                         | Where raw mail and attachments go: `fs` (local disk) or `s3`.                                                                                                                    |
+| `BLOB_DIR`             | `/data/blobs` | No                         | The directory for `BLOB_DRIVER=fs`. The image sets it to `/data/blobs`, on the `blobs` volume.                                                                                   |
+| `S3_BUCKET`            | none          | Yes, when `BLOB_DRIVER=s3` | Bucket name.                                                                                                                                                                     |
+| `S3_REGION`            | none          | Yes, when `BLOB_DRIVER=s3` | Bucket region.                                                                                                                                                                   |
+| `S3_ACCESS_KEY_ID`     | none          | Yes, when `BLOB_DRIVER=s3` | Access key with read and write access to the bucket.                                                                                                                             |
+| `S3_SECRET_ACCESS_KEY` | none          | Yes, when `BLOB_DRIVER=s3` | Its secret key.                                                                                                                                                                  |
+| `S3_ENDPOINT`          | none          | No                         | For S3-compatible stores other than AWS (R2, MinIO, Backblaze), like `https://<account>.r2.cloudflarestorage.com`. Must be an `http://` or `https://` URL. Addressed path-style. |
+
+### Advanced
+
+| Name              | Default                                                            | Required | Description                                                                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SEND0_VERSION`   | `latest`                                                           | No       | The image tag compose runs, like `0.1.0` or `0.1`. Read by compose, not by send0.                                                                                                    |
+| `PUBLIC_URL`      | `https://DOMAIN`                                                   | No       | Where people reach send0, if not `https://DOMAIN`. An origin only (scheme, host and optional port), no path. Used for links in email, download links and the dashboard's CSRF check. |
+| `ALLOW_SIGNUP`    | `false`                                                            | No       | `true` lets anyone sign up once the owner exists. `false`: others join by invite. Accepts `true`, `false`, `1` or `0`.                                                               |
+| `LIMITS`          | `none`                                                             | No       | `hosted` turns on the hosted service's limits: reply-only free plan, daily send caps and inbox caps. `none` turns them off.                                                          |
+| `HOST`            | `0.0.0.0`                                                          | No       | HTTP bind address inside the container. An IP address or hostname.                                                                                                                   |
+| `PORT`            | `3000`                                                             | No       | HTTP port inside the container, 0 to 65535. If you change it, change `send0:3000` in the `Caddyfile`.                                                                                |
+| `TRUSTED_PROXIES` | `127.0.0.0/8,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7` | No       | Proxies whose `X-Forwarded-For` is believed, as IPs or CIDR ranges, comma-separated, or `none`. The default covers Caddy on the compose network.                                     |
+
+### Set by compose and the image
+
+You don't normally set these. They're listed because send0 reads them.
+
+| Name             | Default                                       | Required | Description                                                                                                                  |
+| ---------------- | --------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`   | Set by `compose.yml` from `POSTGRES_PASSWORD` | Yes      | A `postgres://` or `postgresql://` URL. Compose's value overrides one in `.env`; edit `compose.yml` to use another Postgres. |
+| `SMTP_PORT`      | `2525`                                        | No       | Inbound SMTP port inside the container. Compose maps host port 25 to it.                                                     |
+| `WEB_DIR`        | `/app/web` in the image                       | No       | The built dashboard.                                                                                                         |
+| `MIGRATIONS_DIR` | `/app/migrations` in the image                | No       | The SQL migrations.                                                                                                          |
+
+## Cloudflare
+
+Plain settings are **vars** in `wrangler.jsonc`. Secrets are set with the Deploy button's prompts, `wrangler secret put`, or under **Workers & Pages > send0 > Settings > Variables and Secrets**. Either kind works for any setting; secrets keep the value hidden.
+
+| Name                    | Default                       | Required                        | Description                                                                                                                                                                               |
+| ----------------------- | ----------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MAIL_DOMAINS`          | `agents.example.com` (var)    | Yes                             | Domains you receive mail on, comma-separated. The first is the default for new inboxes. Route each one's Email Routing catch-all to the Worker. The `example.com` placeholder is refused. |
+| `SES_REGION`            | `us-east-1` (var)             | Yes                             | The AWS region of your verified SES identity. Must look like an AWS region.                                                                                                               |
+| `ALLOW_SIGNUP`          | `false` (var)                 | No                              | `true` lets anyone sign up once the owner exists. Accepts `true`, `false`, `1` or `0`.                                                                                                    |
+| `SECRET_KEY`            | none (secret)                 | Yes                             | Signs download links. At least 32 characters: `openssl rand -hex 32`.                                                                                                                     |
+| `OWNER_EMAIL`           | none (secret)                 | Yes, unless `ALLOW_SIGNUP=true` | The only email that can create the first account, which becomes the owner.                                                                                                                |
+| `SES_ACCESS_KEY_ID`     | none (secret)                 | Yes                             | Access key of an IAM user allowed `ses:SendRawEmail` for your SES identity.                                                                                                               |
+| `SES_SECRET_ACCESS_KEY` | none (secret)                 | Yes                             | That user's secret key.                                                                                                                                                                   |
+| `MAIL_FROM`             | `noreply@<first mail domain>` | No                              | Sender of verification, password-reset and invite email. Must be an email address.                                                                                                        |
+| `PUBLIC_URL`            | Each request's own origin     | No                              | The one URL people and SDKs use, like `https://mail.example.com`. An origin only. Requests to any other hostname, workers.dev included, are redirected to it.                             |
+| `SES_CONFIGURATION_SET` | none                          | No                              | The SES configuration set to send with. Unset, SES uses the account's default configuration set, if any.                                                                                  |
+| `SES_EVENTS_TOKEN`      | none                          | Set both or neither             | At least 32 characters. The secret in the SNS subscription URL `https://<your URL>/internal/ses-events?token=…`.                                                                          |
+| `SES_EVENTS_TOPIC_ARN`  | none                          | Set both or neither             | The SNS topic that carries SES events. Messages from any other topic are refused.                                                                                                         |
+| `TRUSTED_AUTHSERV_IDS`  | `mx.cloudflare.net`           | No                              | Comma-separated authserv-ids whose `Authentication-Results` headers are trusted. Setting it replaces the default, so include `mx.cloudflare.net`.                                         |
+| `LIMITS`                | `none`                        | No                              | `hosted` turns on the hosted service's limits; `none` turns them off.                                                                                                                     |
+
+### Bindings
+
+`wrangler.jsonc` declares these. The Deploy button creates the resources.
+
+| Binding      | Type                          | Default name   |
+| ------------ | ----------------------------- | -------------- |
+| `HYPERDRIVE` | Hyperdrive                    | Your Postgres  |
+| `BLOBS`      | R2 bucket                     | `send0-blobs`  |
+| `EVENTS`     | Queue (producer and consumer) | `send0-events` |
+| `HUB`        | Durable Object                | class `Hub`    |
+| `ASSETS`     | Static assets                 | The dashboard  |

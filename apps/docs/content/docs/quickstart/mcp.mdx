@@ -15,7 +15,9 @@ The send0 MCP server gives your assistant tools to create inboxes, wait for emai
 There are two ways to run it. They have the same tools.
 
 - **Remote**, nothing to install: point your client at `https://api.send0.dev/mcp` and send your API key as a Bearer token.
-- **Local**, over stdio: run `npx @send0/mcp` on your machine. Use this for clients that only support local servers, or for a self-hosted send0.
+- **Local**, over stdio: run `npx @send0/mcp` on your machine. Use this for clients that only support local servers.
+
+Self-hosting send0? Both work: use `https://<your domain>/mcp` for remote, or set `SEND0_BASE_URL` for local. See [Self-hosting](/self-hosting/docker#use-it-from-your-code).
 
 ### Remote
 

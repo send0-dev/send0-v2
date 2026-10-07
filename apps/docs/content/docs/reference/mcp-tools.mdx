@@ -14,17 +14,19 @@ Two ways to run it, with the same tools. See the [MCP quickstart](/quickstart/mc
 | `Authorization: Bearer s0_…`                | Required. The tools act as this key, with its scopes and inbox limits. |
 | `?inbox_id=ibx_…` or `x-send0-inbox` header | Default inbox, so tools don't need `inbox_id`                          |
 
+A [self-hosted](/self-hosting) send0 serves the same endpoint at `https://<your domain>/mcp`.
+
 Requests without a valid key get `401` with a `WWW-Authenticate: Bearer` header. Browser-based clients are allowed (CORS).
 
 ## Local
 
 Run with `npx -y @send0/mcp` over stdio.
 
-| Variable         |                                                                    |
-| ---------------- | ------------------------------------------------------------------ |
-| `SEND0_API_KEY`  | Required. Prefer a `read`+`send` key limited to the agent's inbox. |
-| `SEND0_INBOX_ID` | Default inbox, so tools don't need `inbox_id`                      |
-| `SEND0_BASE_URL` | For self-hosted send0                                              |
+| Variable         |                                                                          |
+| ---------------- | ------------------------------------------------------------------------ |
+| `SEND0_API_KEY`  | Required. Prefer a `read`+`send` key limited to the agent's inbox.       |
+| `SEND0_INBOX_ID` | Default inbox, so tools don't need `inbox_id`                            |
+| `SEND0_BASE_URL` | Your [self-hosted](/self-hosting) send0, like `https://mail.example.com` |
 
 ## Tools
 

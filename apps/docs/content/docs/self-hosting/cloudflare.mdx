@@ -1,0 +1,139 @@
+---
+title: Deploy to Cloudflare
+description: Run all of send0 in one Worker on your own Cloudflare account, with your Postgres and Amazon SES.
+---
+
+This edition runs the API, the dashboard, inbound mail, webhooks and real-time events in one Worker. It's built from the template repo [send0-dev/send0-cloudflare](https://github.com/send0-dev/send0-cloudflare), which each release regenerates.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/send0-dev/send0-cloudflare)
+
+## What you need
+
+- **A Cloudflare account.** The Workers Free plan is enough to start; see [limits](#limits).
+- **A Postgres connection string**, such as a free [Neon](https://neon.tech) database. The Worker reaches it through Hyperdrive and creates its tables on first start.
+- **Amazon SES.** An SES identity for your mail domain, and an IAM user allowed `ses:SendRawEmail`. send0 sends everything through SES, including the owner's verification email, so it won't start without it.
+- **A domain on Cloudflare** to receive mail on, like `agents.example.com`. Its zone's nameservers must point to Cloudflare, because Email Routing only works there.
+
+## Deploy
+
+Click the button. Cloudflare copies the template to your GitHub or GitLab account, then creates:
+
+| Resource       | Name or binding                   | Used for                                          |
+| -------------- | --------------------------------- | ------------------------------------------------- |
+| Worker         | `send0`                           | Everything                                        |
+| R2 bucket      | `send0-blobs` (binding `BLOBS`)   | Raw mail and attachments                          |
+| Queue          | `send0-events` (binding `EVENTS`) | Webhook fan-out and delivery retries              |
+| Hyperdrive     | binding `HYPERDRIVE`              | Pooled connections to your Postgres               |
+| Durable Object | class `Hub` (binding `HUB`)       | SSE, WebSocket and the `wait` long-poll           |
+| Cron trigger   | `0 * * * *` (hourly)              | Outbox safety net and purge of deleted workspaces |
+
+It asks for:
+
+| Setting                                      | What to enter                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Hyperdrive                                   | Your Postgres connection string                                                              |
+| `MAIL_DOMAINS`                               | The domain(s) you receive mail on, comma-separated. The first is the default for new inboxes |
+| `SES_REGION`                                 | The AWS region of your SES identity, like `us-east-1`                                        |
+| `ALLOW_SIGNUP`                               | Leave `false`                                                                                |
+| `SECRET_KEY`                                 | 32 or more random characters: `openssl rand -hex 32`                                         |
+| `OWNER_EMAIL`                                | Your email. The first account must use it                                                    |
+| `SES_ACCESS_KEY_ID`, `SES_SECRET_ACCESS_KEY` | The IAM user's keys                                                                          |
+
+You can add optional settings later, under **Workers & Pages > send0 > Settings > Variables and Secrets**: `MAIL_FROM`, `PUBLIC_URL`, `SES_CONFIGURATION_SET`, and `SES_EVENTS_TOKEN` with `SES_EVENTS_TOPIC_ARN`. See the [configuration reference](/self-hosting/configuration#cloudflare).
+
+## After deploying
+
+<Steps>
+<Step>
+
+### Route mail to the Worker
+
+For each mail domain, in the Cloudflare dashboard:
+
+1. Open the domain and go to **Email > Email Routing**. Enable it. Cloudflare adds the MX and SPF records.
+2. Under **Routing rules**, set the **catch-all** action to **Send to a Worker** and pick `send0` (or the name you gave the Worker).
+
+Mail to an address that isn't an inbox is refused during the SMTP session, so the sender gets a bounce.
+
+</Step>
+<Step>
+
+### Set up SES
+
+1. Verify the mail domain as an SES identity in `SES_REGION`, with Easy DKIM. Add the three CNAME records SES shows. A custom MAIL FROM domain and a DMARC record help deliverability; see [Mail setup](/self-hosting/email-setup#sending).
+2. Request **production access**. Until AWS grants it, SES delivers only to verified addresses. Verify your own email address in SES meanwhile, or the owner's verification email won't arrive.
+
+</Step>
+<Step>
+
+### Get delivery events (optional)
+
+Without this, sent messages never become `delivered`, `bounced` or `complained`, and send0 can't suppress bounced addresses or pause sending. To turn it on:
+
+1. Create an SNS topic in `SES_REGION`.
+2. Create an SES configuration set with an event destination that publishes to that topic. Set `SES_CONFIGURATION_SET` to its name.
+3. Set `SES_EVENTS_TOKEN` (`openssl rand -hex 32`) and `SES_EVENTS_TOPIC_ARN` (the topic's ARN) on the Worker.
+4. Add an HTTPS subscription to the topic, with this endpoint:
+
+   ```text
+   https://<your send0 URL>/internal/ses-events?token=<SES_EVENTS_TOKEN>
+   ```
+
+   Use your `PUBLIC_URL` if you set one. send0 confirms the subscription itself.
+
+</Step>
+<Step>
+
+### Add a custom domain (optional)
+
+The Worker answers at `https://send0.<your-subdomain>.workers.dev`. To use your own hostname, like `mail.example.com`, attach it under **Settings > Domains & Routes**, then set `PUBLIC_URL=https://mail.example.com`.
+
+With `PUBLIC_URL` set, send0 redirects every other hostname, workers.dev included, to it. Sign-in, download links and webhooks then all use one URL. Unset, each request's own origin is used.
+
+</Step>
+<Step>
+
+### Sign up
+
+Open the Worker's URL, sign up with `OWNER_EMAIL` and click the link in the verification email. Then create inboxes and API keys, and invite your team.
+
+Point the SDKs and MCP server at the same URL, as in [Docker Compose](/self-hosting/docker#use-it-from-your-code).
+
+</Step>
+</Steps>
+
+## If a setting is wrong
+
+The Worker checks its settings on the first request. If any are missing or invalid, the dashboard shows **send0 isn't configured yet** with a list of problems:
+
+```text
+send0 can't start: its configuration has problems.
+
+  - MAIL_DOMAINS: replace the example domain with the domain(s) you receive mail on, like agents.acme.com
+  - SECRET_KEY: must be at least 32 characters (generate one with `openssl rand -hex 32`)
+
+Set these in the Cloudflare dashboard (Workers & Pages > send0 > Settings > Variables and Secrets),
+or in wrangler.jsonc and with `wrangler secret put`, then deploy again.
+```
+
+Each line names the variable and the rule it breaks, never its value. API routes answer with the same text and status `500`. Fix the variables, deploy again, then reload.
+
+If the database is slow to wake up, requests get `503` with the code `starting_up` and a `Retry-After` header. Retry after a few seconds.
+
+## Upgrading
+
+Each release replaces the template repo's contents with a new build, as one fresh commit. To upgrade your copy:
+
+1. Copy the new release's files over your repo, but keep the resource IDs the button wrote into your `wrangler.jsonc`.
+2. Commit and push. Workers Builds redeploys it.
+
+Or deploy by hand with `npm install && npx wrangler deploy`. Database migrations run on first start.
+
+## Limits
+
+- **Receiving.** Only domains whose DNS is on your Cloudflare account, through Email Routing. Messages can be up to 25 MiB.
+- **Workers Free CPU.** The Free plan allows 100,000 requests a day and 10 ms of CPU per request. Sign-up and sign-in hash the password with PBKDF2 (100,000 iterations), which can use more than 10 ms. If sign-in fails with a CPU-limit error, or webhook volume, big attachments or busy inboxes hit limits, move to Workers Paid ($5/month).
+- **Neon compute.** Neon's free plan has a monthly compute allowance and scales to zero when idle. The hourly cron wakes the database once an hour; webhooks, mail and API calls wake it too.
+- **Hourly cron.** The cron is only a safety net for events the queue missed. The queue consumer sweeps after every batch, so webhooks don't wait for it.
+- **Storage.** Raw mail and attachments live in R2 (10 GB free). There's no automatic retention yet.
+- **No plan limits.** The hosted service's reply-only free tier and daily send caps are off. You own the SES account and its reputation.
