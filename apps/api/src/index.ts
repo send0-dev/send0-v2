@@ -8,7 +8,7 @@ import { createApp } from "./app";
 import { bindingRateLimiter, MemoryRateLimiter } from "./rate-limit";
 import type { AppDeps, Scope } from "./types";
 import { durableHubClient } from "./realtime/client";
-import { purgeDeletedOrgs } from "./maintenance";
+import { purgeDeletedOrgs, raiseSendCaps } from "./maintenance";
 import { processQueueMessage, sweep } from "./webhooks/dispatch";
 
 export { Hub } from "./realtime/hub-do";
@@ -97,5 +97,7 @@ export default {
     if (swept.events || swept.deliveries) console.log(JSON.stringify({ event: "sweep", ...swept }));
     const purged = await purgeDeletedOrgs(db(env, 1), now);
     if (purged) console.log(JSON.stringify({ event: "orgs_purged", count: purged }));
+    // Daily caps exist only on the hosted service; raising them is pointless anywhere else.
+    if (parseCoreConfig(env).limits.dailySendCap) await raiseSendCaps(db(env, 1), now);
   },
 } satisfies ExportedHandler<Env, QueueMessage>;

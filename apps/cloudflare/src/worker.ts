@@ -1,4 +1,4 @@
-import { purgeDeletedOrgs } from "@send0/api/maintenance";
+import { purgeDeletedOrgs, raiseSendCaps } from "@send0/api/maintenance";
 import { processQueueMessage, sweep } from "@send0/api/webhooks/dispatch";
 import { R2BlobStore } from "@send0/adapters/blob";
 import { createDb, type Db } from "@send0/db";
@@ -91,7 +91,8 @@ export function createWorker(opts: WorkerOptions = {}) {
       await sweep(db, env.EVENTS, new Date()).catch((err: unknown) => logError("sweep.error", err));
     },
 
-    // Hourly: the outbox safety net and the purge of deleted workspaces (boot also runs here if needed).
+    // Hourly: the outbox safety net, the purge of deleted workspaces and, with hosted limits, send-cap raises
+    // (boot also runs here if needed).
     async scheduled(_controller, env) {
       const config = configOrThrow(env);
       const db = makeDb(env.HYPERDRIVE.connectionString, { max: 1 });
@@ -101,6 +102,8 @@ export function createWorker(opts: WorkerOptions = {}) {
       if (swept.events || swept.deliveries) console.log(JSON.stringify({ event: "sweep", ...swept }));
       const purged = await purgeDeletedOrgs(db, now);
       if (purged) console.log(JSON.stringify({ event: "orgs_purged", count: purged }));
+      // Off by default here (LIMITS=none); with LIMITS=hosted, caps rise as on the hosted service.
+      if (config.limits.dailySendCap) await raiseSendCaps(db, now);
     },
   } satisfies ExportedHandler<Env, QueueMessage>;
 }

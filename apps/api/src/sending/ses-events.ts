@@ -9,6 +9,12 @@ const { messages, suppressions, orgs, events } = schema;
 /** Auto-pause thresholds over the last 30 days, once there's enough volume to judge. */
 export const PAUSE_RULES = { windowDays: 30, minSent: 20, maxComplaintRate: 0.003, maxBounceRate: 0.05 };
 
+/**
+ * Outbound statuses that count toward bounce and complaint rates: messages that actually left.
+ * "bounced" is recorded only for permanent (hard) bounces. Rate = bounced (or complained) / all of these.
+ */
+export const REPUTATION_STATUSES = ["sent", "delivered", "bounced", "complained"] as const;
+
 /** The parts of an SES event (via SNS) we use. */
 export interface SesEvent {
   eventType: "Send" | "Delivery" | "Bounce" | "Complaint" | "Reject" | "RenderingFailure" | "DeliveryDelay" | "Subscription" | string;
@@ -122,7 +128,7 @@ export async function maybePauseSending(deps: AppDeps, orgId: string, inboxId: s
         eq(messages.orgId, orgId),
         eq(messages.direction, "out"),
         gte(messages.createdAt, since),
-        inArray(messages.status, ["sent", "delivered", "bounced", "complained"]),
+        inArray(messages.status, [...REPUTATION_STATUSES]),
       ),
     )
     .groupBy(messages.status);
