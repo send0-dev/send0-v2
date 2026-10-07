@@ -17,14 +17,17 @@ const PASSWORD = "tangerine-orbit-42";
 function inboundMessage(to: string, raw: string) {
   const bytes = new TextEncoder().encode(raw);
   const rejected: string[] = [];
+  const forwarded: string[] = [];
   return {
     rejected,
+    forwarded,
     message: {
       from: "alice@example.org",
       to,
       raw: new Response(bytes).body!,
       rawSize: bytes.byteLength,
       setReject: (reason: string) => void rejected.push(reason),
+      forward: async (rcpt: string) => void forwarded.push(rcpt),
     } as unknown as ForwardableEmailMessage,
   };
 }
@@ -169,6 +172,26 @@ describe("the one-Worker edition", () => {
     const { message, rejected } = inboundMessage("nobody@agents.acme.dev", "Subject: hi\r\n\r\nhi\r\n");
     await t.worker.email(message, t.fake.env);
     expect(rejected).toEqual(["5.1.1 Mailbox does not exist"]);
+  });
+
+  it("forwards postmaster@ and abuse@ to OPERATOR_FORWARD_TO, and refuses them without it", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const withOperator = harness(db, { OPERATOR_FORWARD_TO: "Ops@Acme.dev" });
+    for (const to of ["postmaster@agents.acme.dev", "abuse@agents.acme.dev"]) {
+      const { message, rejected, forwarded } = inboundMessage(to, "Subject: report\r\n\r\nspam\r\n");
+      await withOperator.worker.email(message, withOperator.fake.env);
+      expect(rejected).toEqual([]);
+      expect(forwarded).toEqual(["ops@acme.dev"]);
+    }
+    const admin = inboundMessage("admin@agents.acme.dev", "Subject: hi\r\n\r\nhi\r\n");
+    await withOperator.worker.email(admin.message, withOperator.fake.env);
+    expect(admin.rejected).toEqual(["5.1.1 Mailbox unavailable"]);
+
+    const plain = inboundMessage("postmaster@agents.acme.dev", "Subject: hi\r\n\r\nhi\r\n");
+    await t.worker.email(plain.message, t.fake.env);
+    expect(plain.rejected).toEqual(["5.1.1 Mailbox unavailable"]);
+    expect(plain.forwarded).toEqual([]);
+    vi.restoreAllMocks();
   });
 });
 

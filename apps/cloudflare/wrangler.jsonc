@@ -36,6 +36,17 @@
   // Real-time hubs: one per inbox and one per org (SQLite-backed, available on the free plan).
   "durable_objects": { "bindings": [{ "name": "HUB", "class_name": "Hub" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Hub"] }],
+  // Request limits per 60 s. namespace_id is any number unique within your Cloudflare account. If a
+  // binding is missing, that rule falls back to per-isolate counters.
+  "ratelimits": [
+    // Keep in step with RATE_LIMITS in apps/api/src/rate-limit.ts.
+    // Every request made with an API key (or by a dashboard user)
+    { "name": "RL_KEY", "namespace_id": "2001", "simple": { "limit": 600, "period": 60 } },
+    // On top of that, requests that send mail: send, reply, forward, approve a draft
+    { "name": "RL_KEY_SEND", "namespace_id": "2002", "simple": { "limit": 60, "period": 60 } },
+    // Per client IP: failed authentication and signed download links
+    { "name": "RL_IP", "namespace_id": "2003", "simple": { "limit": 60, "period": 60 } },
+  ],
   // Hourly outbox safety net and deleted-workspace purge. The queue consumer already sweeps after every
   // batch and each isolate migrates on first use, so this stays rare and lets Neon scale to zero.
   "triggers": { "crons": ["0 * * * *"] },
@@ -46,6 +57,9 @@
     "SES_REGION": "us-east-1",
     // Only OWNER_EMAIL can create the first account; everyone else joins by invite.
     "ALLOW_SIGNUP": "false",
+    // Optional: forward postmaster@ and abuse@ on your mail domains to this address instead of refusing
+    // them. It must be a verified destination address under Email Routing > Destination addresses.
+    // "OPERATOR_FORWARD_TO": "you@example.com",
     // Secrets (wrangler secret put, or the Deploy button's prompts): see .dev.vars.example.
   },
   "observability": { "enabled": true },

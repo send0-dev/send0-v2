@@ -46,6 +46,34 @@ docker compose up -d
 
 Then run `docker compose exec send0 send0 doctor`, and move DNS if the server's IP changed.
 
+## Retention
+
+send0 removes old mail on its own, every hour (the `worker` role on Docker, the cron on Cloudflare):
+
+- When a message is older than its inbox's `retention_days` (1 to 30, default 7), its content is deleted: body, extracted fields, attachments and the raw `.eml`. The API then returns it with `"expired": true`. Addresses, subject and status stay, for reply-only sending, threading and bounce and complaint rates.
+- 35 days after a message was created, the row is deleted, with threads left empty. Webhook events and delivery logs older than 35 days go too.
+
+It works in batches of 1,000 for up to 20 seconds per run and logs a `retention` line when it changed anything. If it stops early, the next run carries on.
+
+Where the blobs go depends on the storage:
+
+- **Local disk** (`BLOB_DRIVER=fs`) and **R2** (the Cloudflare edition): send0 deletes them itself when it removes a message's content.
+- **S3 or S3-compatible** (`BLOB_DRIVER=s3`): send0 doesn't delete from the bucket, so it never needs delete permission. Add a lifecycle rule that expires `raw/` and `att/` after 35 days:
+
+```bash
+aws s3api put-bucket-lifecycle-configuration --bucket <your-bucket> \
+  --lifecycle-configuration '{"Rules":[
+    {"ID":"send0-raw","Filter":{"Prefix":"raw/"},"Status":"Enabled","Expiration":{"Days":35}},
+    {"ID":"send0-att","Filter":{"Prefix":"att/"},"Status":"Enabled","Expiration":{"Days":35}}]}'
+```
+
+This command replaces the bucket's existing lifecycle rules, so add these to them if it has any. MinIO has the same rules (`mc ilm rule add --prefix raw/ --expire-days 35 <alias>/<bucket>`, and again for `att/`). On R2, where send0 deletes blobs itself, the same rule is an optional backstop for anything left behind, such as the blobs of a workspace purged before its mail expired:
+
+```bash
+npx wrangler r2 bucket lifecycle add send0-blobs send0-raw raw/ --expire-days 35
+npx wrangler r2 bucket lifecycle add send0-blobs send0-att att/ --expire-days 35
+```
+
 ## Logs
 
 send0 writes one JSON object per line, with an `event` field.
@@ -62,11 +90,14 @@ On Cloudflare, use Workers Logs in the dashboard, or `npx wrangler tail send0`.
 | `server.listening`, `smtp.listening`, `worker.started` | A role started                                                                                 |
 | `message.received`                                     | An inbound message was stored, with its sender, subject, thread and auth verdicts              |
 | `message.rejected`                                     | An inbound message was refused, with the `reason`                                              |
+| `message.forwarded_to_operator`                        | Mail for `postmaster@` or `abuse@` went to `OPERATOR_FORWARD_TO`                               |
 | `smtp.ingest_failed`, `smtp.lookup_failed`             | The SMTP server couldn't store a message or look up an inbox; the sender got `451` and retries |
 | `auth.email_failed`                                    | A verification, reset or invite email couldn't be sent. Check the relay or SES                 |
 | `sending.paused`                                       | SES events pushed a workspace over the bounce or complaint limit                               |
 | `queue.error`, `sweep.error`                           | Webhook delivery or the outbox sweep failed; it's retried                                      |
 | `sweep`                                                | The outbox sweep found and re-queued missed events or deliveries                               |
+| `retention`                                            | Old messages were scrubbed or deleted, with counts; `complete: false` means more next run      |
+| `retention.blob_delete_failed`, `retention.error`      | Deleting old blobs or the retention run failed; the next run retries                           |
 | `sns.subscription_confirmed`                           | The SES events subscription is confirmed                                                       |
 | `healthz.failed`                                       | `/healthz` couldn't reach Postgres                                                             |
 | `config.invalid`, `boot.failed`, `migrations.applied`  | Cloudflare only: settings rejected, database boot failed, migrations ran                       |

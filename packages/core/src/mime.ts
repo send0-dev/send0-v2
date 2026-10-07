@@ -177,6 +177,64 @@ export function buildMime(m: OutgoingMessage): string {
   return headers.join(CRLF) + CRLF + CRLF + body + CRLF;
 }
 
+export interface OperatorForward {
+  /** Our own sender (MAIL_FROM), so SPF, DKIM and DMARC pass for the relayed copy */
+  from: MimeAddress;
+  /** The operator's address */
+  to: string;
+  /** Where the original was addressed, e.g. abuse@agents.acme.com */
+  recipient: string;
+  /** The original's envelope sender (MAIL FROM), empty for bounces */
+  envelopeFrom: string;
+  /** The original message, exactly as received */
+  raw: Uint8Array;
+  /** Full Message-ID with angle brackets */
+  messageId: string;
+  date?: Date;
+}
+
+/**
+ * Wraps a message sent to postmaster@ or abuse@ for relaying to the operator: a short note plus the
+ * original as a message/rfc822 attachment. Relaying it as is would fail: the original From isn't ours,
+ * so the relay refuses it or the operator's mailbox fails it on DMARC.
+ */
+export function buildOperatorForward(f: OperatorForward): string {
+  const clean = (v: string) => v.replace(/[\r\n]+/g, " ");
+  const boundary = `=_send0_${base64(crypto.getRandomValues(new Uint8Array(12))).replace(/[+/=]/g, "")}`;
+  const original = new TextDecoder().decode(f.raw).replace(/\r?\n/g, CRLF);
+  const note = [
+    `send0 received this message for ${f.recipient} and forwarded it to you (OPERATOR_FORWARD_TO).`,
+    "",
+    `Envelope sender: ${f.envelopeFrom || "(none: a bounce)"}`,
+    "The original is attached, with this server's Authentication-Results on top.",
+    "",
+  ].join("\n");
+  const headers = [
+    `From: ${formatAddress(f.from)}`,
+    `To: ${f.to}`,
+    `Subject: ${encodeHeaderValue(clean(`[send0] Mail for ${f.recipient} from ${f.envelopeFrom || "<>"}`))}`,
+    `Date: ${rfc5322Date(f.date ?? new Date())}`,
+    `Message-ID: ${f.messageId}`,
+    "Auto-Submitted: auto-forwarded",
+    "MIME-Version: 1.0",
+    `Content-Type: multipart/mixed; boundary="${boundary}"`,
+  ];
+  const body = [
+    `--${boundary}`,
+    part("text/plain", note),
+    `--${boundary}`,
+    "Content-Type: message/rfc822",
+    'Content-Disposition: attachment; filename="original.eml"',
+    // message/rfc822 can't be base64-encoded (RFC 2046 5.2.1): 7bit when it's plain ASCII, 8bit otherwise.
+    `Content-Transfer-Encoding: ${isAscii(original.replace(/[\r\n\t]/g, "")) ? "7bit" : "8bit"}`,
+    "",
+    original.endsWith(CRLF) ? original.slice(0, -2) : original,
+    `--${boundary}--`,
+    "",
+  ].join(CRLF);
+  return headers.join(CRLF) + CRLF + CRLF + body;
+}
+
 /** "Re: " unless the subject already is a reply. */
 export function replySubject(subject: string): string {
   return /^\s*re\s*:/i.test(subject) ? subject : `Re: ${subject}`;

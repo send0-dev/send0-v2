@@ -10,7 +10,7 @@ export const WEBHOOK_EVENTS: readonly { type: WebhookEventType; description: str
   { type: "message.bounced", description: "It bounced" },
   { type: "message.complained", description: "The recipient marked it as spam" },
   { type: "draft.created", description: "Mail is waiting for approval" },
-  { type: "inbox.suspended", description: "Sending was paused" },
+  { type: "inbox.suspended", description: "Sending was paused, or an inbox was suspended" },
 ];
 
 export const EVENT_TYPES = WEBHOOK_EVENTS.map((e) => e.type) as [WebhookEventType, ...WebhookEventType[]];

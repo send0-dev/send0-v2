@@ -7,6 +7,7 @@
   "exports": {
     "./app": "./src/app.ts",
     "./types": "./src/types.ts",
+    "./rate-limit": "./src/rate-limit.ts",
     "./webhooks/dispatch": "./src/webhooks/dispatch.ts",
     "./maintenance": "./src/maintenance.ts",
     "./realtime/hub-do": "./src/realtime/hub-do.ts",
@@ -18,6 +19,7 @@
     "test": "vitest run",
     "check": "wrangler types --env-file .dev.vars.example && tsc --noEmit",
     "bootstrap": "tsx scripts/bootstrap.ts",
+    "admin": "tsx scripts/admin.ts",
     "openapi": "tsx scripts/export-openapi.ts"
   },
   "dependencies": {

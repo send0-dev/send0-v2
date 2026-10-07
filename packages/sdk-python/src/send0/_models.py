@@ -112,6 +112,10 @@ class Message(BaseModel):
     status: Literal[
         'received', 'queued', 'sent', 'delivered', 'bounced', 'complained', 'failed'
     ]
+    expired: bool
+    """
+    true once the inbox's retention period has passed: text, html, extracted_text, extracted and attachments are gone (null or empty) and the raw message can't be downloaded. Addresses, subject, status and timestamps remain until the message is deleted, 35 days after it was created.
+    """
     rfc_message_id: str | None
     in_reply_to: list[str]
     references: list[str]
@@ -409,6 +413,9 @@ class Event(BaseModel):
     created_at: AwareDatetime
     inbox_id: str | None
     data: dict[str, Any]
+    """
+    The payload. message.*: the message (without html). inbox.suspended: { scope: "org" | "inbox", reason, … }; "org" means sending is paused account-wide, "inbox" that one inbox is suspended.
+    """
 
 
 class Inboxes(BaseModel):

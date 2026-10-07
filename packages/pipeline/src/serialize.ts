@@ -16,6 +16,8 @@ export const serializeAttachment = (a: AttachmentRow) => ({
 /**
  * The public shape of a message, used by the API and in webhook payloads.
  * `html` is left out of events by default to keep webhook bodies small; fetch the message for it.
+ * `expired`: the inbox's retention period passed, so text, html, extracted fields and attachments are
+ * gone (null or empty); addresses, subject, status and timestamps remain until the message is deleted.
  */
 export function serializeMessage(m: MessageRow, attachments: AttachmentRow[], opts: { includeHtml?: boolean } = {}) {
   return {
@@ -25,6 +27,7 @@ export function serializeMessage(m: MessageRow, attachments: AttachmentRow[], op
     thread_id: m.threadId,
     direction: m.direction,
     status: m.status,
+    expired: !!m.scrubbedAt,
     rfc_message_id: m.rfcMessageId,
     in_reply_to: m.inReplyTo,
     references: m.references,

@@ -3,6 +3,7 @@ import { schema } from "@send0/db";
 import { and, eq, isNull } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 import { forbidden, unauthorized } from "./errors";
+import { limitCaller, limitIp } from "./rate-limit";
 import type { AppEnv, AuthContext, Scope } from "./types";
 
 const { apiKeys, orgs } = schema;
@@ -19,12 +20,18 @@ export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
       .where(eq(orgs.id, preset.orgId));
     if (!org || org.deletedAt) throw unauthorized();
     if (org.status !== "active") throw forbidden("This organization is suspended. Contact support@send0.dev.");
+    await limitCaller(c, preset);
     c.set("auth", preset);
     return next();
   }
   const header = c.req.header("authorization") ?? "";
   const token = header.replace(/^Bearer\s+/i, "").trim();
-  if (!looksLikeApiKey(token)) throw unauthorized();
+  // A failed attempt counts against the client's address, so keys can't be guessed quickly.
+  const rejected = async () => {
+    await limitIp(c);
+    return unauthorized();
+  };
+  if (!looksLikeApiKey(token)) throw await rejected();
 
   const { db, waitUntil, now = () => new Date() } = c.get("deps");
   const hash = await sha256Hex(token);
@@ -43,7 +50,7 @@ export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
     .where(and(eq(apiKeys.hash, hash), isNull(apiKeys.revokedAt)))
     .limit(1);
 
-  if (!row) throw unauthorized();
+  if (!row) throw await rejected();
   if (row.orgStatus !== "active") throw forbidden("This organization is suspended. Contact support@send0.dev.");
 
   const at = now();
@@ -56,13 +63,15 @@ export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
     waitUntil ? waitUntil(touch) : await touch;
   }
 
-  c.set("auth", {
+  const auth: AuthContext = {
     orgId: row.orgId,
     keyId: row.id,
     mode: row.mode,
     scopes: row.scopes as Scope[],
     inboxIds: row.inboxIds,
-  } satisfies AuthContext);
+  };
+  await limitCaller(c, auth);
+  c.set("auth", auth);
   await next();
 });
 

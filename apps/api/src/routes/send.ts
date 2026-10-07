@@ -5,8 +5,9 @@ import { Hono, type Context } from "hono";
 import { z } from "zod";
 import { loadInbox, loadMessage } from "../access";
 import { requireApprover, requireScope } from "../auth";
-import { ApiError, conflict, invalid, notFound } from "../errors";
+import { ApiError, conflict, invalid, messageExpired, notFound } from "../errors";
 import { listQuery, pageOrder, pageWhere, toPage } from "../pagination";
+import { limitSends } from "../rate-limit";
 import { send, serializeDraft, type SendPayload, type SendResult } from "../sending/service";
 import type { AppEnv } from "../types";
 import { validate } from "../validation";
@@ -60,7 +61,7 @@ const dedupe = (list: MailboxJson[], exclude: string) => {
 const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
 
 /** Mounted at /v1/inboxes/:inboxId/messages (POST) */
-export const inboxSendRoutes = new Hono<AppEnv>().post("/", validate("json", sendBody), async (c) => {
+export const inboxSendRoutes = new Hono<AppEnv>().post("/", limitSends, validate("json", sendBody), async (c) => {
   const auth = c.get("auth");
   requireScope(auth, "send");
   const { inbox, domain } = await loadInbox(c, c.req.param("inboxId")!);
@@ -83,7 +84,7 @@ export const inboxSendRoutes = new Hono<AppEnv>().post("/", validate("json", sen
 
 /** Mounted at /v1/messages (POST /:id/reply, /:id/forward) */
 export const messageSendRoutes = new Hono<AppEnv>()
-  .post("/:id/reply", validate("json", replyBody), async (c) => {
+  .post("/:id/reply", limitSends, validate("json", replyBody), async (c) => {
     const auth = c.get("auth");
     requireScope(auth, "send");
     const parent = await loadMessage(c, c.req.param("id"));
@@ -116,10 +117,12 @@ export const messageSendRoutes = new Hono<AppEnv>()
     );
   })
 
-  .post("/:id/forward", validate("json", forwardBody), async (c) => {
+  .post("/:id/forward", limitSends, validate("json", forwardBody), async (c) => {
     const auth = c.get("auth");
     requireScope(auth, "send");
     const parent = await loadMessage(c, c.req.param("id"));
+    // Its content is gone: forwarding would send an empty shell.
+    if (parent.scrubbedAt) throw messageExpired(parent.id);
     const { inbox, domain } = await loadInbox(c, parent.inboxId);
     const b = c.req.valid("json");
 
@@ -240,7 +243,7 @@ export const draftRoutes = new Hono<AppEnv>()
     return c.json(serializeDraft(row));
   })
 
-  .post("/:id/send", async (c) => {
+  .post("/:id/send", limitSends, async (c) => {
     const auth = c.get("auth");
     requireApprover(auth);
     const draft = await loadDraft(c, c.req.param("id"));

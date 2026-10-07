@@ -25,7 +25,7 @@ export function fakeMailer() {
   return { sent, createMailer: () => mailer };
 }
 
-/** An R2 bucket in memory: put and get, which is all R2BlobStore uses. */
+/** An R2 bucket in memory: put, get and delete, which is all R2BlobStore uses. */
 export function fakeR2() {
   const objects = new Map<string, { bytes: Uint8Array; contentType?: string }>();
   return {
@@ -38,6 +38,9 @@ export function fakeR2() {
       const o = objects.get(key);
       if (!o) return null;
       return { body: new Response(o.bytes).body, httpMetadata: { contentType: o.contentType }, size: o.bytes.byteLength };
+    },
+    async delete(keys: string | string[]) {
+      for (const k of [keys].flat()) objects.delete(k);
     },
   };
 }

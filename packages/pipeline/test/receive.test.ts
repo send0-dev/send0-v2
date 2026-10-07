@@ -5,7 +5,15 @@ import { eq } from "drizzle-orm";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { checkRecipient, MAX_MESSAGE_BYTES, rawKey, receiveMessage, type InboundMessage } from "../src";
+import {
+  checkRecipient,
+  emailRoutingForwarder,
+  MAX_MESSAGE_BYTES,
+  operatorLocalPart,
+  rawKey,
+  receiveMessage,
+  type InboundMessage,
+} from "../src";
 
 const fixture = (name: string) => readFileSync(fileURLToPath(new URL(`../../../fixtures/emails/${name}`, import.meta.url).href));
 
@@ -168,6 +176,95 @@ describe("receiveMessage", () => {
     quiet();
     const { deps, message } = setup({ to: "test@send0.email", putFails: true, raw: fixture("otp-subject.eml") });
     await expect(receiveMessage(message, cfg, deps)).rejects.toThrow("S3 down");
+  });
+});
+
+describe("mail for postmaster@ and abuse@", () => {
+  const forwarder = () => {
+    const forwarded: { to: string; localPart: string }[] = [];
+    return { forwarded, forwardReserved: async (m: InboundMessage, localPart: string) => void forwarded.push({ to: m.to, localPart }) };
+  };
+
+  it("goes to the operator hook instead of being refused, without being stored", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { forwarded, forwardReserved } = forwarder();
+    for (const to of ["postmaster@send0.email", "Abuse+report@Send0.Email"]) {
+      const { deps, message, puts } = setup({ to });
+      expect(await receiveMessage(message, cfg, { ...deps, forwardReserved })).toBeNull();
+      expect(message.rejected).toBeUndefined();
+      expect(puts).toHaveLength(0);
+    }
+    expect(forwarded).toEqual([
+      { to: "postmaster@send0.email", localPart: "postmaster" },
+      { to: "Abuse+report@Send0.Email", localPart: "abuse" },
+    ]);
+    const lines = log.mock.calls.map((c) => JSON.parse(String(c[0])) as { event: string; to: string });
+    expect(lines.filter((l) => l.event === "message.forwarded_to_operator").map((l) => l.to)).toEqual([
+      "postmaster@send0.email",
+      "Abuse+report@Send0.Email",
+    ]);
+  });
+
+  it("refuses them as before without the hook", async () => {
+    quiet();
+    const { deps, message } = setup({ to: "postmaster@send0.email" });
+    await receiveMessage(message, cfg, deps);
+    expect(message.rejected).toBe("5.1.1 Mailbox unavailable");
+  });
+
+  it("still refuses other reserved names, and leaves ordinary inboxes alone", async () => {
+    quiet();
+    const { forwarded, forwardReserved } = forwarder();
+    for (const to of ["admin@send0.email", "security@send0.email", "noreply@send0.email"]) {
+      const { deps, message } = setup({ to });
+      await receiveMessage(message, cfg, { ...deps, forwardReserved });
+      expect(message.rejected, to).toBe("5.1.1 Mailbox unavailable");
+    }
+    const { deps, message } = setup({ to: "test@send0.email", raw: fixture("calendar-invite.eml") });
+    const r = await receiveMessage(message, cfg, { ...deps, forwardReserved });
+    expect(r?.duplicate).toBe(false);
+    expect(forwarded).toEqual([]);
+  });
+
+  it("forwards only the configured names, only on our domains, and refuses oversized mail", async () => {
+    quiet();
+    const { forwarded, forwardReserved } = forwarder();
+    const only = { ...cfg, operatorLocalParts: ["abuse"] };
+    const pm = setup({ to: "postmaster@send0.email" });
+    await receiveMessage(pm.message, only, { ...pm.deps, forwardReserved });
+    expect(pm.message.rejected).toBe("5.1.1 Mailbox unavailable");
+    const foreign = setup({ to: "abuse@other.com" });
+    await receiveMessage(foreign.message, cfg, { ...foreign.deps, forwardReserved });
+    expect(foreign.message.rejected).toBe("5.7.1 Relaying denied");
+    const big = setup({ to: "abuse@send0.email", rawSize: MAX_MESSAGE_BYTES + 1 });
+    await receiveMessage(big.message, cfg, { ...big.deps, forwardReserved });
+    expect(big.message.rejected).toBe("5.3.4 Message too big");
+    expect(forwarded).toEqual([]);
+  });
+
+  it("lets a failed forward throw, so the sender retries", async () => {
+    quiet();
+    const { deps, message } = setup({ to: "abuse@send0.email" });
+    await expect(
+      receiveMessage(message, cfg, { ...deps, forwardReserved: () => Promise.reject(new Error("forward failed")) }),
+    ).rejects.toThrow("forward failed");
+  });
+
+  it("operatorLocalPart and emailRoutingForwarder", async () => {
+    expect(operatorLocalPart("postmaster@send0.email", cfg)).toBe("postmaster");
+    expect(operatorLocalPart("<ABUSE+x@send0.email>", cfg)).toBe("abuse");
+    expect(operatorLocalPart("admin@send0.email", cfg)).toBeNull();
+    expect(operatorLocalPart("postmaster@other.com", cfg)).toBeNull();
+    // Only reserved names can be operator addresses, whatever the list says.
+    expect(operatorLocalPart("test@send0.email", { ...cfg, operatorLocalParts: ["test"] })).toBeNull();
+
+    expect(emailRoutingForwarder(undefined)).toBeUndefined();
+    expect(emailRoutingForwarder("  ")).toBeUndefined();
+    const forward = vi.fn(async () => ({}));
+    const { message } = setup({ to: "abuse@send0.email" });
+    await emailRoutingForwarder(" ops@acme.dev ")!({ ...message, forward }, "abuse");
+    expect(forward).toHaveBeenCalledWith("ops@acme.dev");
+    await expect(emailRoutingForwarder("ops@acme.dev")!(message, "abuse")).rejects.toThrow("can't forward");
   });
 });
 

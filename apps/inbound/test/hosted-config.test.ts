@@ -11,4 +11,6 @@ it("the hosted inbound Worker config parses to the hosted settings", () => {
     allowSignup: true,
     trustedAuthservIds: ["mx.cloudflare.net"],
   });
+  // The operator's address is a secret (wrangler secret put), never a committed var.
+  expect(wrangler.vars).not.toHaveProperty("OPERATOR_FORWARD_TO");
 });

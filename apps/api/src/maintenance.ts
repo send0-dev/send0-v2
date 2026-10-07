@@ -12,3 +12,6 @@ export async function purgeDeletedOrgs(db: Db, now: Date): Promise<number> {
     .returning({ id: schema.orgs.id });
   return rows.length;
 }
+
+export { raiseSendCaps, RAISE_RULES, PLAN_SEND_CEILINGS, type LimitRaise } from "./send-caps";
+export { enforceRetention, RETENTION, type RetentionOptions, type RetentionResult } from "./retention";

@@ -108,6 +108,7 @@ async function templateWranglerConfig(extraModules) {
     "  // The dashboard SPA, prebuilt in public/. API and dashboard routes",
   );
   replaceText("    // Keep in step with WORKER_PATHS in src/http.ts.\n", "");
+  replaceText("    // Keep in step with RATE_LIMITS in apps/api/src/rate-limit.ts.\n", "");
   replaceText(
     "  // then put its id here. `wrangler dev` uses localConnectionString instead.\n",
     "  // then put its id here. The Deploy to Cloudflare button asks for the connection string instead.\n",
@@ -156,6 +157,9 @@ function packageJson(version, wranglerVersion) {
         BLOBS: { description: "R2 bucket for raw mail and attachments." },
         EVENTS: { description: "Queue for webhook fan-out and delivery retries." },
         HUB: { description: "Durable Object for real-time events: SSE, WebSocket and the `wait` long-poll." },
+        RL_KEY: { description: "Rate limit: requests per API key (or dashboard user), 600 a minute." },
+        RL_KEY_SEND: { description: "Rate limit: sends, replies, forwards and draft approvals per API key, 60 a minute." },
+        RL_IP: { description: "Rate limit: failed authentication and download links per client IP, 60 a minute." },
         MAIL_DOMAINS: {
           description:
             "Domains you receive mail on, comma-separated, like `agents.acme.com`. Each must be on Cloudflare with **Email Routing** enabled.",
@@ -210,7 +214,10 @@ bucket, the queue, the Hyperdrive connection and the Durable Object, and asks fo
 
 Optional settings, added later as variables under Workers & Pages > send0 > Settings:
 \`MAIL_FROM\` (sender of account email; defaults to \`noreply@\` your first mail domain), \`PUBLIC_URL\`,
-\`SES_CONFIGURATION_SET\`, and \`SES_EVENTS_TOKEN\` with \`SES_EVENTS_TOPIC_ARN\` (see step 2).
+\`SES_CONFIGURATION_SET\`, \`SES_EVENTS_TOKEN\` with \`SES_EVENTS_TOPIC_ARN\` (see step 2), and
+\`OPERATOR_FORWARD_TO\`: an address to forward \`postmaster@\` and \`abuse@\` on your mail domains to,
+instead of refusing them. It must be a verified destination address under Email Routing > Destination
+addresses.
 
 \`PUBLIC_URL\`: set it if you add a custom domain, to that origin (like \`https://mail.acme.com\`).
 send0 then redirects every other hostname, including workers.dev, to it, so sign-in, download
@@ -250,7 +257,8 @@ by hand with \`npm install && npx wrangler deploy\`. Database migrations run on 
   (messages up to 25 MiB).
 - Free-plan Workers allow 100,000 requests a day and 10 ms of CPU per request. Large webhook volumes,
   big attachments or busy inboxes may need Workers Paid ($5/month).
-- Raw mail and attachments live in R2 (10 GB free). There is no automatic retention yet.
+- Raw mail and attachments live in R2 (10 GB free). Message content is deleted after each inbox's
+  \`retention_days\` (default 7, at most 30), and messages after 35 days.
 - The hosted service's plan limits (reply-only free tier, daily send caps) are off: you own the SES
   account and its reputation.
 

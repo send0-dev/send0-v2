@@ -96,6 +96,28 @@ describe("FsBlobStore", () => {
     expect((await readdir(path.join(dir, "root/d"))).sort()).toEqual(["k", "k.meta.json"]);
   });
 
+  it("deletes bodies and sidecars, ignoring missing keys", async () => {
+    await store.put("raw/org/a.eml", bytes("a"), { contentType: "message/rfc822" });
+    await store.put("att/org/b", bytes("b"), { contentType: "text/plain" });
+    await store.put("raw/org/keep.eml", bytes("k"), { contentType: "message/rfc822" });
+    await store.delete(["raw/org/a.eml", "att/org/b", "raw/org/never-existed.eml", "nodir/x"]);
+    expect(await store.get("raw/org/a.eml")).toBeNull();
+    expect(await store.get("att/org/b")).toBeNull();
+    expect(await readdir(path.join(dir, "root/raw/org"))).toEqual(["keep.eml", "keep.eml.meta.json"]);
+    expect(await readdir(path.join(dir, "root/att/org"))).toEqual([]);
+  });
+
+  it("refuses to delete unsafe keys or through a symlink out of the root", async () => {
+    const outside = path.join(dir, "outside");
+    await mkdir(outside);
+    await writeFile(path.join(outside, "f"), "secret");
+    await mkdir(path.join(dir, "root"), { recursive: true });
+    await symlink(outside, path.join(dir, "root/link"));
+    await expect(store.delete(["link/f"])).rejects.toThrow();
+    await expect(store.delete(["../outside/f"])).rejects.toThrow();
+    expect(await readdir(outside)).toEqual(["f"]);
+  });
+
   it("cancelling the stream releases the file", async () => {
     await store.put("big", new Uint8Array(1 << 20), { contentType: "application/octet-stream" });
     const stored = (await store.get("big"))!;

@@ -53,6 +53,22 @@ export class FsBlobStore implements BlobStore, BlobReader {
     await this.writeAtomic(file, body);
   }
 
+  /** Removes each file and its metadata sidecar. Missing files are fine; empty directories are left behind. */
+  async delete(keys: string[]): Promise<void> {
+    for (const key of keys) {
+      const file = this.resolve(key);
+      try {
+        await this.assertInside(path.dirname(file));
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") continue;
+        throw err;
+      }
+      // Body first: a sidecar without its body is harmless, the reverse would serve without a content type.
+      await rm(file, { force: true });
+      await rm(file + META_SUFFIX, { force: true });
+    }
+  }
+
   async get(key: string): Promise<StoredBlob | null> {
     const file = this.resolve(key);
     try {

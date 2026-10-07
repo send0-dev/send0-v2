@@ -30,6 +30,7 @@ export function formatMessage(m: Message, opts: { full?: boolean } = {}): string
     lines.push(
       `attachments: ${m.attachments.map((a) => `${a.filename ?? "(unnamed)"} [${a.id}, ${a.content_type}, ${a.size} bytes]`).join("; ")}`,
     );
+  if (m.expired) lines.push("content expired: past the inbox's retention period, the body and attachments were deleted");
   // Neutralize wrapper tags inside the email, so a sender can't fake the end of the untrusted block.
   const body = ((opts.full ? m.text : (m.extracted_text ?? m.text)) ?? "").replace(/<(\/?)untrusted_email/gi, "&lt;$1untrusted_email");
   lines.push(`<untrusted_email id="${m.id}">\n${body.trim()}\n</untrusted_email>`);

@@ -2,6 +2,7 @@ import { Send0 } from "@send0/sdk";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { requireApiKey } from "../auth";
+import { markInternal } from "../rate-limit";
 import type { AppEnv } from "../types";
 
 /**
@@ -40,7 +41,8 @@ export function mcpRoutes(api: { fetch: (request: Request) => Response | Promise
         apiKey: key,
         baseUrl: "https://api.internal",
         maxRetries: 0,
-        fetch: ((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(api.fetch(new Request(input, init)))) as typeof fetch,
+        fetch: ((input: RequestInfo | URL, init?: RequestInit) =>
+          Promise.resolve(api.fetch(markInternal(new Request(input, init))))) as typeof fetch,
       });
       const defaultInboxId = c.req.query("inbox_id") ?? c.req.header("x-send0-inbox") ?? undefined;
       // Loaded on first use, so the MCP SDK doesn't add to every API request's cold start.

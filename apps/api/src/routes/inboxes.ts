@@ -6,6 +6,7 @@ import { z } from "zod";
 import { canAccessInbox, requireScope } from "../auth";
 import { ApiError, conflict, forbidden, invalid, notFound } from "../errors";
 import { listQuery, pageOrder, pageWhere, toPage } from "../pagination";
+import { RETENTION } from "../retention";
 import type { AppEnv, AuthContext } from "../types";
 import { validate } from "../validation";
 
@@ -32,6 +33,16 @@ export const serializeInbox = (i: InboxRow, domain: string) => ({
   updated_at: i.updatedAt.toISOString(),
 });
 
+/** Mail is scrubbed after this many days (at most 30; see retention.ts). */
+const retentionDays = z
+  .number()
+  .int()
+  .min(1)
+  .max(RETENTION.maxDays)
+  .describe(
+    `Days to keep message content (1 to ${RETENTION.maxDays}, default 7). After that, bodies, extracted fields, attachments and the raw message are deleted and the message reads as \`expired: true\`; the rest of the message is deleted after ${RETENTION.deleteAfterDays} days.`,
+  );
+
 const metadataSchema = z
   .record(z.string().max(40), z.union([z.string().max(500), z.number(), z.boolean(), z.null()]))
   .refine((m) => Object.keys(m).length <= 20, "at most 20 keys");
@@ -42,6 +53,7 @@ export const inboxCreateBody = z.object({
   domain: z.string().trim().toLowerCase().max(253).optional(),
   display_name: z.string().trim().max(100).nullable().optional(),
   send_policy: z.enum(["open", "reply_only", "approval"]).optional(),
+  retention_days: retentionDays.optional(),
   metadata: metadataSchema.optional(),
   expires_at: z.iso.datetime({ offset: true }).optional(),
 });
@@ -50,6 +62,7 @@ export const inboxUpdateBody = z
   .object({
     display_name: z.string().trim().max(100).nullable(),
     send_policy: z.enum(["open", "reply_only", "approval"]),
+    retention_days: retentionDays,
     metadata: metadataSchema,
     expires_at: z.iso.datetime({ offset: true }).nullable(),
   })
@@ -126,6 +139,7 @@ export const inboxRoutes = new Hono<AppEnv>()
         localPart,
         displayName: body.display_name ?? null,
         sendPolicy: body.send_policy,
+        retentionDays: body.retention_days,
         metadata: body.metadata ?? {},
         expiresAt: body.expires_at ? new Date(body.expires_at) : null,
       })
@@ -175,6 +189,7 @@ export const inboxRoutes = new Hono<AppEnv>()
       .set({
         ...(body.display_name !== undefined ? { displayName: body.display_name } : {}),
         ...(body.send_policy ? { sendPolicy: body.send_policy } : {}),
+        ...(body.retention_days ? { retentionDays: body.retention_days } : {}),
         ...(body.metadata ? { metadata: body.metadata } : {}),
         ...(body.expires_at !== undefined ? { expiresAt: body.expires_at ? new Date(body.expires_at) : null } : {}),
       })

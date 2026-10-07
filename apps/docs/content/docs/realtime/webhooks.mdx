@@ -26,7 +26,7 @@ URLs must be public `https://`. Private, local and cloud-metadata addresses are 
 | `message.bounced`    | It bounced. Permanent bounces also suppress the address.      |
 | `message.complained` | The recipient marked it as spam. The address is suppressed.   |
 | `draft.created`      | A message is waiting for approval                             |
-| `inbox.suspended`    | Sending was paused for the account (complaint or bounce rate) |
+| `inbox.suspended`    | Sending was paused for the account, or an inbox was suspended |
 | `webhook.test`       | Sent by `POST /v1/webhooks/{id}/test`                         |
 
 ## The request
@@ -62,6 +62,17 @@ send0-delivery-id: dlv_2Lk…
 ```
 
 `data` is the full [message](/concepts/messages-and-threads) except `html`. Fetch the message if you need it.
+
+### `inbox.suspended`
+
+`data.scope` says what stopped. `"org"`: sending is paused for the whole account (receiving still works), either automatically or by our team, and `inbox_id` is the inbox whose message tipped the rate, or `null`. `"inbox"`: one inbox was suspended, so it neither sends nor receives (senders get `5.2.1 Mailbox disabled`).
+
+```json
+{ "type": "inbox.suspended", "inbox_id": null, "data": { "scope": "org", "reason": "complaint rate 0.40% is over 0.3%", "complaint_rate": 0.004, "bounce_rate": 0.01, "sent_30d": 250 } }
+{ "type": "inbox.suspended", "inbox_id": "ibx_7Hc2…", "data": { "scope": "inbox", "reason": "Phishing reports", "address": "bot@send0.email" } }
+```
+
+Automatic pauses add `complaint_rate`, `bounce_rate` and `sent_30d`. Write to support@send0.dev to get it lifted.
 
 ## Verify the signature
 

@@ -98,7 +98,10 @@ import { site } from "../site";
         </tr>
         <tr>
           <td>Reserved addresses</td>
-          <td>postmaster, abuse, admin, support, noreply, security and billing can't be claimed as send0.email inboxes.</td>
+          <td>
+            postmaster, abuse, admin, support, noreply, security and billing can't be claimed as send0.email inboxes. Mail to postmaster and
+            abuse at send0.email goes to the send0 team.
+          </td>
         </tr>
       </tbody>
     </table>
@@ -122,9 +125,26 @@ import { site } from "../site";
   <h2 id="report">6. Reporting abuse</h2>
   <p>
     If you received unwanted mail from a send0 address, or think someone is misusing send0, email
-    <a href={`mailto:${site.email.abuse}`}>{site.email.abuse}</a>. Include the full message with headers if you can. A person reads every
-    report, and we aim to respond within one business day. Security vulnerabilities go to
-    <a href={`mailto:${site.email.security}`}>{site.email.security}</a>.
+    <a href={`mailto:${site.email.mailboxAbuse}`}>{site.email.mailboxAbuse}</a> (or
+    <a href={`mailto:${site.email.abuse}`}>{site.email.abuse}</a>; both reach the same people). Forward the message as an attachment, or
+    include its full headers, so we can tell which inbox sent it. Mail sent to postmaster@send0.email reaches us too.
+  </p>
+  <p>What happens next:</p>
+  <ul>
+    <li>A person reads every report, and we aim to respond within one business day.</li>
+    <li>
+      We find the inbox and account that sent the message and review their recent sending: who they mail, their bounce and complaint rates,
+      and other reports.
+    </li>
+    <li>
+      If the mail breaks this policy, we act as described in <a href="#enforcement">Enforcement</a>: from a warning or lower limits to
+      pausing sending, suspending the inbox or closing the account. Phishing, malware and other clear abuse are stopped at once.
+    </li>
+    <li>If you ask, we make sure that account can't email your address again.</li>
+    <li>We reply to tell you what we did, though we may not share details about another customer's account.</li>
+  </ul>
+  <p>
+    Security vulnerabilities go to <a href={`mailto:${site.email.security}`}>{site.email.security}</a>.
   </p>
 
   <h2 id="changes">7. Changes</h2>

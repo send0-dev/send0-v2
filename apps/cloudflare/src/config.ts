@@ -1,4 +1,5 @@
 import { ConfigError, parseCoreConfig, type CoreConfig } from "@send0/config";
+import { operatorAddressProblem } from "@send0/pipeline";
 
 export { ConfigError };
 
@@ -25,6 +26,8 @@ export interface CloudflareConfig extends CoreConfig {
   ses: SesSettings;
   /** SNS → `/internal/ses-events`, when both are set */
   sesEvents?: { token: string; topicArn: string };
+  /** postmaster@ and abuse@ mail is forwarded here (a verified Email Routing destination); unset: refused */
+  operatorForwardTo?: string;
 }
 
 /** Email Routing's MX stamps Authentication-Results with this authserv-id. */
@@ -114,6 +117,10 @@ export function loadConfig(input: object): CloudflareConfig {
     problems.push("SES_EVENTS_TOKEN: must be at least 32 characters (generate one with `openssl rand -hex 32`)");
   }
 
+  const operatorForwardTo = str(env, "OPERATOR_FORWARD_TO")?.toLowerCase();
+  const operatorProblem = operatorForwardTo && core ? operatorAddressProblem(operatorForwardTo, core.mailDomains) : null;
+  if (operatorProblem) problems.push(`OPERATOR_FORWARD_TO: ${operatorProblem}`);
+
   if (problems.length || !core || !secretKey || !mailFrom || !ses) throw new ConfigError(problems);
   return {
     ...core,
@@ -123,6 +130,7 @@ export function loadConfig(input: object): CloudflareConfig {
     ...(publicUrl ? { publicUrl } : {}),
     ses,
     ...(token && topicArn ? { sesEvents: { token, topicArn } } : {}),
+    ...(operatorForwardTo ? { operatorForwardTo } : {}),
   };
 }
 

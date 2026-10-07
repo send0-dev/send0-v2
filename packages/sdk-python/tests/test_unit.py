@@ -15,7 +15,7 @@ BASE = "https://api.test"
 def msg(**over):
     m = {
         "object": "message", "id": "msg_1", "inbox_id": "ibx_1", "thread_id": "thr_1", "direction": "in",
-        "status": "received", "rfc_message_id": "<a@x>", "in_reply_to": [], "references": [],
+        "status": "received", "expired": False, "rfc_message_id": "<a@x>", "in_reply_to": [], "references": [],
         "from": {"name": "Acme", "email": "noreply@acme.dev"}, "to": [], "cc": [], "reply_to": [],
         "subject": "Your code", "text": "code 482913", "extracted_text": "code 482913",
         "extracted": {"otp": "482913", "links": [], "action_link": None},
@@ -64,6 +64,27 @@ def test_retries_keep_the_idempotency_key(client, monkeypatch):
     assert inbox.address == "x@send0.email"
     keys = {c.request.headers["idempotency-key"] for c in route.calls}
     assert len(route.calls) == 3 and len(keys) == 1
+
+
+@respx.mock
+def test_429_waits_for_retry_after(client, monkeypatch):
+    slept: list[float] = []
+    monkeypatch.setattr("time.sleep", slept.append)
+    limited = httpx.Response(429, headers={"retry-after": "7"}, json={"error": {"code": "rate_limited", "message": "slow down"}})
+    route = respx.get(f"{BASE}/v1/inboxes").mock(side_effect=[limited, httpx.Response(200, json={"object": "list", "data": [], "next_cursor": None})])
+    assert client.inboxes.list().data == []
+    assert route.call_count == 2 and slept == [7.0]
+
+
+@respx.mock
+def test_429_surfaces_rate_limited_after_retries(monkeypatch):
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    respx.get(f"{BASE}/v1/inboxes").mock(
+        return_value=httpx.Response(429, headers={"retry-after": "1"}, json={"error": {"code": "rate_limited", "message": "slow down"}})
+    )
+    with pytest.raises(Send0Error) as e:
+        Send0("s0_test_x", base_url=BASE, max_retries=1).inboxes.list()
+    assert (e.value.status, e.value.code) == (429, "rate_limited")
 
 
 @respx.mock

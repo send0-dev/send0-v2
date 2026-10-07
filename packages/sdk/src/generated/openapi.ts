@@ -611,6 +611,8 @@ export interface components {
             direction: "in" | "out";
             /** @enum {string} */
             status: "received" | "queued" | "sent" | "delivered" | "bounced" | "complained" | "failed";
+            /** @description true once the inbox's retention period has passed: text, html, extracted_text, extracted and attachments are gone (null or empty) and the raw message can't be downloaded. Addresses, subject, status and timestamps remain until the message is deleted, 35 days after it was created. */
+            expired: boolean;
             rfc_message_id: string | null;
             in_reply_to: string[];
             references: string[];
@@ -897,6 +899,7 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             inbox_id: string | null;
+            /** @description The payload. message.*: the message (without html). inbox.suspended: { scope: "org" | "inbox", reason, … }; "org" means sending is paused account-wide, "inbox" that one inbox is suspended. */
             data: {
                 [key: string]: unknown;
             };
@@ -1062,9 +1065,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1091,6 +1096,8 @@ export interface operations {
                     display_name?: string | null;
                     /** @enum {string} */
                     send_policy?: "open" | "reply_only" | "approval";
+                    /** @description Days to keep message content (1 to 30, default 7). After that, bodies, extracted fields, attachments and the raw message are deleted and the message reads as `expired: true`; the rest of the message is deleted after 35 days. */
+                    retention_days?: number;
                     metadata?: {
                         [key: string]: string | number | boolean | null;
                     };
@@ -1145,9 +1152,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1213,9 +1222,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1281,9 +1292,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1308,6 +1321,8 @@ export interface operations {
                     display_name?: string | null;
                     /** @enum {string} */
                     send_policy?: "open" | "reply_only" | "approval";
+                    /** @description Days to keep message content (1 to 30, default 7). After that, bodies, extracted fields, attachments and the raw message are deleted and the message reads as `expired: true`; the rest of the message is deleted after 35 days. */
+                    retention_days?: number;
                     metadata?: {
                         [key: string]: string | number | boolean | null;
                     };
@@ -1361,9 +1376,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1438,9 +1455,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1553,9 +1572,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1627,9 +1648,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1703,9 +1726,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1771,9 +1796,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1838,9 +1865,20 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description The message is past its inbox's retention period (`message_expired`); its content was deleted */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1882,6 +1920,17 @@ export interface operations {
             /** @description The file no longer exists, or this install does not serve signed links */
             404: {
                 headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Too many requests from this address (`rate_limited`); see Retry-After */
+            429: {
+                headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1949,9 +1998,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2056,9 +2107,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2170,9 +2223,20 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description The message is past its inbox's retention period (`message_expired`); its content was deleted */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2241,9 +2305,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2313,9 +2379,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2385,9 +2453,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2455,9 +2525,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2523,9 +2595,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2599,9 +2673,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2670,9 +2746,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2741,9 +2819,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2809,9 +2889,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2890,9 +2972,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2958,9 +3042,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3026,9 +3112,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3104,9 +3192,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3175,9 +3265,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3246,9 +3338,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3318,9 +3412,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3391,9 +3487,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3458,9 +3556,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3526,9 +3626,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3608,9 +3710,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3673,9 +3777,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3741,9 +3847,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {
@@ -3809,9 +3917,11 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Rate or daily limit reached */
+            /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content: {

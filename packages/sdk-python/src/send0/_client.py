@@ -135,13 +135,17 @@ class Inboxes:
         name: str | None = None,
         display_name: str | None = None,
         send_policy: Literal["open", "reply_only", "approval"] | None = None,
+        retention_days: int | None = None,
         metadata: Mapping[str, Any] | None = None,
         domain: str | None = None,
         expires_at: str | None = None,
         idempotency_key: str | None = None,
     ) -> Inbox:
-        """Create an inbox. ``name="research-agent"`` → research-agent@send0.email (random if omitted)."""
-        body = {k: v for k, v in dict(name=name, display_name=display_name, send_policy=send_policy, metadata=metadata, domain=domain, expires_at=expires_at).items() if v is not None}
+        """Create an inbox. ``name="research-agent"`` → research-agent@send0.email (random if omitted).
+
+        ``retention_days`` (1 to 30, default 7): how long message content is kept before it expires.
+        """
+        body = {k: v for k, v in dict(name=name, display_name=display_name, send_policy=send_policy, retention_days=retention_days, metadata=metadata, domain=domain, expires_at=expires_at).items() if v is not None}
         return Inbox.model_validate(self._http.request("POST", "/v1/inboxes", body=body, idempotency_key=idempotency_key).json())
 
     def list(self, *, limit: int | None = None, cursor: str | None = None) -> Page[Inbox]:
@@ -156,10 +160,11 @@ class Inboxes:
         *,
         display_name: str | None = NOT_GIVEN,
         send_policy: Literal["open", "reply_only", "approval"] = NOT_GIVEN,
+        retention_days: int = NOT_GIVEN,
         metadata: Mapping[str, Any] = NOT_GIVEN,
         expires_at: str | None = NOT_GIVEN,
     ) -> Inbox:
-        body = _given(display_name=display_name, send_policy=send_policy, metadata=metadata, expires_at=expires_at)
+        body = _given(display_name=display_name, send_policy=send_policy, retention_days=retention_days, metadata=metadata, expires_at=expires_at)
         return Inbox.model_validate(self._http.request("PATCH", f"/v1/inboxes/{inbox_id}", body=body).json())
 
     def delete(self, inbox_id: str) -> DeletedInbox:

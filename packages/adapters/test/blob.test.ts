@@ -79,6 +79,15 @@ describe("R2BlobStore", () => {
   });
 });
 
+describe("R2BlobStore.delete", () => {
+  it("deletes in chunks of 1,000 keys", async () => {
+    const del = vi.fn(async () => {});
+    const keys = Array.from({ length: 2001 }, (_, i) => `raw/k${i}`);
+    await new R2BlobStore({ delete: del } as never).delete(keys);
+    expect(del.mock.calls.map((c: unknown[]) => (c[0] as string[]).length)).toEqual([1000, 1000, 1]);
+  });
+});
+
 describe("R2BlobStore.get", () => {
   it("returns the body, content type and size", async () => {
     const body = new Response("hi").body!;

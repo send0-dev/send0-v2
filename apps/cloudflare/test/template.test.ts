@@ -19,6 +19,7 @@ interface WranglerConfig {
   durable_objects: { bindings: { name: string; class_name: string }[] };
   migrations: { tag: string; new_sqlite_classes: string[] }[];
   triggers: { crons: string[] };
+  ratelimits: { name: string; namespace_id: string; simple: { limit: number; period: number } }[];
   vars: Record<string, string>;
 }
 
@@ -72,8 +73,10 @@ describe("build-template.mjs", () => {
     expect(cfg.migrations).toEqual(source.migrations);
     expect(cfg.triggers).toEqual(source.triggers);
     expect(cfg.triggers.crons).toEqual(["0 * * * *"]);
+    expect(cfg.ratelimits).toEqual(source.ratelimits);
+    expect(cfg.ratelimits.map((r) => r.name)).toEqual(["RL_KEY", "RL_KEY_SEND", "RL_IP"]);
     expect(cfg.vars).toEqual(source.vars);
-    expect(readFileSync(path.join(out, "wrangler.jsonc"), "utf8")).not.toMatch(/localConnectionString|src\/http\.ts/);
+    expect(readFileSync(path.join(out, "wrangler.jsonc"), "utf8")).not.toMatch(/localConnectionString|src\/http\.ts|rate-limit\.ts/);
   });
 
   it("describes the package, the bindings and the source", () => {
@@ -92,7 +95,8 @@ describe("build-template.mjs", () => {
     expect(pkg.scripts).toEqual({ deploy: "wrangler deploy" });
     expect(pkg.devDependencies).toEqual({ wrangler: wrangler.version });
     expect(pkg.dependencies).toBeUndefined();
-    for (const b of ["HYPERDRIVE", "BLOBS", "EVENTS", "HUB"]) expect(pkg.cloudflare.bindings[b]?.description).toBeTruthy();
+    for (const b of ["HYPERDRIVE", "BLOBS", "EVENTS", "HUB", "RL_KEY", "RL_KEY_SEND", "RL_IP"])
+      expect(pkg.cloudflare.bindings[b]?.description).toBeTruthy();
 
     const secrets = readFileSync(path.join(out, ".dev.vars.example"), "utf8")
       .split("\n")

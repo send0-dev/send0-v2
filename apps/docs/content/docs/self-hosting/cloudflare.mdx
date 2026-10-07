@@ -135,5 +135,6 @@ Or deploy by hand with `npm install && npx wrangler deploy`. Database migrations
 - **Workers Free CPU.** The Free plan allows 100,000 requests a day and 10 ms of CPU per request. Sign-up and sign-in hash the password with PBKDF2 (100,000 iterations), which can use more than 10 ms. If sign-in fails with a CPU-limit error, or webhook volume, big attachments or busy inboxes hit limits, move to Workers Paid ($5/month).
 - **Neon compute.** Neon's free plan has a monthly compute allowance and scales to zero when idle. The hourly cron wakes the database once an hour; webhooks, mail and API calls wake it too.
 - **Hourly cron.** The cron is only a safety net for events the queue missed. The queue consumer sweeps after every batch, so webhooks don't wait for it.
-- **Storage.** Raw mail and attachments live in R2 (10 GB free). There's no automatic retention yet.
+- **Storage.** Raw mail and attachments live in R2 (10 GB free). Message content is deleted after each inbox's `retention_days` (default 7, at most 30), and messages after 35 days. See [Retention](/self-hosting/operations#retention).
 - **No plan limits.** The hosted service's reply-only free tier and daily send caps are off. You own the SES account and its reputation.
+- **Rate limits.** The [API rate limits](/reference/api#rate-limits) apply, through Workers Rate Limiting bindings. If your account doesn't offer them, each Worker instance counts on its own, which is looser. With Docker, one process counts everything.

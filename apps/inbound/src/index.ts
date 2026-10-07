@@ -1,12 +1,10 @@
 import { parseCoreConfig } from "@send0/config";
-import { createDb } from "@send0/db";
 import { receiveMessage } from "@send0/pipeline";
-import { blobStoreFromEnv } from "./blobs";
+import { inboundDeps } from "./deps";
 
 export default {
   async email(message, env) {
-    const db = createDb(env.HYPERDRIVE.connectionString, { max: 2 });
-    await receiveMessage(message, parseCoreConfig(env), { db, blobs: blobStoreFromEnv(env), hub: env.HUB as never, queue: env.EVENTS });
+    await receiveMessage(message, parseCoreConfig(env), inboundDeps(env));
   },
 
   // Nothing is served over HTTP.

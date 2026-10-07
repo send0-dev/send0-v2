@@ -1,4 +1,4 @@
-import { purgeDeletedOrgs } from "@send0/api/maintenance";
+import { enforceRetention, purgeDeletedOrgs, raiseSendCaps } from "@send0/api/maintenance";
 import { processQueueMessage, sweep } from "@send0/api/webhooks/dispatch";
 import type { Services } from "./services";
 
@@ -11,7 +11,7 @@ const logError = (event: string, err: unknown, extra: Record<string, unknown> = 
  * Worker runs in `scheduled()`. pg-boss keeps schedules in Postgres, so each tick runs once even
  * with several worker processes.
  */
-export async function startWorker({ db, queue }: Pick<Services, "db" | "queue">): Promise<void> {
+export async function startWorker({ db, queue, apiDeps, blobs }: Pick<Services, "db" | "queue" | "apiDeps" | "blobs">): Promise<void> {
   await queue.consume(async (msg) => {
     try {
       await processQueueMessage(db, queue, msg);
@@ -37,6 +37,26 @@ export async function startWorker({ db, queue }: Pick<Services, "db" | "queue">)
     logged("purge.error", async () => {
       const purged = await purgeDeletedOrgs(db, new Date());
       if (purged) log({ event: "orgs_purged", count: purged });
+    }),
+  );
+
+  // Retention: scrub mail past each inbox's retention_days, delete it after 35 days. Blobs on local disk
+  // go with it; the S3 store can't delete (use a bucket lifecycle rule, see the operations docs).
+  await queue.schedule(
+    "send0-retention",
+    "30 * * * *",
+    logged("retention.error", async () => {
+      await enforceRetention(db, new Date(), { blobs: blobs.store });
+    }),
+  );
+
+  // Reputation-based daily cap raises. A no-op unless this install enforces daily caps (LIMITS=hosted);
+  // always scheduled, because pg-boss keeps schedules in Postgres and a conditional one would outlive the setting.
+  await queue.schedule(
+    "send0-send-caps",
+    "15 * * * *",
+    logged("send_caps.error", async () => {
+      if (apiDeps.limits?.dailySendCap) await raiseSendCaps(db, new Date());
     }),
   );
 }

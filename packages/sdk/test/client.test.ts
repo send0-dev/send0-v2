@@ -100,6 +100,30 @@ describe("retries", () => {
     expect(keys[0]).toBeTruthy();
   });
 
+  it("waits out a 429 for Retry-After seconds, then retries", async () => {
+    const m = mockFetch([
+      json({ error: { code: "rate_limited", message: "Too many requests. Slow down and retry after 2 seconds." } }, 429, {
+        "retry-after": "2",
+      }),
+      json({ object: "list", data: [], next_cursor: null }),
+    ]);
+    vi.useFakeTimers();
+    const done = new Send0({ apiKey: "k", fetch: m.fetch, maxRetries: 1 }).inboxes.list();
+    await vi.advanceTimersByTimeAsync(1_900);
+    expect(m.calls).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(200);
+    await expect(done).resolves.toMatchObject({ data: [] });
+    expect(m.calls).toHaveLength(2);
+  });
+
+  it("surfaces rate_limited once retries run out", async () => {
+    const m = mockFetch([json({ error: { code: "rate_limited", message: "Too many requests." } }, 429, { "retry-after": "1" })]);
+    await expect(new Send0({ apiKey: "k", fetch: m.fetch, maxRetries: 0 }).inboxes.list()).rejects.toMatchObject({
+      status: 429,
+      code: "rate_limited",
+    });
+  });
+
   it("does not retry 4xx", async () => {
     const m = mockFetch([json({ error: { code: "invalid_request", message: "bad" } }, 400)]);
     await expect(new Send0({ apiKey: "k", fetch: m.fetch }).inboxes.create({})).rejects.toMatchObject({ status: 400 });

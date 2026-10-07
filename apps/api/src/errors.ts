@@ -11,6 +11,8 @@ export class ApiError extends Error {
     readonly code: string,
     message: string,
     readonly param?: string,
+    /** Response headers that go with the error, e.g. Retry-After on a 429 */
+    readonly headers?: Record<string, string>,
   ) {
     super(message);
   }
@@ -22,6 +24,9 @@ export const forbidden = (message: string) => new ApiError(403, "forbidden", mes
 export const notFound = (resource: string, id?: string) =>
   new ApiError(404, "not_found", id ? `No ${resource} with id ${id}.` : `${resource} not found.`);
 export const invalid = (message: string, param?: string) => new ApiError(400, "invalid_request", message, param);
+/** The message is past its inbox's retention period: its content and raw .eml are gone. */
+export const messageExpired = (id: string) =>
+  new ApiError(410, "message_expired", `Message ${id} is past its inbox's retention period; its content was deleted.`);
 export const conflict = (code: string, message: string, param?: string) => new ApiError(409, code, message, param);
 
 export function errorBody(c: Context, err: ApiError) {
