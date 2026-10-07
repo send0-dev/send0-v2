@@ -66,7 +66,7 @@ Same shape as the [TypeScript SDK](/reference/typescript-sdk), in snake_case:
 | **webhooks** | `create` · `list` · `get` · `update` · `delete` · `rotate_secret` · `test` · `deliveries` · `retry_delivery` · `verify` |
 | **api_keys** | `create` · `list` · `revoke` |
 | **events** | `stream(inbox_id=, last_event_id=)`: iterator that reconnects and resumes |
-| **usage** | `get()`: plan, inboxes used, sends today against the daily limit, paused state |
+| **usage** | `get()`: plan, inboxes used, sends today against the daily limit, paused state · `stats(days=, inbox_id=)`: mail per day |
 
 `update()` arguments you leave out stay unchanged; pass `None` to clear a field (for example `display_name=None`).
 

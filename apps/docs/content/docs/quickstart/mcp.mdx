@@ -9,7 +9,67 @@ The send0 MCP server gives your assistant tools to create inboxes, wait for emai
   Give the assistant an API key limited to what it needs. A key with `read` and `send` scopes, restricted to one inbox, is the safest choice. See [API keys](/api-keys).
 </Callout>
 
-## Install
+## Connect
+
+There are two ways to run it. They have the same tools.
+
+- **Remote**, nothing to install: point your client at `https://api.send0.dev/mcp` and send your API key as a Bearer token.
+- **Local**, over stdio: run `npx @send0/mcp` on your machine. Use this for clients that only support local servers, or for a self-hosted send0.
+
+### Remote
+
+<Tabs items={['Claude Code', 'Cursor', 'VS Code', 'Other clients']}>
+  <Tab value="Claude Code">
+    ```bash
+    claude mcp add --transport http send0 https://api.send0.dev/mcp \
+      --header "Authorization: Bearer s0_live_…"
+    ```
+  </Tab>
+  <Tab value="Cursor">
+    In `~/.cursor/mcp.json` (or `.cursor/mcp.json` in a project):
+
+    ```json
+    {
+      "mcpServers": {
+        "send0": {
+          "url": "https://api.send0.dev/mcp",
+          "headers": { "Authorization": "Bearer s0_live_…" }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="VS Code">
+    In `.vscode/mcp.json`:
+
+    ```json
+    {
+      "servers": {
+        "send0": {
+          "type": "http",
+          "url": "https://api.send0.dev/mcp",
+          "headers": { "Authorization": "Bearer s0_live_…" }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Other clients">
+    Any client or agent framework that supports **Streamable HTTP** MCP servers works:
+
+    | | |
+    |---|---|
+    | URL | `https://api.send0.dev/mcp` |
+    | Header | `Authorization: Bearer s0_live_…` |
+    | Default inbox (optional) | `https://api.send0.dev/mcp?inbox_id=ibx_…` |
+
+    The server is stateless, so there's no session to keep.
+  </Tab>
+</Tabs>
+
+Add `?inbox_id=ibx_…` to the URL if the assistant should always use one inbox. The tools then don't need an `inbox_id`.
+
+### Local
 
 <Tabs items={['Claude Code', 'Claude Desktop', 'Cursor']}>
   <Tab value="Claude Code">
@@ -37,7 +97,7 @@ The send0 MCP server gives your assistant tools to create inboxes, wait for emai
   </Tab>
 </Tabs>
 
-Set `SEND0_INBOX_ID=ibx_…` as well if the assistant should always use one inbox. The tools then don't need an `inbox_id`.
+Set `SEND0_INBOX_ID=ibx_…` as well if the assistant should always use one inbox.
 
 ## Try it
 

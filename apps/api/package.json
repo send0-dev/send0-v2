@@ -13,10 +13,13 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.9.1",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@send0/adapters": "workspace:*",
     "@send0/core": "workspace:*",
     "@send0/db": "workspace:*",
+    "@send0/mcp": "workspace:*",
     "@send0/pipeline": "workspace:*",
+    "@send0/sdk": "workspace:*",
     "drizzle-orm": "^0.45.3",
     "hono": "^4.13.13",
     "zod": "^4.6.5"
@@ -25,9 +28,6 @@
     "@apidevtools/swagger-parser": "^13.1.0",
     "@electric-sql/pglite": "^0.5.8",
     "@hono/node-server": "^2.1.3",
-    "@modelcontextprotocol/sdk": "^1.32.1",
-    "@send0/mcp": "workspace:*",
-    "@send0/sdk": "workspace:*",
     "@types/node": "^24",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",

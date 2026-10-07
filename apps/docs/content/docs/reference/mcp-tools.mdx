@@ -3,7 +3,22 @@ title: MCP tools
 description: "@send0/mcp: the tools, their arguments, and configuration."
 ---
 
-Run with `npx -y @send0/mcp` over stdio. See the [MCP quickstart](/quickstart/mcp) for client setup.
+Two ways to run it, with the same tools. See the [MCP quickstart](/quickstart/mcp) for client setup.
+
+## Remote
+
+`https://api.send0.dev/mcp`, Streamable HTTP, stateless.
+
+| | |
+|---|---|
+| `Authorization: Bearer s0_…` | Required. The tools act as this key, with its scopes and inbox limits. |
+| `?inbox_id=ibx_…` or `x-send0-inbox` header | Default inbox, so tools don't need `inbox_id` |
+
+Requests without a valid key get `401` with a `WWW-Authenticate: Bearer` header. Browser-based clients are allowed (CORS).
+
+## Local
+
+Run with `npx -y @send0/mcp` over stdio.
 
 | Variable | |
 |---|---|

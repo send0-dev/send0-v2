@@ -75,3 +75,23 @@ for await (const t of await send0.threads.list(inbox.id)) console.log(t.subject,
 const thread = await send0.threads.get(inbox.id, "thr_3Lp8…"); // messages oldest first
 const withHtml = await send0.threads.get(inbox.id, "thr_3Lp8…", { include_html: true });
 ```
+
+Each thread in a list carries `latest_message`: who sent the newest message, which way it went, and a short preview, so you can show an inbox without fetching every thread:
+
+```json
+{
+  "object": "thread",
+  "id": "thr_3Lp8…",
+  "subject": "Re: PO #4471 delivery date",
+  "message_count": 2,
+  "latest_message": {
+    "id": "msg_9Kd2…",
+    "direction": "in",
+    "from": { "name": "Dana Rivera", "email": "dana@acme.com" },
+    "snippet": "Can you confirm Thursday instead? Our dock is closed Wednesday."
+  },
+  "last_message_at": "2026-10-07T09:12:00Z"
+}
+```
+
+The snippet is the start of the new text only (quoted history and signatures removed), with whitespace collapsed.

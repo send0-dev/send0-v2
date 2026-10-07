@@ -32,6 +32,8 @@ description: Endpoints, authentication and the OpenAPI 3.1 spec.
 | `POST` | `/v1/webhooks/{webhook_id}/deliveries/{delivery_id}/retry` | admin |
 | `GET` | `/v1/events/stream` | read |
 | `GET` | `/v1/usage`: plan, inboxes used, sends today against the daily limit, paused state | read |
+| `GET` | `/v1/stats?days=14`: mail per UTC day (received, sent, delivered, bounced, failed), up to 90 days | read |
+| `POST` | `/mcp`: the [remote MCP server](/reference/mcp-tools#remote) (Streamable HTTP) | as the key |
 | `POST` `GET` | `/v1/api-keys` · `DELETE /v1/api-keys/{api_key_id}` | admin |
 
 Conventions: [errors, idempotency and pagination](/reference/errors).
