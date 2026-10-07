@@ -5,7 +5,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./node/pg-hub": "./src/node/pg-hub.ts",
+    "./node/pg-boss-queue": "./src/node/pg-boss-queue.ts"
   },
   "scripts": {
     "test": "vitest run --testTimeout=20000 --hookTimeout=20000",
@@ -15,7 +17,9 @@
     "@send0/adapters": "workspace:*",
     "@send0/core": "workspace:*",
     "@send0/db": "workspace:*",
-    "drizzle-orm": "^0.45.3"
+    "drizzle-orm": "^0.45.3",
+    "pg-boss": "^12.37.0",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261005.1",

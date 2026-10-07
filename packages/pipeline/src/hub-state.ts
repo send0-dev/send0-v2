@@ -42,11 +42,20 @@ export class HubState {
     return this.waiters.size;
   }
 
+  /**
+   * True when nothing would be lost by dropping this hub: no subscribers, no waiters, and no recent
+   * events still young enough for a `wait` to match. Prunes expired recent events first.
+   * Lets a process holding many hubs (the self-hosted Postgres hub) keep memory bounded.
+   */
+  isIdle(): boolean {
+    this.prune();
+    return this.subscribers.size === 0 && this.waiters.size === 0 && this.recent.length === 0;
+  }
+
   notify(e: EventEnvelope): void {
     if (this.recent.some((r) => r.id === e.id)) return; // at-least-once delivery upstream
     this.recent.push(e);
-    const cutoff = this.now() - RECENT_MAX_AGE_MS;
-    this.recent = this.recent.filter((r) => Date.parse(r.created_at) >= cutoff).slice(-RECENT_MAX);
+    this.prune();
 
     for (const w of this.waiters) {
       if (matchesWait(e, w.filter, w.sinceMs)) this.settle(w, e);
@@ -76,11 +85,21 @@ export class HubState {
 
   /** Comment line that keeps proxies from closing idle SSE connections. */
   ping(): void {
+    this.comment("ping");
+  }
+
+  /** Sends an SSE comment (`: text`) to every subscriber; EventSource ignores it, raw readers can act on it. */
+  comment(text: string): void {
     for (const write of this.subscribers) {
       Promise.resolve()
-        .then(() => write(": ping\n\n"))
+        .then(() => write(`: ${text}\n\n`))
         .catch(() => this.subscribers.delete(write));
     }
+  }
+
+  private prune() {
+    const cutoff = this.now() - RECENT_MAX_AGE_MS;
+    this.recent = this.recent.filter((r) => Date.parse(r.created_at) >= cutoff).slice(-RECENT_MAX);
   }
 
   private settle(w: Waiter, e: EventEnvelope | null) {
