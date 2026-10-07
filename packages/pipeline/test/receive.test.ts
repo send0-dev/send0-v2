@@ -99,6 +99,23 @@ describe("receiveMessage", () => {
     expect(queued).toEqual([{ kind: "fanout", eventId: r.envelope.id }]);
   });
 
+  it("publishes through the publish hook instead of the hub and queue when one is given", async () => {
+    quiet();
+    const published: { orgId: string; id: string }[] = [];
+    const hub = { idFromName: (n: string) => n, get: () => ({ notify: vi.fn(async () => {}) }) };
+    const queue = { send: vi.fn(async () => {}) };
+    const { deps, message } = setup({ to: "test@send0.email", raw: fixture("apple-mail-reply.eml") });
+    const r = await receiveMessage(message, cfg, {
+      ...deps,
+      hub,
+      queue,
+      publish: async (orgId, envelope) => void published.push({ orgId, id: envelope.id }),
+    });
+    if (!r || r.duplicate) throw new Error("expected new message");
+    expect(published).toEqual([{ orgId: "org_1", id: r.envelope.id }]);
+    expect(queue.send).not.toHaveBeenCalled();
+  });
+
   it("still accepts mail when publishing fails", async () => {
     quiet();
     const hub = { idFromName: (n: string) => n, get: () => ({ notify: async () => Promise.reject(new Error("DO down")) }) };

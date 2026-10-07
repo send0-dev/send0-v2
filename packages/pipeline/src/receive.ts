@@ -1,7 +1,7 @@
 import type { BlobStore } from "@send0/adapters/blob";
 import { isReservedLocalPart, newId, parseInbound, parseRecipient, type ParsedMessage, type Recipient } from "@send0/core";
 import type { Db } from "@send0/db";
-import { publish, type HubNamespaceLike, type QueueLike } from "./events";
+import { publish, type EventEnvelope, type HubNamespaceLike, type QueueLike } from "./events";
 import { findInboxByAddress } from "./inbox-lookup";
 import { ingestMessage, type IngestResult } from "./ingest";
 
@@ -20,6 +20,8 @@ export interface InboundDeps {
   /** Real-time hubs and the webhook queue; events still reach webhooks via the outbox sweep if these fail */
   hub?: HubNamespaceLike;
   queue?: QueueLike;
+  /** Replaces the hub and queue publish, e.g. the self-hosted server's PgHub + pg-boss. Must not throw. */
+  publish?: (orgId: string, envelope: EventEnvelope) => Promise<void>;
 }
 
 /** The parts of ForwardableEmailMessage we use, so tests can pass a plain object. */
@@ -125,6 +127,9 @@ export async function receiveMessage(
     receivedAt: now,
   });
   console.log(JSON.stringify({ ...summarize(key, parsed, result), inbox_id: inbox.id }));
-  if (!result.duplicate) await publish({ hub: deps.hub, queue: deps.queue }, inbox.orgId, result.envelope);
+  if (!result.duplicate) {
+    if (deps.publish) await deps.publish(inbox.orgId, result.envelope);
+    else await publish({ hub: deps.hub, queue: deps.queue }, inbox.orgId, result.envelope);
+  }
   return result;
 }
