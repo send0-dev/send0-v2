@@ -12,6 +12,7 @@ import { SMTPServer } from "smtp-server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadConfig } from "../src/config";
 import { startServer, type RunningServer } from "../src/server";
+import { freePort, until } from "./support";
 
 const MAIL_DOMAIN = "agents.acme.dev";
 const PASSWORD = "tangerine-orbit-42";
@@ -64,25 +65,6 @@ async function startReceiver(): Promise<{ server: Server; port: number; hooks: H
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
   return { server, port: (server.address() as AddressInfo).port, hooks };
-}
-
-/** A port nothing is listening on right now. */
-async function freePort(): Promise<number> {
-  const s = createServer();
-  await new Promise<void>((r) => s.listen(0, "127.0.0.1", r));
-  const { port } = s.address() as AddressInfo;
-  await new Promise((r) => s.close(r));
-  return port;
-}
-
-async function until<T>(what: string, check: () => T | undefined | Promise<T | undefined>, ms = 10_000): Promise<T> {
-  const deadline = Date.now() + ms;
-  for (;;) {
-    const v = await check();
-    if (v !== undefined && v !== false) return v;
-    if (Date.now() > deadline) throw new Error(`timed out waiting for ${what}`);
-    await new Promise((r) => setTimeout(r, 50));
-  }
 }
 
 describe.skipIf(!TEST_DATABASE_URL)("send0 server (Postgres)", () => {

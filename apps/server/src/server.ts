@@ -7,6 +7,7 @@ import type { ServerConfig } from "./config";
 import { seedMailDomains } from "./domains";
 import { createHttpApp } from "./http";
 import { createServices, type Services } from "./services";
+import { startSmtpServer, type SmtpServer } from "./smtp";
 import { startWorker } from "./worker";
 
 export type Role = "http" | "worker" | "smtp";
@@ -15,6 +16,8 @@ export const ROLES: readonly Role[] = ["http", "worker", "smtp"];
 export interface RunningServer {
   /** Where the http role listens locally (null without it), e.g. http://127.0.0.1:3000 */
   url: string | null;
+  /** Where the smtp role listens (null without it) */
+  smtpPort: number | null;
   services: Services;
   /** Graceful shutdown; safe to call more than once. */
   stop: () => Promise<void>;
@@ -54,6 +57,7 @@ export async function startServer(config: ServerConfig, opts: { roles?: readonly
 
   let http: ServerType | null = null;
   let url: string | null = null;
+  let smtp: SmtpServer | null = null;
   try {
     await seedMailDomains(services.db, config.mailDomains, new Date());
 
@@ -62,7 +66,8 @@ export async function startServer(config: ServerConfig, opts: { roles?: readonly
       log({ event: "worker.started" });
     }
     if (roles.has("smtp")) {
-      log({ event: "smtp.not_implemented", level: "warn", message: "The smtp role isn't available yet; inbound mail is not received." });
+      smtp = await startSmtpServer(services, config);
+      log({ event: "smtp.listening", port: smtp.port, hostname: config.smtp.hostname });
     }
     if (roles.has("http")) {
       if (!existsSync(path.join(config.webDir, "index.html"))) {
@@ -74,6 +79,7 @@ export async function startServer(config: ServerConfig, opts: { roles?: readonly
       log({ event: "server.listening", url, public_url: config.publicUrl });
     }
   } catch (err) {
+    await smtp?.stop();
     await services.close();
     throw err;
   }
@@ -82,15 +88,18 @@ export async function startServer(config: ServerConfig, opts: { roles?: readonly
   const stop = () =>
     (stopping ??= (async () => {
       log({ event: "server.stopping" });
+      // Sessions mid-DATA finish ingesting before the database goes away.
+      const smtpClosed = smtp?.stop().catch((err: unknown) => logError("shutdown.smtp_failed", err));
       if (http) {
         const closed = closeHttp(http, HTTP_DRAIN_MS);
         // Ends open SSE streams and long-polls, so the HTTP server can finish draining.
         await services.hub.stop().catch((err: unknown) => logError("shutdown.hub_failed", err));
         await closed;
       }
+      await smtpClosed;
       await services.close();
       log({ event: "server.stopped" });
     })());
 
-  return { url, services, stop };
+  return { url, smtpPort: smtp?.port ?? null, services, stop };
 }
