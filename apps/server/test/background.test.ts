@@ -29,4 +29,11 @@ describe("BackgroundTasks", () => {
     await tasks.drain();
     expect(JSON.parse(log.mock.calls[0]![0] as string)).toEqual({ event: "background.error", error: "Error: boom" });
   });
+
+  it("gives up draining after a timeout", async () => {
+    const tasks = new BackgroundTasks();
+    tasks.waitUntil(new Promise(() => {}));
+    expect(await tasks.drain(20)).toBe(false);
+    expect(tasks.size).toBe(1);
+  });
 });

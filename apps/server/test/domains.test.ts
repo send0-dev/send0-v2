@@ -1,6 +1,6 @@
 import { schema } from "@send0/db";
 import { createTestDb } from "@send0/db/testing";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { seedMailDomains } from "../src/domains";
 
 describe("seedMailDomains", () => {
@@ -20,5 +20,19 @@ describe("seedMailDomains", () => {
       ["bots.acme.dev", "shared", "verified", now.toISOString(), null],
     ]);
     expect(rows.every((r) => r.id.startsWith("dom_"))).toBe(true);
+  });
+
+  it("warns about an existing row for a mail domain that isn't shared and verified", async () => {
+    await t.db.insert(schema.domains).values({ id: "dom_pending", name: "Pending.acme.dev", kind: "custom", status: "pending" });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await seedMailDomains(t.db, ["agents.acme.dev", "pending.acme.dev"], new Date());
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(warn.mock.calls[0]![0] as string)).toMatchObject({
+      event: "mail_domain.unexpected_row",
+      domain_id: "dom_pending",
+      kind: "custom",
+      status: "pending",
+    });
+    warn.mockRestore();
   });
 });

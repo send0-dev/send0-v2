@@ -1,6 +1,8 @@
 import { ConfigError, parseCoreConfig, type CoreConfig } from "@send0/config";
+import { isIP } from "node:net";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { DEFAULT_TRUSTED_PROXIES, parseCidr } from "./client-ip";
 
 export { ConfigError };
 
@@ -27,8 +29,14 @@ export interface ServerConfig extends CoreConfig {
   /** Sender of system email (verification, password resets, invites) */
   mailFrom: string;
   blob: BlobConfig;
+  /** Only this email may create the first account (required while sign-up is closed). Lowercased. */
+  ownerEmail?: string;
+  /** HTTP bind address, e.g. 0.0.0.0 */
+  host: string;
   /** HTTP listen port (0 picks a free one) */
   port: number;
+  /** Proxies whose X-Forwarded-For is believed (IPs or CIDRs); empty trusts none */
+  trustedProxies: string[];
   /** The built dashboard SPA (index.html plus assets) */
   webDir: string;
   /** The inbound SMTP role */
@@ -68,6 +76,9 @@ const schema = z.object({
   S3_SECRET_ACCESS_KEY: opt(),
   S3_ENDPOINT: opt(),
   PORT: opt(),
+  HOST: opt(),
+  TRUSTED_PROXIES: opt(),
+  OWNER_EMAIL: opt(),
   WEB_DIR: opt(),
   MX_HOSTNAME: opt(),
   SMTP_PORT: opt(),
@@ -91,6 +102,12 @@ function isHttpUrl(v: string): boolean {
   }
 }
 
+/** True for a bare origin: http(s)://host[:port] with at most a trailing slash. */
+function isOrigin(v: string): boolean {
+  const u = new URL(v);
+  return u.pathname === "/" && !u.search && !u.hash && !v.includes("?") && !v.includes("#") && !u.username && !u.password;
+}
+
 /**
  * Reads and validates the server's settings. Throws one ConfigError listing every problem at once.
  * Problems name the variable and the rule, never its value, so secrets can't leak into logs.
@@ -106,6 +123,9 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
 
   let publicUrl = env.PUBLIC_URL ?? (domain ? `https://${domain}` : undefined);
   if (env.PUBLIC_URL && !isHttpUrl(env.PUBLIC_URL)) problems.push("PUBLIC_URL: must be an http:// or https:// URL");
+  else if (env.PUBLIC_URL && !isOrigin(env.PUBLIC_URL)) {
+    problems.push("PUBLIC_URL: must be an origin only, like https://mail.acme.com (no path, query or hash)");
+  }
   publicUrl = publicUrl?.replace(/\/+$/, "");
 
   if (env.MAIL_DOMAIN && env.MAIL_DOMAINS && env.MAIL_DOMAIN !== env.MAIL_DOMAINS) {
@@ -134,11 +154,19 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
   if (!env.DATABASE_URL) problems.push("DATABASE_URL: is required (postgres://user:password@host:5432/send0)");
   else if (!/^postgres(ql)?:\/\//i.test(env.DATABASE_URL)) problems.push("DATABASE_URL: must be a postgres:// or postgresql:// URL");
 
+  const allowSignup = core?.allowSignup ?? false;
+  const ownerEmail = env.OWNER_EMAIL?.toLowerCase();
+  if (!ownerEmail && !allowSignup) {
+    problems.push("OWNER_EMAIL: is required while ALLOW_SIGNUP is false (the email of the first account, who becomes the owner)");
+  } else if (ownerEmail && !EMAIL.test(ownerEmail)) problems.push("OWNER_EMAIL: must be an email address, like you@acme.com");
+
   let mailer: MailerConfig | undefined;
   const mailerKind = (env.MAILER ?? "smtp").toLowerCase();
   if (mailerKind === "smtp") {
     problems.push(...missing(env, ["SMTP_URL"], "when MAILER=smtp (smtp://user:pass@host:587)"));
-    if (env.SMTP_URL) mailer = { kind: "smtp", url: env.SMTP_URL };
+    if (env.SMTP_URL && !/^smtps?:\/\/[^/]/i.test(env.SMTP_URL)) {
+      problems.push("SMTP_URL: must be an smtp:// or smtps:// URL, like smtp://user:pass@host:587");
+    } else if (env.SMTP_URL) mailer = { kind: "smtp", url: env.SMTP_URL };
   } else if (mailerKind === "ses") {
     const sesVars = ["SES_REGION", "SES_ACCESS_KEY_ID", "SES_SECRET_ACCESS_KEY", "SES_CONFIGURATION_SET"] as const;
     const gaps = missing(env, [...sesVars], "when MAILER=ses");
@@ -156,6 +184,12 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
 
   if (!!env.SES_EVENTS_TOKEN !== !!env.SES_EVENTS_TOPIC_ARN) {
     problems.push("SES_EVENTS_TOKEN: set together with SES_EVENTS_TOPIC_ARN (both or neither)");
+  }
+  if ((env.SES_EVENTS_TOKEN || env.SES_EVENTS_TOPIC_ARN) && mailerKind === "smtp") {
+    problems.push("SES_EVENTS_TOKEN: only applies when MAILER=ses");
+  } else if (env.SES_EVENTS_TOKEN && env.SES_EVENTS_TOKEN.length < 32) {
+    // The token is the endpoint's only credential.
+    problems.push("SES_EVENTS_TOKEN: must be at least 32 characters (generate one with `openssl rand -hex 32`)");
   }
   const sesEvents =
     env.SES_EVENTS_TOKEN && env.SES_EVENTS_TOPIC_ARN ? { token: env.SES_EVENTS_TOKEN, topicArn: env.SES_EVENTS_TOPIC_ARN } : undefined;
@@ -186,6 +220,21 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
   if (env.MX_HOSTNAME && !HOSTNAME.test(mxHostname!)) problems.push("MX_HOSTNAME: must be a hostname, like mx.acme.com");
   if (!!env.SMTP_TLS_CERT !== !!env.SMTP_TLS_KEY) problems.push("SMTP_TLS_CERT: set together with SMTP_TLS_KEY (both or neither)");
 
+  const host = env.HOST ?? "0.0.0.0";
+  if (!isIP(host) && !HOSTNAME.test(host.toLowerCase()))
+    problems.push("HOST: must be an IP address or hostname to listen on, like 0.0.0.0");
+  const trustedProxies =
+    env.TRUSTED_PROXIES === undefined
+      ? [...DEFAULT_TRUSTED_PROXIES]
+      : env.TRUSTED_PROXIES.toLowerCase() === "none"
+        ? []
+        : env.TRUSTED_PROXIES.split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+  if (trustedProxies.some((p) => !parseCidr(p))) {
+    problems.push("TRUSTED_PROXIES: must be IP addresses or CIDR ranges, like 10.0.0.0/8 (or none)");
+  }
+
   const httpPort = parsePort(env, "PORT", 3000, problems);
   const smtpPort = parsePort(env, "SMTP_PORT", 2525, problems);
 
@@ -202,7 +251,10 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
     ...(sesEvents ? { sesEvents } : {}),
     mailFrom,
     blob,
+    ...(ownerEmail ? { ownerEmail } : {}),
+    host,
     port: httpPort,
+    trustedProxies,
     webDir: env.WEB_DIR ?? DEFAULT_WEB_DIR,
     smtp: {
       hostname: mxHostname,

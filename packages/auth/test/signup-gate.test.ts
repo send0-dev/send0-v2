@@ -32,6 +32,24 @@ describe("sign-up gate", () => {
     await close();
   });
 
+  it("with an owner email, waits for that owner before anyone else", async () => {
+    const { db, close } = await createTestDb();
+    const auth = createAuth({ db, mailer, ...base, allowSignup: false, ownerEmail: "Owner@Acme.dev" });
+    expect(await auth.accounts.signupOpen()).toBe(true);
+    const e = await err(auth.accounts.signUp({ email: "squatter@acme.dev", password: "tangerine-orbit-42" }));
+    expect(e).toMatchObject({ status: 403, code: "signup_closed", message: "This send0 is waiting for its owner to sign up." });
+    const { user } = await auth.accounts.signUp({ email: " OWNER@acme.dev", password: "tangerine-orbit-42" });
+    expect(user.email).toBe("owner@acme.dev");
+    expect(await auth.accounts.signupOpen()).toBe(false);
+    for (const email of ["owner2@acme.dev", "squatter@acme.dev"]) {
+      expect(await err(auth.accounts.signUp({ email, password: "tangerine-orbit-42" }))).toMatchObject({
+        status: 403,
+        code: "signup_closed",
+      });
+    }
+    await close();
+  });
+
   it("still lets an invitee join a closed install", async () => {
     const { db, close } = await createTestDb();
     const sent: { raw: string; recipients: string[] }[] = [];

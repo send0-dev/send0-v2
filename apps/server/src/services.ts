@@ -32,12 +32,18 @@ export interface Services {
   close: () => Promise<void>;
 }
 
+/**
+ * Shutdown budgets. With the HTTP and SMTP drains in front (up to 10s, in parallel) and the hub's own
+ * 2s limit, a full stop stays under 25s, inside compose's 30s stop_grace_period.
+ */
+const SHUTDOWN = { backgroundMs: 3_000, queueMs: 8_000, dbSeconds: 2 };
+
 const logError = (event: string, err: unknown, extra: Record<string, unknown> = {}) =>
   console.error(JSON.stringify({ event, ...extra, error: String(err) }));
 
 /** Closes the postgres.js pool behind a Drizzle database made by `createDb`. */
 async function closeDb(db: Db): Promise<void> {
-  await (db as unknown as { $client: { end: (o?: { timeout?: number }) => Promise<void> } }).$client.end({ timeout: 5 });
+  await (db as unknown as { $client: { end: (o?: { timeout?: number }) => Promise<void> } }).$client.end({ timeout: SHUTDOWN.dbSeconds });
 }
 
 /** Connects to Postgres, the hub and the queue, and wires the API and auth around them. */
@@ -76,6 +82,7 @@ export async function createServices(config: ServerConfig): Promise<Services> {
     from: { name: "send0", email: config.mailFrom },
     appUrl: config.publicUrl,
     allowSignup: config.allowSignup,
+    ...(config.ownerEmail ? { ownerEmail: config.ownerEmail } : {}),
   });
 
   const apiDeps: AppDeps = {
@@ -95,9 +102,12 @@ export async function createServices(config: ServerConfig): Promise<Services> {
   let closing: Promise<void> | undefined;
   const close = () =>
     (closing ??= (async () => {
-      // Background work first: it publishes events, which needs the queue and the hub.
-      await background.drain();
-      await liveQueue.stop().catch((err: unknown) => logError("shutdown.queue_failed", err));
+      // Background work first: it publishes events, which needs the queue and the hub. Anything still
+      // unpublished after the budget is picked up from the outbox by the next sweep.
+      if (!(await background.drain(SHUTDOWN.backgroundMs))) {
+        console.error(JSON.stringify({ event: "shutdown.background_abandoned", pending: background.size }));
+      }
+      await liveQueue.stop({ timeoutMs: SHUTDOWN.queueMs }).catch((err: unknown) => logError("shutdown.queue_failed", err));
       await liveHub.stop().catch((err: unknown) => logError("shutdown.hub_failed", err));
       mailer.close?.();
       await closeDb(db).catch((err: unknown) => logError("shutdown.db_failed", err));

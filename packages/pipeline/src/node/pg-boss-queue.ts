@@ -55,8 +55,8 @@ export class PgBossQueue implements QueueLike {
     });
   }
 
-  /** Stops fetching, lets in-flight jobs finish (up to 30s), then closes the pool. */
-  async stop(): Promise<void> {
-    await this.boss.stop({ graceful: true, timeout: 30_000 });
+  /** Stops fetching, lets in-flight jobs finish (up to `timeoutMs`, default 30s), then closes the pool. */
+  async stop(opts: { timeoutMs?: number } = {}): Promise<void> {
+    await this.boss.stop({ graceful: true, timeout: opts.timeoutMs ?? 30_000 });
   }
 }

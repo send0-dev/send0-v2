@@ -8,7 +8,16 @@ const base = {
   SECRET_KEY: SECRET,
   DATABASE_URL: "postgres://send0:hunter2-db-pass@db:5432/send0",
   SMTP_URL: "smtp://relay-user:hunter2-smtp-pass@smtp.relay.dev:587",
+  OWNER_EMAIL: "Owner@Acme.dev",
 };
+const SES = {
+  MAILER: "ses",
+  SES_REGION: "ap-south-1",
+  SES_ACCESS_KEY_ID: "AKIA",
+  SES_SECRET_ACCESS_KEY: "sekrit",
+  SES_CONFIGURATION_SET: "default",
+};
+const TOKEN = "t".repeat(32);
 
 /** The problems a bad env produces. */
 function problems(env: Record<string, string | undefined>): string[] {
@@ -31,6 +40,9 @@ describe("loadConfig", () => {
       trustedAuthservIds: ["mail.acme.dev"],
       limits: NO_LIMITS,
       allowSignup: false,
+      ownerEmail: "owner@acme.dev",
+      host: "0.0.0.0",
+      trustedProxies: ["127.0.0.0/8", "::1", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7"],
       mailer: { kind: "smtp", url: base.SMTP_URL },
       mailFrom: "noreply@mail.acme.dev",
       blob: { driver: "fs", dir: "/data/blobs" },
@@ -100,10 +112,54 @@ describe("loadConfig", () => {
   });
 
   it("enables SES events only with both the token and the topic", () => {
-    const c = loadConfig({ ...base, SES_EVENTS_TOKEN: "tok", SES_EVENTS_TOPIC_ARN: "arn:aws:sns:x" });
-    expect(c.sesEvents).toEqual({ token: "tok", topicArn: "arn:aws:sns:x" });
-    expect(problems({ ...base, SES_EVENTS_TOKEN: "tok" })).toEqual([
+    const c = loadConfig({ ...base, ...SES, SES_EVENTS_TOKEN: TOKEN, SES_EVENTS_TOPIC_ARN: "arn:aws:sns:x" });
+    expect(c.sesEvents).toEqual({ token: TOKEN, topicArn: "arn:aws:sns:x" });
+    expect(problems({ ...base, ...SES, SES_EVENTS_TOKEN: TOKEN })).toEqual([
       "SES_EVENTS_TOKEN: set together with SES_EVENTS_TOPIC_ARN (both or neither)",
+    ]);
+  });
+
+  it("wants a long SES events token, and only with MAILER=ses", () => {
+    expect(problems({ ...base, ...SES, SES_EVENTS_TOKEN: "short", SES_EVENTS_TOPIC_ARN: "arn:aws:sns:x" })).toEqual([
+      "SES_EVENTS_TOKEN: must be at least 32 characters (generate one with `openssl rand -hex 32`)",
+    ]);
+    expect(problems({ ...base, SES_EVENTS_TOKEN: TOKEN, SES_EVENTS_TOPIC_ARN: "arn:aws:sns:x" })).toEqual([
+      "SES_EVENTS_TOKEN: only applies when MAILER=ses",
+    ]);
+  });
+
+  it("requires OWNER_EMAIL while sign-up is closed", () => {
+    expect(problems({ ...base, OWNER_EMAIL: undefined })).toEqual([
+      "OWNER_EMAIL: is required while ALLOW_SIGNUP is false (the email of the first account, who becomes the owner)",
+    ]);
+    expect(problems({ ...base, OWNER_EMAIL: "owner" })).toEqual(["OWNER_EMAIL: must be an email address, like you@acme.com"]);
+    const open = loadConfig({ ...base, OWNER_EMAIL: undefined, ALLOW_SIGNUP: "true" });
+    expect(open.allowSignup).toBe(true);
+    expect(open.ownerEmail).toBeUndefined();
+  });
+
+  it("takes the bind address and trusted proxies", () => {
+    expect(loadConfig({ ...base, HOST: "127.0.0.1", TRUSTED_PROXIES: "203.0.113.0/24, ::1" })).toMatchObject({
+      host: "127.0.0.1",
+      trustedProxies: ["203.0.113.0/24", "::1"],
+    });
+    expect(loadConfig({ ...base, TRUSTED_PROXIES: "none" }).trustedProxies).toEqual([]);
+    expect(problems({ ...base, TRUSTED_PROXIES: "10.0.0.0/8, proxy.local, 1.2.3.4/40", HOST: "not a host" })).toEqual([
+      "HOST: must be an IP address or hostname to listen on, like 0.0.0.0",
+      "TRUSTED_PROXIES: must be IP addresses or CIDR ranges, like 10.0.0.0/8 (or none)",
+    ]);
+  });
+
+  it("wants PUBLIC_URL as a bare origin and SMTP_URL as smtp:// or smtps://", () => {
+    expect(loadConfig({ ...base, PUBLIC_URL: "https://mail.acme.dev/" }).publicUrl).toBe("https://mail.acme.dev");
+    for (const PUBLIC_URL of ["https://acme.dev/send0", "https://acme.dev/?x=1", "https://acme.dev/#top"]) {
+      expect(problems({ ...base, PUBLIC_URL })).toEqual([
+        "PUBLIC_URL: must be an origin only, like https://mail.acme.com (no path, query or hash)",
+      ]);
+    }
+    expect(loadConfig({ ...base, SMTP_URL: "smtps://u:p@relay.dev:465" }).mailer).toMatchObject({ kind: "smtp" });
+    expect(problems({ ...base, SMTP_URL: "https://relay.dev" })).toEqual([
+      "SMTP_URL: must be an smtp:// or smtps:// URL, like smtp://user:pass@host:587",
     ]);
   });
 
@@ -130,6 +186,7 @@ describe("loadConfig", () => {
       "PUBLIC_URL: must be an http:// or https:// URL",
       "SECRET_KEY: is required (generate one with `openssl rand -hex 32`)",
       "DATABASE_URL: is required (postgres://user:password@host:5432/send0)",
+      "OWNER_EMAIL: is required while ALLOW_SIGNUP is false (the email of the first account, who becomes the owner)",
       "MAILER: must be smtp or ses",
       "BLOB_DRIVER: must be fs or s3",
       "PORT: must be a port number (0-65535)",

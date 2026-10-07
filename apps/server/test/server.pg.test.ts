@@ -86,6 +86,7 @@ describe.skipIf(!TEST_DATABASE_URL)("send0 server (Postgres)", () => {
     base = `http://127.0.0.1:${port}`;
     const config = loadConfig({
       DOMAIN: "mail.acme.dev",
+      OWNER_EMAIL: "owner@acme.dev",
       MAIL_DOMAIN,
       PUBLIC_URL: base,
       PORT: String(port),
@@ -145,7 +146,12 @@ describe.skipIf(!TEST_DATABASE_URL)("send0 server (Postgres)", () => {
     expect(health.status).toBe(200);
     expect(await health.json()).toEqual({ ok: true });
 
-    // The first person to sign up becomes the owner.
+    // Until the configured owner signs up, nobody else can claim the install.
+    const squatter = await browser()("POST", "/auth/signup", { email: "squatter@acme.dev", password: PASSWORD });
+    expect(squatter.status).toBe(403);
+    expect(squatter.body.error).toMatchObject({ code: "signup_closed", message: "This send0 is waiting for its owner to sign up." });
+
+    // The owner signs up first.
     const owner = browser();
     const signup = await owner("POST", "/auth/signup", { email: "owner@acme.dev", password: PASSWORD, name: "Owner" });
     expect(signup.status).toBe(201);
@@ -226,5 +232,12 @@ describe.skipIf(!TEST_DATABASE_URL)("send0 server (Postgres)", () => {
     const r = await fetch(`${base}/inboxes`);
     expect(r.status).toBe(200);
     expect(await r.text()).toContain("send0 stub");
+  });
+
+  it("stops once, however often and concurrently stop() is called", async () => {
+    const stopped = await Promise.all([server.stop(), server.stop()]);
+    expect(stopped).toEqual([undefined, undefined]);
+    await expect(server.stop()).resolves.toBeUndefined();
+    await expect(fetch(`${base}/healthz`)).rejects.toThrow();
   });
 });

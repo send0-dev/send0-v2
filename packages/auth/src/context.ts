@@ -13,6 +13,8 @@ export interface AuthDeps {
   appUrl: string;
   /** false: sign-up works only until the first account exists; after that, people join by invite. Default true. */
   allowSignup?: boolean;
+  /** While no account exists, only this email (case-insensitive) may sign up, so nobody else can claim a new install. */
+  ownerEmail?: string;
   now?: () => Date;
 }
 

@@ -18,8 +18,23 @@ export class BackgroundTasks {
     return this.pending.size;
   }
 
-  /** Resolves once every tracked task (including ones added while draining) has settled. */
-  async drain(): Promise<void> {
-    while (this.pending.size) await Promise.all(this.pending);
+  /**
+   * Resolves once every tracked task (including ones added while draining) has settled, or after
+   * `timeoutMs`, whichever is first. Never rejects. Returns false when it gave up with work still running.
+   */
+  async drain(timeoutMs = Infinity): Promise<boolean> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const expired = new Promise<false>((resolve) => {
+      if (Number.isFinite(timeoutMs)) timer = setTimeout(() => resolve(false), timeoutMs);
+    });
+    const settled = (async () => {
+      while (this.pending.size) await Promise.all(this.pending);
+      return true as const;
+    })();
+    try {
+      return await Promise.race([settled, expired]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 }

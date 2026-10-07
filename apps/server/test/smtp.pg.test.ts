@@ -85,6 +85,7 @@ describe.skipIf(!TEST_DATABASE_URL)("inbound SMTP (Postgres)", () => {
     tmp = await mkdtemp(path.join(tmpdir(), "send0-smtp-"));
     config = loadConfig({
       DOMAIN: "mail.acme.dev",
+      OWNER_EMAIL: "owner@acme.dev",
       MAIL_DOMAIN,
       MX_HOSTNAME: MX,
       SMTP_PORT: "0",

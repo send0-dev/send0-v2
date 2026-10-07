@@ -87,6 +87,12 @@ export class AccountService {
     if (!(await this.signupOpen())) {
       throw new AuthError(403, "signup_closed", "Sign-up is closed here. Ask a workspace owner to invite you.");
     }
+    // Until the owner exists, nobody else can claim a freshly installed server.
+    const owner = this.ctx.deps.ownerEmail;
+    if (owner && normalizeEmail(input.email) !== normalizeEmail(owner)) {
+      const [existing] = await this.ctx.db.select({ id: users.id }).from(users).limit(1);
+      if (!existing) throw new AuthError(403, "signup_closed", "This send0 is waiting for its owner to sign up.");
+    }
     const email = await this.checkNewAccount(input.email, input.password);
     const user = await this.createUser({ email, password: input.password, name: input.name });
     await this.sendVerification(user).catch(() => {});

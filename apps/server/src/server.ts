@@ -14,7 +14,7 @@ export type Role = "http" | "worker" | "smtp";
 export const ROLES: readonly Role[] = ["http", "worker", "smtp"];
 
 export interface RunningServer {
-  /** Where the http role listens locally (null without it), e.g. http://127.0.0.1:3000 */
+  /** Where the http role is bound (null without it), e.g. http://0.0.0.0:3000 */
   url: string | null;
   /** Where the smtp role listens (null without it) */
   smtpPort: number | null;
@@ -23,17 +23,28 @@ export interface RunningServer {
   stop: () => Promise<void>;
 }
 
-/** How long shutdown waits for in-flight HTTP requests before cutting connections. */
-const HTTP_DRAIN_MS = 10_000;
+/**
+ * How long shutdown waits for in-flight HTTP requests before cutting connections. Together with the
+ * queue's graceful stop and the rest, the whole stop fits in compose's 30s stop_grace_period.
+ */
+const HTTP_DRAIN_MS = 5_000;
 
 const log = (entry: Record<string, unknown>) => console.log(JSON.stringify(entry));
 const logError = (event: string, err: unknown) => console.error(JSON.stringify({ event, error: String(err) }));
 
-function listen(app: { fetch: (req: Request) => Response | Promise<Response> }, port: number): Promise<ServerType> {
+function listen(app: { fetch: (req: Request) => Response | Promise<Response> }, hostname: string, port: number): Promise<ServerType> {
   return new Promise((resolve, reject) => {
-    const server = serve({ fetch: app.fetch, port }, () => resolve(server));
+    const server = serve({ fetch: app.fetch, hostname, port }, () => {
+      server.off("error", reject);
+      resolve(server);
+    });
     server.once("error", reject);
   });
+}
+
+/** `http://host:port` for a bound address; IPv6 hosts get brackets. */
+function boundUrl({ address, port, family }: AddressInfo): string {
+  return `http://${family === "IPv6" ? `[${address}]` : address}:${port}`;
 }
 
 /** Stops accepting connections and resolves when open ones finish, cutting them after `ms`. */
@@ -73,9 +84,8 @@ export async function startServer(config: ServerConfig, opts: { roles?: readonly
       if (!existsSync(path.join(config.webDir, "index.html"))) {
         log({ event: "web.missing", level: "warn", message: "No dashboard build found; only the API is served.", dir: config.webDir });
       }
-      http = await listen(createHttpApp(services, config), config.port);
-      const { port } = http.address() as AddressInfo;
-      url = `http://127.0.0.1:${port}`;
+      http = await listen(createHttpApp(services, config), config.host, config.port);
+      url = boundUrl(http.address() as AddressInfo);
       log({ event: "server.listening", url, public_url: config.publicUrl });
     }
   } catch (err) {
