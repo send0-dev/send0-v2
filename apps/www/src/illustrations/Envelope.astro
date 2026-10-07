@@ -1,0 +1,48 @@
+---
+// An airmail envelope, front side: stamp, postmark, address lines. Arrives in the hero demo.
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<svg
+  class:list={["ill", cls]}
+  viewBox="0 0 200 132"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path
+    d="M10 12.5c60-2.6 120-2.2 180-1 1.6 36.4 1.4 73 -.8 109.6-59.5 2.4-119 2.2-178.4-.6C8.6 84 8.7 48.2 10 12.5Z"
+    fill="var(--card)"
+  ></path>
+  <path
+    d="M18.5 19.5 181.6 18.2 181 112.6 19 112Z"
+    stroke="var(--airmail-red)"
+    stroke-width="4.5"
+    stroke-dasharray="9 9"
+    stroke-linecap="butt"
+  ></path>
+  <path
+    d="M18.5 19.5 181.6 18.2 181 112.6 19 112Z"
+    stroke="var(--airmail-blue)"
+    stroke-width="4.5"
+    stroke-dasharray="9 9"
+    stroke-dashoffset="9"
+    stroke-linecap="butt"
+  ></path>
+  <path d="M147.5 27.6h24.6l-.4 30.2h-24.4Z" fill="var(--postal)" stroke="none"></path>
+  <path d="M147.5 27.6h24.6l-.4 30.2h-24.4Z" stroke="var(--card)" stroke-width="3" stroke-dasharray="0 4.2"></path>
+  <ellipse cx="159.8" cy="43" rx="4.6" ry="6.4" stroke="var(--card)" stroke-width="2.4"></ellipse>
+  <circle cx="141" cy="47" r="14.5" stroke-width="1.5"></circle>
+  <path
+    d="M100 39.5c5-3.6 9 3.4 14 0s9 3.4 14 0M100 47.5c5-3.6 9 3.4 14 0s9 3.4 14 0M100 55.5c5-3.6 9 3.4 14 0s9 3.4 14 0"
+    stroke-width="1.5"
+  ></path>
+  <path d="M30 32.5h36M30 40h24" stroke="var(--muted)" stroke-width="2"></path>
+  <path d="M66 80.5h70M66 91h56M66 101.5h36" stroke="var(--muted)" stroke-width="2.4"></path>
+</svg>

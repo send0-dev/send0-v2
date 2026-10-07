@@ -1,0 +1,32 @@
+---
+// An opened envelope with the letter half out. The final call to action.
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<svg
+  class:list={["ill", cls]}
+  viewBox="0 0 280 230"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="M30 104.5 140.4 34 250.6 103" fill="var(--paper-alt)"></path>
+  <path d="M30 104.5c73.6-1.8 147-2.3 220.6-1.5l1.2 105.6c-74 1.6-148 1.8-222 .4Z" fill="var(--blush)"></path>
+  <g transform="rotate(-3 140 100)">
+    <path d="M62 36.5c52-1.4 104-1.4 156 .3l-1.2 132.6H63.4Z" fill="var(--card)"></path>
+    <path d="M80 58h56" stroke="var(--postal)" stroke-width="3"></path>
+    <path d="M80 75h112M80 87h104M80 99h112M80 111h72" stroke="var(--muted)" stroke-width="2"></path>
+    <path d="M183.5 51h22v26h-22Z" fill="var(--butter)"></path>
+    <path d="M183.5 51h22v26h-22Z" stroke="var(--card)" stroke-width="2.6" stroke-dasharray="0 4"></path>
+    <path d="M188.5 64.5c2.6-3 5.4 3 8 0s4.6 2.6 4.6 2.6" stroke-width="1.4"></path>
+  </g>
+  <path d="M29.6 108 140 168.4l111.8-63.6 0 103.8c-74 1.6-148 1.8-222 .4Z" fill="var(--card)"></path>
+  <path d="M30 208c32-24 64-42 92-52M251.8 208.6c-32-24-64-42-91-52" stroke-width="1.5"></path>
+  <path d="M20 72 9 64M14 90H1M28 56l-4-11M262 72l11-8M268 90h12M254 56l4-11" stroke="var(--postal)" stroke-width="2"></path>
+</svg>

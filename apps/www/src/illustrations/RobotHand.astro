@@ -1,0 +1,53 @@
+---
+// A robot hand holding up a letter with a six-digit code: an agent signing up and verifying.
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+const fingers = [99, 114, 129];
+---
+
+<svg
+  class:list={["ill", cls]}
+  viewBox="0 0 220 172"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <g transform="rotate(-5 112 60)">
+    <path d="M52 15.5c40-1.4 80-1.2 120 .4l-.8 88.6c-39.6 1-79.4.9-119-.2Z" fill="var(--card)"></path>
+    <path d="M66 31h42" stroke="var(--muted)" stroke-width="2.2"></path>
+    {[0, 1, 2, 3, 4, 5].map((i) => (
+      <rect
+        x={66 + i * 16.4}
+        y="45"
+        width="12"
+        height="17"
+        rx="2.2"
+        fill={i === 2 ? "var(--postal)" : "var(--butter)"}
+        stroke-width="1.5"
+      />
+    ))}
+    <path d="M66 80h66M66 89.5h40" stroke="var(--muted)" stroke-width="2.2"></path>
+  </g>
+  <path d="M93 168v-16.5h43V168" fill="var(--paper-alt)"></path>
+  <path d="M99 160h0M130 160h0" stroke-width="3.5"></path>
+  {fingers.map((x) => (
+    <path d={`M${x} 124V96`} stroke="currentColor" stroke-width="12.5" />
+  ))}
+  {fingers.map((x) => (
+    <path d={`M${x} 124V96`} stroke="var(--sky)" stroke-width="9" />
+  ))}
+  {fingers.map((x) => (
+    <path d={`M${x - 4.4} 109.5h8.8`} stroke-width="1.5" />
+  ))}
+  <path d="M92 134 81.5 117.5 85 105" stroke="currentColor" stroke-width="12.5"></path>
+  <path d="M92 134 81.5 117.5 85 105" stroke="var(--sky)" stroke-width="9"></path>
+  <path d="M77.2 120.2 86 115.4" stroke-width="1.5"></path>
+  <path d="M88 119.5c0-4.6 2.4-7 7-7h37c4.6 0 7 2.4 7 7v25c0 4.6-2.4 7-7 7H95c-4.6 0-7-2.4-7-7Z" fill="var(--sky)"></path>
+  <circle cx="113.5" cy="131.5" r="4.2" fill="var(--card)"></circle>
+  <path d="M184 33l9-6M188 49h11M184 64l9 6" stroke="var(--postal)" stroke-width="2"></path>
+</svg>
