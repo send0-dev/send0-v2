@@ -214,7 +214,10 @@ bucket, the queue, the Hyperdrive connection and the Durable Object, and asks fo
 
 Optional settings, added later as variables under Workers & Pages > send0 > Settings:
 \`MAIL_FROM\` (sender of account email; defaults to \`noreply@\` your first mail domain), \`PUBLIC_URL\`,
-\`SES_CONFIGURATION_SET\`, and \`SES_EVENTS_TOKEN\` with \`SES_EVENTS_TOPIC_ARN\` (see step 2).
+\`SES_CONFIGURATION_SET\`, \`SES_EVENTS_TOKEN\` with \`SES_EVENTS_TOPIC_ARN\` (see step 2), and
+\`OPERATOR_FORWARD_TO\`: an address to forward \`postmaster@\` and \`abuse@\` on your mail domains to,
+instead of refusing them. It must be a verified destination address under Email Routing > Destination
+addresses.
 
 \`PUBLIC_URL\`: set it if you add a custom domain, to that origin (like \`https://mail.acme.com\`).
 send0 then redirects every other hostname, including workers.dev, to it, so sign-in, download

@@ -33,13 +33,14 @@ A test from the server itself can fail even when the port is open, if the networ
 
 send0 checks every recipient during the SMTP session, so senders get a bounce instead of silent loss:
 
-| Recipient                                         | Reply                              |
-| ------------------------------------------------- | ---------------------------------- |
-| An active inbox (plus-tags like `bot+task@` work) | `250`, accepted                    |
-| An address that isn't an inbox                    | `550 5.1.1 Mailbox does not exist` |
-| A disabled inbox                                  | `550 5.2.1 Mailbox disabled`       |
-| A domain not in `MAIL_DOMAINS`                    | `550 5.7.1 Relaying denied`        |
-| A reserved name, like `postmaster@`               | `550 5.1.1 Mailbox unavailable`    |
+| Recipient                                                 | Reply                              |
+| --------------------------------------------------------- | ---------------------------------- |
+| An active inbox (plus-tags like `bot+task@` work)         | `250`, accepted                    |
+| An address that isn't an inbox                            | `550 5.1.1 Mailbox does not exist` |
+| A disabled inbox                                          | `550 5.2.1 Mailbox disabled`       |
+| A domain not in `MAIL_DOMAINS`                            | `550 5.7.1 Relaying denied`        |
+| `postmaster@` or `abuse@`, with `OPERATOR_FORWARD_TO` set | `250`, relayed to that address     |
+| A reserved name, like `admin@`                            | `550 5.1.1 Mailbox unavailable`    |
 
 Messages over about 25 MiB get `552 5.3.4 Message too big`. If the database or storage fails, send0 answers `451` and the sender retries later.
 
@@ -72,7 +73,12 @@ send0 offers STARTTLS with a self-signed certificate for `MX_HOSTNAME`. Sending 
 
 These local parts can't be inboxes, on any of your mail domains: `postmaster`, `abuse`, `admin`, `administrator`, `hostmaster`, `webmaster`, `support`, `noreply`, `no-reply`, `security`, `billing` and `mailer-daemon`. Mail to them is refused, and send0 won't send to them on your mail domains.
 
-So point DMARC reports, abuse contacts and similar addresses at a mailbox on another domain, like `dmarc@example.com`.
+The exception is `postmaster@` and `abuse@`: mail servers are expected to accept mail for postmaster (RFC 5321), and abuse@ is where people report spam. Set `OPERATOR_FORWARD_TO` to an address you read, on another domain, and send0 passes that mail on instead of refusing it:
+
+- **Docker** relays it through your mailer (`SMTP_URL` or SES). The relayed copy comes from `MAIL_FROM`, so it passes SPF and DMARC, with the original attached as `original.eml`. If the relay fails, the sender is asked to retry.
+- **Cloudflare** forwards it with Email Routing. The address must be a verified destination address (Email Routing > Destination addresses), or forwarding fails.
+
+Each message logs `message.forwarded_to_operator`. Point DMARC reports and other role addresses at a mailbox on another domain, like `dmarc@example.com`.
 
 ## Sending
 

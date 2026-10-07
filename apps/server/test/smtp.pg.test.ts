@@ -442,6 +442,40 @@ describe.skipIf(!TEST_DATABASE_URL)("inbound SMTP (Postgres)", () => {
     expect(Date.now() - started).toBeLessThan(10_000);
   });
 
+  it("relays postmaster@ and abuse@ to OPERATOR_FORWARD_TO through the mailer, wrapped from MAIL_FROM", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const sendRaw = vi.spyOn(services.mailer, "sendRaw").mockResolvedValue({ providerMessageId: "relay-1" });
+    const operator = await startSmtpServer(services, { ...config, operatorForwardTo: "ops@acme.com" }, { resolver: offlineResolver });
+    const relay = (to: string[], raw: Buffer) =>
+      nodemailer
+        .createTransport({ host: "127.0.0.1", port: operator.port, secure: false, ignoreTLS: true })
+        .sendMail({ envelope: { from: "reporter@isp.test", to }, raw });
+    try {
+      const info = await relay([`postmaster@${MAIL_DOMAIN}`, `abuse@${MAIL_DOMAIN}`], Buffer.from(makeMail("Spam from your users")));
+      expect(info.accepted).toEqual([`postmaster@${MAIL_DOMAIN}`, `abuse@${MAIL_DOMAIN}`]);
+      expect(sendRaw).toHaveBeenCalledTimes(2);
+      const sent = sendRaw.mock.calls[0]![0];
+      expect(sent).toMatchObject({ from: config.mailFrom, recipients: ["ops@acme.com"] });
+      expect(sent.raw).toContain(`From: "send0" <${config.mailFrom}>`);
+      expect(sent.raw).toContain(`Subject: [send0] Mail for postmaster@${MAIL_DOMAIN} from reporter@isp.test`);
+      expect(sent.raw).toContain("Content-Type: message/rfc822");
+      expect(sent.raw).toContain("Subject: Spam from your users");
+      expect(sent.raw).toContain(`Authentication-Results: ${MX};`);
+      expect(await messagesWithSubject("Spam from your users")).toHaveLength(0);
+
+      // Other reserved names are still refused.
+      const r = await refusal(relay([`admin@${MAIL_DOMAIN}`], Buffer.from(makeMail("hi admin"))));
+      expect(r.code).toBe(550);
+
+      // A relay failure asks the sender to retry.
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      sendRaw.mockRejectedValueOnce(new Error("relay down"));
+      expect((await refusal(relay([`abuse@${MAIL_DOMAIN}`], Buffer.from(makeMail("retry me"))))).code).toBe(451);
+    } finally {
+      await operator.stop();
+    }
+  });
+
   it("runs as the server's smtp role", async () => {
     const server = await startServer(config, { roles: ["smtp"] });
     try {

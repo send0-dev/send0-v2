@@ -1,5 +1,6 @@
 import { parseSmtpUrl } from "@send0/adapters/node/smtp-mailer";
 import { ConfigError, parseCoreConfig, type CoreConfig } from "@send0/config";
+import { operatorAddressProblem } from "@send0/pipeline";
 import { isIP } from "node:net";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
@@ -29,6 +30,8 @@ export interface ServerConfig extends CoreConfig {
   sesEvents?: { token: string; topicArn: string };
   /** Sender of system email (verification, password resets, invites) */
   mailFrom: string;
+  /** postmaster@ and abuse@ mail is relayed here through the mailer (from mailFrom); unset: refused */
+  operatorForwardTo?: string;
   blob: BlobConfig;
   /** Only this email may create the first account (required while sign-up is closed). Lowercased. */
   ownerEmail?: string;
@@ -74,6 +77,7 @@ const schema = z.object({
   SES_EVENTS_TOKEN: opt(),
   SES_EVENTS_TOPIC_ARN: opt(),
   MAIL_FROM: opt(),
+  OPERATOR_FORWARD_TO: opt(),
   BLOB_DRIVER: opt(),
   BLOB_DIR: opt(),
   S3_BUCKET: opt(),
@@ -213,6 +217,10 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
   const mailFrom = env.MAIL_FROM ?? (core ? `noreply@${core.mailDomains[0]}` : undefined);
   if (env.MAIL_FROM && !EMAIL.test(env.MAIL_FROM)) problems.push("MAIL_FROM: must be an email address, like noreply@acme.com");
 
+  const operatorForwardTo = env.OPERATOR_FORWARD_TO?.toLowerCase();
+  const operatorProblem = operatorForwardTo && core ? operatorAddressProblem(operatorForwardTo, core.mailDomains) : null;
+  if (operatorProblem) problems.push(`OPERATOR_FORWARD_TO: ${operatorProblem}`);
+
   let blob: BlobConfig | undefined;
   const driver = (env.BLOB_DRIVER ?? "fs").toLowerCase();
   if (driver === "fs") blob = { driver: "fs", dir: env.BLOB_DIR ?? "/data/blobs" };
@@ -272,6 +280,7 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
     mailer,
     ...(sesEvents ? { sesEvents } : {}),
     mailFrom,
+    ...(operatorForwardTo ? { operatorForwardTo } : {}),
     blob,
     ...(ownerEmail ? { ownerEmail } : {}),
     host,

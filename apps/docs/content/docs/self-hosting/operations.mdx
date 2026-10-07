@@ -90,6 +90,7 @@ On Cloudflare, use Workers Logs in the dashboard, or `npx wrangler tail send0`.
 | `server.listening`, `smtp.listening`, `worker.started` | A role started                                                                                 |
 | `message.received`                                     | An inbound message was stored, with its sender, subject, thread and auth verdicts              |
 | `message.rejected`                                     | An inbound message was refused, with the `reason`                                              |
+| `message.forwarded_to_operator`                        | Mail for `postmaster@` or `abuse@` went to `OPERATOR_FORWARD_TO`                               |
 | `smtp.ingest_failed`, `smtp.lookup_failed`             | The SMTP server couldn't store a message or look up an inbox; the sender got `451` and retries |
 | `auth.email_failed`                                    | A verification, reset or invite email couldn't be sent. Check the relay or SES                 |
 | `sending.paused`                                       | SES events pushed a workspace over the bounce or complaint limit                               |

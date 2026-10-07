@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildMime,
+  buildOperatorForward,
   displayNameFromLocalPart,
   encodeHeaderValue,
   encodeQuotedPrintable,
@@ -140,5 +141,43 @@ describe("reply helpers", () => {
   });
   it("keeps encoded words short", () => {
     for (const w of encodeHeaderValue("ü".repeat(100)).split("\r\n ")) expect(w.length).toBeLessThanOrEqual(75);
+  });
+});
+
+describe("buildOperatorForward", () => {
+  const original = "From: Spammer <x@spam.example>\r\nTo: abuse@agents.acme.com\r\nSubject: Report\r\n\r\nPlease look at msg_123.\r\n";
+  const build = (raw: string, envelopeFrom = "reporter@isp.example") =>
+    buildOperatorForward({
+      from: { name: "send0", email: "noreply@agents.acme.com" },
+      to: "ops@acme.com",
+      recipient: "abuse@agents.acme.com",
+      envelopeFrom,
+      raw: new TextEncoder().encode(raw),
+      messageId: "<fwd_1@agents.acme.com>",
+      date: new Date("2026-10-07T10:00:00Z"),
+    });
+
+  it("sends from our own address and attaches the original untouched", async () => {
+    const raw = build(original);
+    const [head] = raw.split("\r\n\r\n");
+    expect(head).toContain('From: "send0" <noreply@agents.acme.com>');
+    expect(head).toContain("To: ops@acme.com");
+    expect(head).toContain("Subject: [send0] Mail for abuse@agents.acme.com from reporter@isp.example");
+    expect(head).toContain("Auto-Submitted: auto-forwarded");
+    expect(raw).toContain(
+      'Content-Type: message/rfc822\r\nContent-Disposition: attachment; filename="original.eml"\r\nContent-Transfer-Encoding: 7bit\r\n\r\n' +
+        original,
+    );
+    expect(raw.endsWith("--\r\n")).toBe(true);
+
+    const parsed = await parseInbound(new TextEncoder().encode(raw), opts);
+    expect(parsed.from?.email).toBe("noreply@agents.acme.com");
+    expect(parsed.text).toContain("send0 received this message for abuse@agents.acme.com");
+  });
+
+  it("marks 8-bit originals and names bounces", () => {
+    const raw = build("Subject: caf\u00e9\r\n\r\nd\u00e9j\u00e0 vu\r\n", "");
+    expect(raw).toContain("Content-Transfer-Encoding: 8bit");
+    expect(raw).toContain("Subject: [send0] Mail for abuse@agents.acme.com from <>");
   });
 });

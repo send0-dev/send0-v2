@@ -106,6 +106,13 @@ describe("loadConfig", () => {
     expect(loadConfig({ ...base, PORT: " ", MAILER: "", BLOB_DRIVER: "" })).toMatchObject({ port: 3000, mailer: { kind: "smtp" } });
   });
 
+  it("reads OPERATOR_FORWARD_TO, and refuses one that would loop", () => {
+    expect(loadConfig(base).operatorForwardTo).toBeUndefined();
+    expect(loadConfig({ ...base, OPERATOR_FORWARD_TO: " Ops@Acme.com " }).operatorForwardTo).toBe("ops@acme.com");
+    expect(problems({ ...base, OPERATOR_FORWARD_TO: "ops" })).toEqual(["OPERATOR_FORWARD_TO: must be an email address, like you@acme.com"]);
+    expect(problems({ ...base, OPERATOR_FORWARD_TO: "abuse@mail.acme.dev" })[0]).toMatch(/^OPERATOR_FORWARD_TO: must not be a reserved/);
+  });
+
   it("configures SES when MAILER=ses, and requires its settings", () => {
     const ses = { SES_REGION: "ap-south-1", SES_ACCESS_KEY_ID: "AKIA", SES_SECRET_ACCESS_KEY: "sekrit", SES_CONFIGURATION_SET: "default" };
     expect(loadConfig({ ...base, SMTP_URL: undefined, MAILER: "ses", ...ses }).mailer).toEqual({

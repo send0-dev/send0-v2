@@ -1,3 +1,5 @@
 # Write-only S3 user for raw mail (raw/) and attachments (att/). Set in production with `wrangler secret put`.
 S3_ACCESS_KEY_ID=
 S3_SECRET_ACCESS_KEY=
+# Where postmaster@ and abuse@ mail is forwarded. Must be a verified Email Routing destination address.
+OPERATOR_FORWARD_TO=

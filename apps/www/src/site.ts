@@ -12,6 +12,8 @@ export const site = {
     hello: "hello@send0.dev",
     support: "support@send0.dev",
     abuse: "abuse@send0.dev",
+    /** On the mailbox domain itself, where mail providers and recipients look first. Forwarded to the operator. */
+    mailboxAbuse: "abuse@send0.email",
     privacy: "privacy@send0.dev",
     security: "security@send0.dev",
   },

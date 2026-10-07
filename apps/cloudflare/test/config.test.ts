@@ -53,6 +53,19 @@ describe("loadConfig", () => {
     expect(loadConfig({ ...VARS, TRUSTED_AUTHSERV_IDS: " " }).trustedAuthservIds).toEqual(["mx.cloudflare.net"]);
   });
 
+  it("reads OPERATOR_FORWARD_TO, and refuses one that would loop", () => {
+    expect(loadConfig(VARS).operatorForwardTo).toBeUndefined();
+    expect(loadConfig({ ...VARS, OPERATOR_FORWARD_TO: " Ops@Acme.com " }).operatorForwardTo).toBe("ops@acme.com");
+    expect(problemsOf({ ...VARS, OPERATOR_FORWARD_TO: "ops" })).toEqual([
+      "OPERATOR_FORWARD_TO: must be an email address, like you@acme.com",
+    ]);
+    expect(problemsOf({ ...VARS, OPERATOR_FORWARD_TO: "postmaster@agents.acme.dev" })[0]).toMatch(
+      /^OPERATOR_FORWARD_TO: must not be a reserved/,
+    );
+    // An ordinary inbox on your own domain is fine.
+    expect(loadConfig({ ...VARS, OPERATOR_FORWARD_TO: "ops@agents.acme.dev" }).operatorForwardTo).toBe("ops@agents.acme.dev");
+  });
+
   it("lets sign-up open without an owner", () => {
     expect(loadConfig({ ...VARS, OWNER_EMAIL: "", ALLOW_SIGNUP: "true" }).allowSignup).toBe(true);
   });

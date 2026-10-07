@@ -2,7 +2,7 @@ import { enforceRetention, purgeDeletedOrgs, raiseSendCaps } from "@send0/api/ma
 import { processQueueMessage, sweep } from "@send0/api/webhooks/dispatch";
 import { R2BlobStore } from "@send0/adapters/blob";
 import { createDb, type Db } from "@send0/db";
-import { receiveMessage, type QueueMessage } from "@send0/pipeline";
+import { emailRoutingForwarder, receiveMessage, type QueueMessage } from "@send0/pipeline";
 import { bootDatabase, bootGate } from "./boot";
 import { configCache, configErrorResponse, type CloudflareConfig } from "./config";
 import { createHttpApp } from "./http";
@@ -62,14 +62,22 @@ export function createWorker(opts: WorkerOptions = {}) {
 
     // Email Routing's catch-all. An uncaught error is logged by the runtime; Email Routing may not
     // retry the message, so refusals that matter are made with setReject inside receiveMessage.
+    // With OPERATOR_FORWARD_TO, postmaster@ and abuse@ are forwarded there instead of refused.
     async email(message, env) {
       const config = configOrThrow(env);
       const db = makeDb(env.HYPERDRIVE.connectionString, { max: 2 });
       await ready(db, config)();
+      const forwardReserved = emailRoutingForwarder(config.operatorForwardTo);
       await receiveMessage(
         message,
         { mailDomains: config.mailDomains, trustedAuthservIds: config.trustedAuthservIds },
-        { db, blobs: new R2BlobStore(env.BLOBS), hub: env.HUB as never, queue: env.EVENTS },
+        {
+          db,
+          blobs: new R2BlobStore(env.BLOBS),
+          hub: env.HUB as never,
+          queue: env.EVENTS,
+          ...(forwardReserved ? { forwardReserved } : {}),
+        },
       );
     },
 

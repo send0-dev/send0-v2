@@ -1,4 +1,13 @@
-import { checkRecipient, findInboxByAddress, MAX_MESSAGE_BYTES, receiveMessage, type InboundMessage } from "@send0/pipeline";
+import { buildOperatorForward } from "@send0/core";
+import {
+  checkRecipient,
+  findInboxByAddress,
+  MAX_MESSAGE_BYTES,
+  operatorLocalPart,
+  receiveMessage,
+  type InboundDeps,
+  type InboundMessage,
+} from "@send0/pipeline";
 import { authenticate, type AuthenticateOptions, type AuthenticateResult } from "mailauth";
 import { readFile } from "node:fs/promises";
 import type { AddressInfo, Socket } from "node:net";
@@ -119,9 +128,35 @@ export async function startSmtpServer(services: Services, config: ServerConfig, 
   const counted = new Set<string>();
   const refusedRcpts = new Map<string, number>();
 
+  /**
+   * postmaster@ and abuse@ (RFC 5321 requires postmaster) are relayed to OPERATOR_FORWARD_TO through the
+   * configured mailer, wrapped in a message from MAIL_FROM so it passes SPF and DMARC. Unset: refused.
+   */
+  const operatorTo = config.operatorForwardTo;
+  const forwardReserved: InboundDeps["forwardReserved"] = operatorTo
+    ? async (message) => {
+        const raw = new Uint8Array(await new Response(message.raw).arrayBuffer());
+        const domain = config.mailFrom.split("@")[1]!;
+        await services.mailer.sendRaw({
+          from: config.mailFrom,
+          recipients: [operatorTo],
+          raw: buildOperatorForward({
+            from: { name: "send0", email: config.mailFrom },
+            to: operatorTo,
+            recipient: message.to,
+            envelopeFrom: message.from,
+            raw,
+            messageId: `<fwd_${crypto.randomUUID()}@${domain}>`,
+          }),
+          tags: { kind: "operator_forward" },
+        });
+      }
+    : undefined;
+
   /** Refuses with the same codes the hosted pipeline uses, looking the inbox up last. */
   async function checkRcpt(address: string): Promise<void> {
     const check = checkRecipient(address, config.mailDomains);
+    if (!check.ok && check.reason === "reserved" && forwardReserved && operatorLocalPart(address, inbound)) return;
     if (!check.ok) throw smtpError(550, check.smtp);
     let inbox;
     try {
@@ -208,7 +243,12 @@ export async function startSmtpServer(services: Services, config: ServerConfig, 
         setReject: (reason) => void (rejected = reason),
       };
       try {
-        await receiveMessage(message, inbound, { db: services.db, blobs: services.blobs.store, publish: services.publish });
+        await receiveMessage(message, inbound, {
+          db: services.db,
+          blobs: services.blobs.store,
+          publish: services.publish,
+          ...(forwardReserved ? { forwardReserved } : {}),
+        });
       } catch (err) {
         logError("smtp.ingest_failed", err, { to: rcpt.address, from });
         throw tempFailure();

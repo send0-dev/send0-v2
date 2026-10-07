@@ -57,6 +57,9 @@
     "SES_REGION": "us-east-1",
     // Only OWNER_EMAIL can create the first account; everyone else joins by invite.
     "ALLOW_SIGNUP": "false",
+    // Optional: forward postmaster@ and abuse@ on your mail domains to this address instead of refusing
+    // them. It must be a verified destination address under Email Routing > Destination addresses.
+    // "OPERATOR_FORWARD_TO": "you@example.com",
     // Secrets (wrangler secret put, or the Deploy button's prompts): see .dev.vars.example.
   },
   "observability": { "enabled": true },
