@@ -21,6 +21,7 @@ export default defineConfig(
     "packages/sdk/src/generated/",
     "packages/sdk-python/",
     "apps/web/e2e/shots/",
+    "apps/www/shots/",
     "docs/",
   ]),
 
@@ -92,7 +93,7 @@ export default defineConfig(
     },
   },
   {
-    files: ["apps/web/e2e/**", "apps/www/src/**/*.{js,ts}"],
+    files: ["apps/web/e2e/**", "apps/www/src/**/*.{js,ts}", "apps/www/scripts/**"],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
 

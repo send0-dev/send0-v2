@@ -51,3 +51,4 @@ __pycache__/
 .ruff_cache/
 
 apps/web/e2e/shots/
+apps/www/shots/
