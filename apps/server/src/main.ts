@@ -1,19 +1,22 @@
 import { pathToFileURL } from "node:url";
 import { ConfigError, loadConfig } from "./config";
+import { doctor } from "./doctor";
 import { ROLES, startServer, type Role } from "./server";
 
 const USAGE = `Usage: send0 <command>
 
 Commands:
   start [--only=http,worker,smtp]   Run the server (all roles by default)
+  doctor                            Check the config, database, mailer, DNS and reachability
 `;
 
-export type Command = { kind: "start"; roles: Role[] } | { kind: "help" } | { kind: "error"; message: string };
+export type Command = { kind: "start"; roles: Role[] } | { kind: "doctor" } | { kind: "help" } | { kind: "error"; message: string };
 
 /** Parses `send0 …` arguments (without the node and script paths). Tiny on purpose: no CLI framework. */
 export function parseArgs(argv: string[]): Command {
   const [cmd, ...rest] = argv;
   if (cmd === undefined || cmd === "help" || cmd === "--help" || cmd === "-h") return { kind: "help" };
+  if (cmd === "doctor") return rest.length ? { kind: "error", message: `Unknown option: ${rest[0]}` } : { kind: "doctor" };
   if (cmd !== "start") return { kind: "error", message: `Unknown command: ${cmd}` };
   let roles: Role[] = [...ROLES];
   for (const arg of rest) {
@@ -42,6 +45,8 @@ export async function main(argv: string[]): Promise<number> {
       return 2;
     case "start":
       return start(cmd.roles);
+    case "doctor":
+      return doctor();
   }
 }
 

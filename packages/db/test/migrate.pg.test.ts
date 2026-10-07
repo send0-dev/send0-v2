@@ -1,6 +1,6 @@
 import postgres from "postgres";
 import { afterEach, describe, expect, it } from "vitest";
-import { migrateWithLock } from "../src/migrate";
+import { migrateWithLock, pendingMigrations } from "../src/migrate";
 import { createPgTestDatabase, TEST_DATABASE_URL } from "../src/testing-pg";
 
 const drops: Array<() => Promise<void>> = [];
@@ -59,5 +59,15 @@ describe.skipIf(!TEST_DATABASE_URL)("migrateWithLock", () => {
     await Promise.all([migrateWithLock(url), migrateWithLock(url), migrateWithLock(url)]);
     const journal = (await import("../migrations/meta/_journal.json")) as { default: { entries: unknown[] } };
     expect(await migrationCount(url)).toBe(journal.default.entries.length);
+  });
+});
+
+describe.skipIf(!TEST_DATABASE_URL)("pendingMigrations", () => {
+  it("lists every migration on a fresh database and none once migrated", async () => {
+    const url = await freshDb();
+    const journal = (await import("../migrations/meta/_journal.json")) as { default: { entries: { tag: string }[] } };
+    expect(await pendingMigrations(url)).toEqual(journal.default.entries.map((e) => e.tag));
+    await migrateWithLock(url);
+    expect(await pendingMigrations(url)).toEqual([]);
   });
 });

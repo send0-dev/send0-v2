@@ -47,9 +47,10 @@ describe("loadConfig", () => {
       mailFrom: "noreply@mail.acme.dev",
       blob: { driver: "fs", dir: "/data/blobs" },
       port: 3000,
-      smtp: { hostname: "mail.acme.dev", port: 2525 },
+      smtp: { hostname: "mail.acme.dev", port: 2525, maxClients: 30 },
     });
     expect(c.sesEvents).toBeUndefined();
+    expect(c.migrationsDir).toBeUndefined();
     expect(c.webDir).toMatch(/apps\/web\/dist\/client$/);
   });
 
@@ -77,6 +78,8 @@ describe("loadConfig", () => {
       WEB_DIR: "/app/web",
       SMTP_TLS_CERT: "/certs/cert.pem",
       SMTP_TLS_KEY: "/certs/key.pem",
+      SMTP_MAX_CLIENTS: "12",
+      MIGRATIONS_DIR: "/app/migrations",
     });
     expect(c).toMatchObject({
       publicUrl: "http://127.0.0.1:8080",
@@ -87,7 +90,8 @@ describe("loadConfig", () => {
       allowSignup: true,
       blob: { driver: "fs", dir: "/tmp/blobs" },
       webDir: "/app/web",
-      smtp: { hostname: "mx.acme.dev", port: 25, tlsCert: "/certs/cert.pem", tlsKey: "/certs/key.pem" },
+      migrationsDir: "/app/migrations",
+      smtp: { hostname: "mx.acme.dev", port: 25, maxClients: 12, tlsCert: "/certs/cert.pem", tlsKey: "/certs/key.pem" },
     });
     expect(c.limits.dailySendCap).toBe(true);
   });
@@ -210,6 +214,7 @@ describe("loadConfig", () => {
         MAIL_DOMAINS: "not a domain",
         MAIL_FROM: "nobody",
         SMTP_PORT: "70000",
+        SMTP_MAX_CLIENTS: "0",
         SMTP_TLS_KEY: "/k.pem",
       }),
     ).toEqual([
@@ -220,6 +225,7 @@ describe("loadConfig", () => {
       "MAIL_FROM: must be an email address, like noreply@acme.com",
       "SMTP_TLS_CERT: set together with SMTP_TLS_KEY (both or neither)",
       "SMTP_PORT: must be a port number (0-65535)",
+      "SMTP_MAX_CLIENTS: must be a whole number from 1 to 10000",
     ]);
   });
 

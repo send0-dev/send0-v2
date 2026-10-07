@@ -37,4 +37,21 @@ describe("SesMailer", () => {
     vi.stubGlobal("fetch", async () => Response.json({ __type: "TooManyRequestsException", message: "slow down" }, { status: 429 }));
     expect(await new SesMailer(cfg).sendRaw(input).catch((x) => x)).toMatchObject({ retryable: true });
   });
+
+  it("verifies credentials with a signed GetAccount", async () => {
+    let req: Request | undefined;
+    vi.stubGlobal("fetch", async (r: Request) => ((req = r), Response.json({ SendingEnabled: true, ProductionAccessEnabled: false })));
+    expect(await new SesMailer(cfg).verify()).toEqual({ sendingEnabled: true, productionAccessEnabled: false });
+    expect(req!.method).toBe("GET");
+    expect(req!.url).toBe("https://email.ap-south-1.amazonaws.com/v2/email/account");
+    expect(req!.headers.get("authorization")).toMatch(/\/ap-south-1\/ses\/aws4_request/);
+
+    vi.stubGlobal("fetch", async () =>
+      Response.json({ __type: "UnrecognizedClientException", message: "The security token is invalid." }, { status: 403 }),
+    );
+    const e = await new SesMailer(cfg).verify().catch((x) => x);
+    expect(e).toBeInstanceOf(MailerError);
+    expect(e).toMatchObject({ status: 403, code: "UnrecognizedClientException" });
+    expect(e.message).toContain("token is invalid");
+  });
 });

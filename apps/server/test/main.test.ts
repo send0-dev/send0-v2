@@ -17,6 +17,11 @@ describe("parseArgs", () => {
     expect(parseArgs(["start", "--only="])).toMatchObject({ kind: "error" });
   });
 
+  it("parses doctor", () => {
+    expect(parseArgs(["doctor"])).toEqual({ kind: "doctor" });
+    expect(parseArgs(["doctor", "--fix"])).toMatchObject({ kind: "error", message: "Unknown option: --fix" });
+  });
+
   it("shows help with no command", () => {
     expect(parseArgs([])).toEqual({ kind: "help" });
     expect(parseArgs(["--help"])).toEqual({ kind: "help" });

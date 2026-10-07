@@ -41,6 +41,7 @@ const TAG_VALUE = /[^A-Za-z0-9_.@-]/g;
 export class SesMailer implements Mailer {
   private readonly client: AwsClient;
   private readonly endpoint: string;
+  private readonly accountEndpoint: string;
 
   constructor(private readonly cfg: SesConfig) {
     this.client = new AwsClient({
@@ -51,6 +52,28 @@ export class SesMailer implements Mailer {
       retries: 0,
     });
     this.endpoint = `https://email.${cfg.region}.amazonaws.com/v2/email/outbound-emails`;
+    this.accountEndpoint = `https://email.${cfg.region}.amazonaws.com/v2/email/account`;
+  }
+
+  /**
+   * Checks the credentials with SES v2 GetAccount (read-only, sends nothing); used by `send0 doctor`.
+   * Resolves with whether the account may send at all, and whether it has left the SES sandbox.
+   */
+  async verify(opts: { signal?: AbortSignal } = {}): Promise<{ sendingEnabled: boolean; productionAccessEnabled: boolean }> {
+    const res = await this.client.fetch(this.accountEndpoint, { method: "GET", ...(opts.signal ? { signal: opts.signal } : {}) });
+    const text = await res.text();
+    if (!res.ok) {
+      let message = `HTTP ${res.status}`;
+      let code: string | undefined;
+      try {
+        const err = JSON.parse(text) as { message?: string; Message?: string; __type?: string };
+        code = err.__type?.split("#").pop();
+        message = err.message ?? err.Message ?? message;
+      } catch {}
+      throw new MailerError(`SES rejected the credentials check: ${message.slice(0, 300)}`, res.status, res.status >= 500, code);
+    }
+    const account = JSON.parse(text) as { SendingEnabled?: boolean; ProductionAccessEnabled?: boolean };
+    return { sendingEnabled: account.SendingEnabled === true, productionAccessEnabled: account.ProductionAccessEnabled === true };
   }
 
   async sendRaw(input: SendRawInput): Promise<{ providerMessageId: string }> {

@@ -45,7 +45,6 @@ export interface SmtpOptions {
   authenticate?: (input: Buffer, opts: AuthenticateOptions) => Promise<AuthenticateResult>;
 }
 
-const MAX_CLIENTS = 100;
 const MAX_RECIPIENTS = 50;
 /** Refused RCPTs before a session is dropped: stops directory harvesting. */
 const MAX_REFUSED_RCPTS = 20;
@@ -230,7 +229,7 @@ export async function startSmtpServer(services: Services, config: ServerConfig, 
     authOptional: true,
     disabledCommands: ["AUTH"],
     size: limit,
-    maxClients: MAX_CLIENTS,
+    maxClients: config.smtp.maxClients,
     socketTimeout: SOCKET_TIMEOUT_MS,
     closeTimeout: CLOSE_TIMEOUT_MS,
     logger: false,

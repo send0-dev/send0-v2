@@ -63,7 +63,7 @@ function closeHttp(server: ServerType, ms: number): Promise<void> {
  */
 export async function startServer(config: ServerConfig, opts: { roles?: readonly Role[] } = {}): Promise<RunningServer> {
   const roles = new Set(opts.roles ?? ROLES);
-  await migrateWithLock(config.databaseUrl);
+  await migrateWithLock(config.databaseUrl, config.migrationsDir ? { migrationsFolder: config.migrationsDir } : {});
   const services = await createServices(config);
 
   let http: ServerType | null = null;

@@ -39,12 +39,17 @@ export interface ServerConfig extends CoreConfig {
   trustedProxies: string[];
   /** The built dashboard SPA (index.html plus assets) */
   webDir: string;
-  /** The inbound SMTP role */
-  smtp: { hostname: string; port: number; tlsCert?: string; tlsKey?: string };
+  /** The inbound SMTP role. Each client may buffer a whole message (~25 MiB), so `maxClients` bounds memory. */
+  smtp: { hostname: string; port: number; maxClients: number; tlsCert?: string; tlsKey?: string };
+  /** The SQL migrations folder; unset means the one shipped next to `@send0/db` (the image sets its own) */
+  migrationsDir?: string;
 }
 
 /** In a source checkout the SPA builds to apps/web/dist/client; the image sets WEB_DIR instead. */
 const DEFAULT_WEB_DIR = fileURLToPath(new URL("../../web/dist/client", import.meta.url).href);
+
+/** Concurrent inbound SMTP sessions. Each may buffer a message of up to ~25 MiB, so this bounds worst-case memory. */
+const DEFAULT_SMTP_MAX_CLIENTS = 30;
 
 const HOSTNAME = /^(?=.{1,253}$)[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,6 +87,8 @@ const schema = z.object({
   WEB_DIR: opt(),
   MX_HOSTNAME: opt(),
   SMTP_PORT: opt(),
+  SMTP_MAX_CLIENTS: opt(),
+  MIGRATIONS_DIR: opt(),
   SMTP_TLS_CERT: opt(),
   SMTP_TLS_KEY: opt(),
 });
@@ -237,6 +244,10 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
 
   const httpPort = parsePort(env, "PORT", 3000, problems);
   const smtpPort = parsePort(env, "SMTP_PORT", 2525, problems);
+  const smtpMaxClients = Number(env.SMTP_MAX_CLIENTS ?? DEFAULT_SMTP_MAX_CLIENTS);
+  if (env.SMTP_MAX_CLIENTS !== undefined && (!/^\d+$/.test(env.SMTP_MAX_CLIENTS) || smtpMaxClients < 1 || smtpMaxClients > 10_000)) {
+    problems.push("SMTP_MAX_CLIENTS: must be a whole number from 1 to 10000");
+  }
 
   if (problems.length || !domain || !publicUrl || !core || !mailer || !blob || !mailFrom || !mxHostname) throw new ConfigError(problems);
   return {
@@ -258,9 +269,11 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
     port: httpPort,
     trustedProxies,
     webDir: env.WEB_DIR ?? DEFAULT_WEB_DIR,
+    ...(env.MIGRATIONS_DIR ? { migrationsDir: env.MIGRATIONS_DIR } : {}),
     smtp: {
       hostname: mxHostname,
       port: smtpPort,
+      maxClients: smtpMaxClients,
       ...(env.SMTP_TLS_CERT && env.SMTP_TLS_KEY ? { tlsCert: env.SMTP_TLS_CERT, tlsKey: env.SMTP_TLS_KEY } : {}),
     },
   };
