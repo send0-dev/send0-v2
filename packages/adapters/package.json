@@ -7,18 +7,23 @@
   "exports": {
     "./blob": "./src/blob/index.ts",
     "./mailer": "./src/mailer/index.ts",
-    "./node/fs-blob": "./src/node/fs-blob.ts"
+    "./node/fs-blob": "./src/node/fs-blob.ts",
+    "./node/smtp-mailer": "./src/node/smtp-mailer.ts"
   },
   "scripts": {
     "test": "vitest run",
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "aws4fetch": "^1.0.20"
+    "aws4fetch": "^1.0.20",
+    "nodemailer": "^10.0.15"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261005.1",
     "@types/node": "^24",
+    "@types/nodemailer": "^8.0.2",
+    "@types/smtp-server": "^3.5.13",
+    "smtp-server": "^3.19.17",
     "typescript": "^5.9.0",
     "vitest": "^5.0.3"
   }
