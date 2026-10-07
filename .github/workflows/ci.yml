@@ -69,8 +69,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      # Builds the image from this checkout (compose.smoke.yml tags it send0:smoke) and starts the stack.
+      # Builds the image from this checkout with a layer cache, as send0:smoke (the tag compose.smoke.yml
+      # uses), then starts the stack with that image.
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          tags: send0:smoke
+          load: true
+          cache-from: type=gha,scope=selfhost-smoke
+          cache-to: type=gha,scope=selfhost-smoke,mode=max
       - run: node selfhost/smoke.mjs up
+        env:
+          SMOKE_PREBUILT: "1"
       - run: node selfhost/smoke.mjs test
       - if: failure()
         run: node selfhost/smoke.mjs logs

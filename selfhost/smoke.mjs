@@ -6,6 +6,9 @@
 //   node selfhost/smoke.mjs test   test a running stack
 //   node selfhost/smoke.mjs logs   print the stack's logs
 //   node selfhost/smoke.mjs down   stop the stack and delete its volumes
+//
+// With SMOKE_PREBUILT=1, `up` uses an existing send0:smoke image instead of building one (CI builds it
+// with a layer cache first).
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { connect } from "node:net";
@@ -245,7 +248,7 @@ async function test() {
 async function main(cmd) {
   switch (cmd) {
     case "up":
-      return compose(["up", "-d", "--build"]).status ?? 1;
+      return compose(["up", "-d", process.env.SMOKE_PREBUILT === "1" ? "--no-build" : "--build"]).status ?? 1;
     case "down":
       return compose(["down", "-v", "--remove-orphans"]).status ?? 1;
     case "logs":
