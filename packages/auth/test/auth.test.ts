@@ -50,7 +50,7 @@ describe("passwords", () => {
     expect(passwordProblem("short")).toMatch(/10 characters/);
     expect(passwordProblem("password1")).toMatch(/10 characters/);
     expect(passwordProblem("1234567890")).toMatch(/too common/);
-    expect(passwordProblem("kunaldholiya-2026", "kunaldholiya@gmail.com")).toMatch(/email/);
+    expect(passwordProblem("danarivera-2026", "danarivera@example.com")).toMatch(/email/);
     expect(passwordProblem("aaaaaaaaaaaa")).toMatch(/easy/);
     expect(passwordProblem("tangerine-orbit-42")).toBeNull();
   });
