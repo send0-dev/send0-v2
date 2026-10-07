@@ -14,7 +14,8 @@
       "persistent": true
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "passThroughEnv": ["TEST_DATABASE_URL"]
     }
   }
 }
