@@ -34,7 +34,35 @@ describe("parseCoreConfig", () => {
   });
 
   it("requires MAIL_DOMAINS", () => {
-    expect(() => parseCoreConfig({})).toThrow(/MAIL_DOMAINS/);
+    expect(() => parseCoreConfig({})).toThrow("MAIL_DOMAINS: is required (comma-separated domains, like agents.acme.com)");
+  });
+
+  it("accepts booleans, any case and blanks for ALLOW_SIGNUP", () => {
+    const get = (v: unknown, d?: boolean) => parseCoreConfig({ MAIL_DOMAINS: "a.dev", ALLOW_SIGNUP: v }, { allowSignup: d }).allowSignup;
+    expect(get(false)).toBe(false);
+    expect(get(true, false)).toBe(true);
+    expect(get("TRUE", false)).toBe(true);
+    expect(get(" false ")).toBe(false);
+    expect(get("", false)).toBe(false);
+    expect(get("  ")).toBe(true);
+  });
+
+  it("accepts any case and blanks for LIMITS and TRUSTED_AUTHSERV_IDS", () => {
+    const base = { MAIL_DOMAINS: "a.dev" };
+    expect(parseCoreConfig({ ...base, LIMITS: " NONE " }).limits).toEqual(NO_LIMITS);
+    expect(parseCoreConfig({ ...base, LIMITS: "" }, { limits: "none" }).limits).toEqual(NO_LIMITS);
+    expect(parseCoreConfig({ ...base, TRUSTED_AUTHSERV_IDS: " " }).trustedAuthservIds).toEqual([]);
+  });
+
+  it("collapses duplicate list entries, keeping first-seen order", () => {
+    const c = parseCoreConfig({ MAIL_DOMAINS: "b.dev, a.dev, B.dev", TRUSTED_AUTHSERV_IDS: "x.a.dev,x.a.dev" });
+    expect(c.mailDomains).toEqual(["b.dev", "a.dev"]);
+    expect(c.trustedAuthservIds).toEqual(["x.a.dev"]);
+  });
+
+  it("accepts punycode TLDs and rejects single labels, IPs and trailing dots", () => {
+    expect(parseCoreConfig({ MAIL_DOMAINS: "mail.xn--p1ai" }).mailDomains).toEqual(["mail.xn--p1ai"]);
+    for (const bad of ["localhost", "a.com.", "1.2.3.4"]) expect(() => parseCoreConfig({ MAIL_DOMAINS: bad })).toThrow(/MAIL_DOMAINS/);
   });
 
   it("lists every problem at once", () => {
@@ -49,5 +77,6 @@ describe("parseCoreConfig", () => {
     expect(problems).toMatch(/MAIL_DOMAINS/);
     expect(problems).toMatch(/LIMITS/);
     expect(problems).toMatch(/ALLOW_SIGNUP/);
+    expect((error as ConfigError).problems).toHaveLength(3);
   });
 });
