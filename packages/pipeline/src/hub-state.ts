@@ -1,5 +1,5 @@
 import { matchesFilter, type MatchableMessage, type MessageFilter } from "@send0/core";
-import type { EventEnvelope } from "@send0/pipeline";
+import type { EventEnvelope } from "./events";
 
 /** Recent events kept so a `wait` that starts a moment after a message arrived still sees it. */
 const RECENT_MAX = 100;

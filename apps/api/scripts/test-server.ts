@@ -11,13 +11,12 @@ import { serve } from "@hono/node-server";
 import { newApiKey, newId } from "@send0/core";
 import { schema } from "@send0/db";
 import { createTestDb } from "@send0/db/testing";
-import { hubName } from "@send0/pipeline";
+import { hubName, HubState } from "@send0/pipeline";
 import { Hono } from "hono";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createApp } from "../src/app";
 import type { HubClient } from "../src/realtime/client";
-import { HubState } from "../src/realtime/hub-state";
 import { deliver } from "../test/helpers";
 
 const port = Number(process.argv[2] ?? 0);

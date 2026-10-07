@@ -1,12 +1,11 @@
 import { schema } from "@send0/db";
-import { hubName, toEnvelope } from "@send0/pipeline";
+import { formatSse, hubName, toEnvelope } from "@send0/pipeline";
 import { and, asc, eq, gt, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { loadInbox } from "../access";
 import { requireScope } from "../auth";
 import { ApiError, forbidden } from "../errors";
-import { formatSse } from "../realtime/hub-state";
 import type { AppEnv } from "../types";
 import { validate } from "../validation";
 

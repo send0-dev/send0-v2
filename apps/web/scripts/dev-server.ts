@@ -16,13 +16,12 @@ import { createAuth } from "@send0/auth";
 import { parseInbound } from "@send0/core";
 import { schema } from "@send0/db";
 import { createTestDb } from "@send0/db/testing";
-import { findInboxByAddress, hubName, type EventEnvelope } from "@send0/pipeline";
+import { findInboxByAddress, hubName, HubState, type EventEnvelope } from "@send0/pipeline";
 import { Hono } from "hono";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createApp as createApi } from "../../api/src/app";
 import type { HubClient } from "../../api/src/realtime/client";
-import { HubState } from "../../api/src/realtime/hub-state";
 import { deliver } from "../../api/test/helpers";
 import { createWebApp } from "../worker/app";
 

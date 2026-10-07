@@ -1,11 +1,10 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createSend0Server } from "@send0/mcp";
-import { hubName } from "@send0/pipeline";
+import { hubName, HubState } from "@send0/pipeline";
 import { Send0 } from "@send0/sdk";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { HubClient } from "../src/realtime/client";
-import { HubState } from "../src/realtime/hub-state";
 import { deliver, fixture, setup, type TestEnv } from "./helpers";
 
 let t: TestEnv;

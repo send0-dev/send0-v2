@@ -1,7 +1,6 @@
 import type { MessageFilter } from "@send0/core";
-import type { EventEnvelope } from "@send0/pipeline";
+import { HubState, type EventEnvelope } from "@send0/pipeline";
 import { DurableObject } from "cloudflare:workers";
-import { HubState } from "./hub-state";
 
 const KEEPALIVE_MS = 25_000;
 

@@ -1,9 +1,8 @@
 import type { SendRawInput } from "@send0/adapters/mailer";
-import { hubName } from "@send0/pipeline";
+import { hubName, HubState } from "@send0/pipeline";
 import { isDraft, Send0, Send0Error, type Event } from "@send0/sdk";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { HubClient } from "../src/realtime/client";
-import { HubState } from "../src/realtime/hub-state";
 import { deliver, fixture, setup, type TestEnv } from "./helpers";
 
 /** The SDK, pointed at the real app in-process. */
