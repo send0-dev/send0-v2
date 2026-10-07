@@ -1,24 +1,59 @@
 import { checkRecipient, findInboxByAddress, MAX_MESSAGE_BYTES, receiveMessage, type InboundMessage } from "@send0/pipeline";
-import { authenticate } from "mailauth";
+import { authenticate, type AuthenticateOptions, type AuthenticateResult } from "mailauth";
 import { readFile } from "node:fs/promises";
-import type { AddressInfo } from "node:net";
+import type { AddressInfo, Socket } from "node:net";
 import type { Readable } from "node:stream";
 import { generate } from "selfsigned";
 import { SMTPServer, type SMTPServerAddress, type SMTPServerSession } from "smtp-server";
+import { BackgroundTasks } from "./background";
 import type { ServerConfig } from "./config";
 import { cachingResolver, type DnsResolver } from "./dns-cache";
+import { Semaphore } from "./semaphore";
 import type { Services } from "./services";
+import {
+  arcSetCount,
+  authResultsHeader,
+  claimsAuthservId,
+  isArcField,
+  isDkimSignature,
+  joinMessage,
+  receivedHeader,
+  splitMessage,
+  verdictsFrom,
+  type Verdicts,
+} from "./smtp-headers";
 
 /** A running inbound listener. */
 export interface SmtpServer {
   port: number;
-  /** Stops accepting connections and waits for open sessions (cut after CLOSE_TIMEOUT_MS). */
+  /** Stops accepting connections, lets in-flight deliveries finish (up to CLOSE_TIMEOUT_MS), then ends every session. */
   stop: () => Promise<void>;
+}
+
+/** Tunables; the defaults suit production, tests shrink them. */
+export interface SmtpOptions {
+  /** DNS for mailauth; defaults to a cached system resolver */
+  resolver?: DnsResolver;
+  /** The advertised SIZE; defaults to (and is capped at) 64 KiB under the pipeline's limit, leaving room for our headers */
+  maxMessageBytes?: number;
+  /** Messages authenticated and ingested at once; the rest wait (bounds memory) */
+  maxConcurrentDeliveries?: number;
+  maxSessionsPerIp?: number;
+  /** Hard cap on a session's life, however busy it is */
+  sessionLifetimeMs?: number;
+  /** mailauth's `authenticate`, swappable so tests can make it fail */
+  authenticate?: (input: Buffer, opts: AuthenticateOptions) => Promise<AuthenticateResult>;
 }
 
 const MAX_CLIENTS = 100;
 const MAX_RECIPIENTS = 50;
+/** Refused RCPTs before a session is dropped: stops directory harvesting. */
+const MAX_REFUSED_RCPTS = 20;
+/** DKIM signatures or ARC sets verified per message; more is an amplification attempt. */
+const MAX_SIGNATURES = 10;
+const HEADER_HEADROOM = 64 * 1024;
 const SOCKET_TIMEOUT_MS = 60_000;
+/** Within the server's shutdown budget: runs in parallel with the HTTP drain. */
 const CLOSE_TIMEOUT_MS = 10_000;
 
 const logError = (event: string, err: unknown, extra: Record<string, unknown> = {}) =>
@@ -28,6 +63,9 @@ const logError = (event: string, err: unknown, extra: Record<string, unknown> = 
 function smtpError(code: number, message: string): Error & { responseCode: number } {
   return Object.assign(new Error(message), { responseCode: code });
 }
+
+/** A Buffer view of the same bytes (mailauth wants a Buffer, string or stream). */
+const asBuffer = (bytes: Uint8Array): Buffer => Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
 const tempFailure = () => smtpError(451, "4.3.0 Temporary failure, try again later");
 
@@ -61,31 +99,26 @@ function collect(stream: Readable & { sizeExceeded?: boolean }, limit: number): 
 }
 
 /**
- * mailauth's header block, with Authentication-Results first (RFC 8601 section 5): the parser trusts
- * only the topmost header from our authserv-id, so a forged copy further down is ignored.
- */
-function authHeaders(headers: string): string {
-  const fields = headers.split(/\r?\n(?=\S)/).filter((f) => f.trim());
-  const isAr = (f: string) => /^authentication-results:/i.test(f);
-  return [...fields.filter(isAr), ...fields.filter((f) => !isAr(f))].map((f) => f.replace(/\r?\n$/, "") + "\r\n").join("");
-}
-
-/**
  * Starts the inbound MX: refuses unknown or foreign recipients at RCPT (so senders bounce the mail
  * themselves), checks SPF/DKIM/DMARC/ARC with mailauth, prepends the results and hands each
  * recipient's copy to the same pipeline the hosted Worker uses. A storage or database failure
  * answers 451, so the sender retries; ingestion is idempotent.
- * `resolver` and `maxMessageBytes` are for tests; production uses a cached system resolver and 25 MiB.
+ * Abuse limits: sessions per IP, a hard session lifetime, refused-RCPT and recipient caps, bounded
+ * concurrent deliveries, and no more than MAX_SIGNATURES DKIM/ARC verifications per message.
  */
-export async function startSmtpServer(
-  services: Services,
-  config: ServerConfig,
-  opts: { resolver?: DnsResolver; maxMessageBytes?: number } = {},
-): Promise<SmtpServer> {
+export async function startSmtpServer(services: Services, config: ServerConfig, opts: SmtpOptions = {}): Promise<SmtpServer> {
   const { hostname } = config.smtp;
   const resolver = opts.resolver ?? cachingResolver();
-  const limit = Math.min(opts.maxMessageBytes ?? MAX_MESSAGE_BYTES, MAX_MESSAGE_BYTES);
+  const verify = opts.authenticate ?? authenticate;
+  const limit = Math.min(opts.maxMessageBytes ?? Infinity, MAX_MESSAGE_BYTES - HEADER_HEADROOM);
+  const maxSessionsPerIp = opts.maxSessionsPerIp ?? 10;
+  const sessionLifetimeMs = opts.sessionLifetimeMs ?? 10 * 60_000;
+  const deliveries = new Semaphore(opts.maxConcurrentDeliveries ?? 4);
+  const inflight = new BackgroundTasks();
   const inbound = { mailDomains: config.mailDomains, trustedAuthservIds: config.trustedAuthservIds };
+  const sessionsPerIp = new Map<string, number>();
+  const counted = new Set<string>();
+  const refusedRcpts = new Map<string, number>();
 
   /** Refuses with the same codes the hosted pipeline uses, looking the inbox up last. */
   async function checkRcpt(address: string): Promise<void> {
@@ -102,29 +135,63 @@ export async function startSmtpServer(
     if (inbox.status !== "active") throw smtpError(550, "5.2.1 Mailbox disabled");
   }
 
-  /** Prepends our Authentication-Results. If mailauth itself fails, a temperror header still shadows forged ones. */
-  async function withAuthResults(raw: Buffer, session: SMTPServerSession, sender: string): Promise<Buffer> {
-    let headers: string;
+  /**
+   * Checks the message with mailauth and builds our own headers from its structured results only.
+   * Over-signed messages skip DKIM/ARC (permerror). If mailauth fails, temperror still shadows forgeries.
+   */
+  async function verdictsFor(
+    raw: Buffer,
+    fields: string[],
+    body: Uint8Array,
+    session: SMTPServerSession,
+    sender: string,
+  ): Promise<Verdicts> {
+    const skipped = { dkim: fields.filter(isDkimSignature).length > MAX_SIGNATURES, arc: arcSetCount(fields) > MAX_SIGNATURES };
+    const unverified = (f: string) => (skipped.dkim && isDkimSignature(f)) || (skipped.arc && isArcField(f));
+    const input =
+      skipped.dkim || skipped.arc
+        ? asBuffer(
+            joinMessage(
+              "",
+              fields.filter((f) => !unverified(f)),
+              body,
+            ),
+          )
+        : raw;
     try {
-      const result = await authenticate(raw, {
+      const options: AuthenticateOptions & { maxResolveCount: number; maxVoidCount: number } = {
         ip: session.remoteAddress,
         helo: session.hostNameAppearsAs,
         sender,
         mta: hostname,
         resolver,
         disableBimi: true,
-      });
-      headers = authHeaders(result.headers);
+        disableArc: skipped.arc,
+        // RFC 7208 section 4.6.4 limits, explicitly: SPF lookups and void lookups per check.
+        maxResolveCount: 10,
+        maxVoidCount: 2,
+      };
+      return verdictsFrom(await verify(input, options), skipped);
     } catch (err) {
       logError("smtp.auth_failed", err);
-      headers = `Authentication-Results: ${hostname}; spf=temperror; dkim=temperror; dmarc=temperror\r\n`;
+      return { spf: "temperror", dkim: "temperror", dmarc: "temperror" };
     }
-    return Buffer.concat([Buffer.from(headers), raw]);
   }
 
   async function deliver(raw: Buffer, session: SMTPServerSession): Promise<void> {
     const from = session.envelope.mailFrom ? session.envelope.mailFrom.address : "";
-    const authed = await withAuthResults(raw, session, from);
+    const { fields, body } = splitMessage(raw);
+    const verdicts = await verdictsFor(raw, fields, body, session, from);
+    const ours =
+      authResultsHeader(hostname, verdicts) +
+      receivedHeader(hostname, { ip: session.remoteAddress, helo: session.hostNameAppearsAs, secure: session.secure }, new Date());
+    // Built once; every recipient's stream reads the same bytes.
+    const authed = joinMessage(
+      ours,
+      fields.filter((f) => !claimsAuthservId(f, hostname)),
+      body,
+    );
+
     const rejections: string[] = [];
     let accepted = 0;
     for (const rcpt of session.envelope.rcptTo) {
@@ -132,7 +199,12 @@ export async function startSmtpServer(
       const message: InboundMessage = {
         from,
         to: rcpt.address,
-        raw: new Blob([new Uint8Array(authed)]).stream(),
+        raw: new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(authed);
+            controller.close();
+          },
+        }),
         rawSize: authed.byteLength,
         setReject: (reason) => void (rejected = reason),
       };
@@ -145,7 +217,8 @@ export async function startSmtpServer(
       if (rejected) rejections.push(rejected);
       else accepted++;
     }
-    // Recipients were checked at RCPT, so a refusal here means the inbox changed mid-session.
+    // Recipients were checked at RCPT, so a refusal here means the inbox changed mid-session. When others
+    // were accepted the reply is still 250 and that recipient's copy is dropped (logged by the pipeline), not bounced.
     if (!accepted && rejections[0]) throw smtpError(rejections[0].startsWith("5.3.4") ? 552 : 550, rejections[0]);
   }
 
@@ -161,30 +234,59 @@ export async function startSmtpServer(
     socketTimeout: SOCKET_TIMEOUT_MS,
     closeTimeout: CLOSE_TIMEOUT_MS,
     logger: false,
+    onConnect(session, callback) {
+      const n = sessionsPerIp.get(session.remoteAddress) ?? 0;
+      if (n >= maxSessionsPerIp) return callback(smtpError(421, "4.7.0 Too many connections"));
+      sessionsPerIp.set(session.remoteAddress, n + 1);
+      counted.add(session.id);
+      callback();
+    },
+    onClose(session) {
+      refusedRcpts.delete(session.id);
+      if (!counted.delete(session.id)) return;
+      const n = (sessionsPerIp.get(session.remoteAddress) ?? 1) - 1;
+      if (n > 0) sessionsPerIp.set(session.remoteAddress, n);
+      else sessionsPerIp.delete(session.remoteAddress);
+    },
     onRcptTo(address: SMTPServerAddress, session, callback) {
       if (session.envelope.rcptTo.length >= MAX_RECIPIENTS) return callback(smtpError(452, "4.5.3 Too many recipients"));
       checkRcpt(address.address).then(
         () => callback(),
-        (err: Error) => callback(err),
+        (err: Error & { responseCode?: number }) => {
+          if ((err.responseCode ?? 0) >= 500) {
+            const refused = (refusedRcpts.get(session.id) ?? 0) + 1;
+            refusedRcpts.set(session.id, refused);
+            // A 421 makes smtp-server close the connection.
+            if (refused >= MAX_REFUSED_RCPTS) return callback(smtpError(421, "4.7.0 Too many invalid recipients"));
+          }
+          callback(err);
+        },
       );
     },
     onData(stream, session, callback) {
-      collect(stream, limit)
-        .then((raw) => {
-          if (!raw) throw smtpError(552, "5.3.4 Message too big");
-          return deliver(raw, session);
-        })
-        .then(
-          () => callback(),
-          (err: Error & { responseCode?: number }) => {
-            if (!err.responseCode) logError("smtp.data_failed", err);
-            callback(err.responseCode ? err : tempFailure());
-          },
-        );
+      const work = collect(stream, limit).then((raw) => {
+        if (!raw) throw smtpError(552, "5.3.4 Message too big");
+        return deliveries.run(() => deliver(raw, session));
+      });
+      // Tracked for shutdown; its outcome is handled below.
+      inflight.waitUntil(work.catch(() => {}));
+      work.then(
+        () => callback(),
+        (err: Error & { responseCode?: number }) => {
+          if (!err.responseCode) logError("smtp.data_failed", err);
+          callback(err.responseCode ? err : tempFailure());
+        },
+      );
     },
   });
   // Connection-level errors (resets, TLS handshakes gone wrong) must never crash the process.
   server.on("error", (err) => logError("smtp.connection_error", err));
+  // Slow-drip clients can keep resetting the idle timeout; this cuts every session at a fixed age.
+  server.server.on("connection", (socket: Socket) => {
+    const timer = setTimeout(() => socket.destroy(), sessionLifetimeMs);
+    timer.unref();
+    socket.once("close", () => clearTimeout(timer));
+  });
 
   await new Promise<void>((resolve, reject) => {
     server.server.once("error", reject);
@@ -193,6 +295,17 @@ export async function startSmtpServer(
   const { port } = server.server.address() as AddressInfo;
 
   let stopping: Promise<void> | undefined;
-  const stop = () => (stopping ??= new Promise<void>((resolve) => server.close(() => resolve())));
+  const stop = () =>
+    (stopping ??= (async () => {
+      const closed = new Promise<void>((resolve) => server.close(() => resolve()));
+      if (!(await inflight.drain(CLOSE_TIMEOUT_MS))) {
+        console.error(JSON.stringify({ event: "smtp.shutdown_abandoned", pending: inflight.size }));
+      }
+      // Idle sessions would otherwise hold shutdown until closeTimeout; a 421 makes the sender retry later.
+      for (const c of (server as unknown as { connections: Set<{ send: (code: number, msg: string) => void }> }).connections) {
+        c.send(421, "4.3.2 Server shutting down");
+      }
+      await closed;
+    })());
   return { port, stop };
 }

@@ -82,13 +82,20 @@ describe("loadConfig", () => {
       publicUrl: "http://127.0.0.1:8080",
       mailFrom: "robot@acme.dev",
       port: 8080,
-      trustedAuthservIds: ["mx.cloudflare.net"],
+      // Our own MX always writes Authentication-Results, so it stays trusted alongside the operator's ids.
+      trustedAuthservIds: ["mx.cloudflare.net", "mx.acme.dev"],
       allowSignup: true,
       blob: { driver: "fs", dir: "/tmp/blobs" },
       webDir: "/app/web",
       smtp: { hostname: "mx.acme.dev", port: 25, tlsCert: "/certs/cert.pem", tlsKey: "/certs/key.pem" },
     });
     expect(c.limits.dailySendCap).toBe(true);
+  });
+
+  it("does not list the MX hostname twice when it is already trusted", () => {
+    const c = loadConfig({ ...base, MX_HOSTNAME: "mx.acme.dev", TRUSTED_AUTHSERV_IDS: "MX.acme.dev,mx.cloudflare.net" });
+    expect(c.trustedAuthservIds.filter((id) => id.toLowerCase() === "mx.acme.dev")).toHaveLength(1);
+    expect(c.trustedAuthservIds).toContain("mx.cloudflare.net");
   });
 
   it("treats blank values as unset", () => {

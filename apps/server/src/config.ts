@@ -241,8 +241,10 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
   if (problems.length || !domain || !publicUrl || !core || !mailer || !blob || !mailFrom || !mxHostname) throw new ConfigError(problems);
   return {
     ...core,
-    // Our own MX writes Authentication-Results; trust it unless the operator says otherwise.
-    trustedAuthservIds: core.trustedAuthservIds.length ? core.trustedAuthservIds : [mxHostname],
+    // Our own MX writes Authentication-Results (and strips forged copies), so it is always trusted.
+    trustedAuthservIds: core.trustedAuthservIds.some((id) => id.toLowerCase() === mxHostname)
+      ? core.trustedAuthservIds
+      : [...core.trustedAuthservIds, mxHostname],
     domain,
     publicUrl,
     secretKey: env.SECRET_KEY!,

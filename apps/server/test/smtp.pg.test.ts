@@ -25,10 +25,33 @@ const SIZE_LIMIT = 64 * 1024;
 
 const fixture = (name: string) => readFileSync(fileURLToPath(new URL(`../../../fixtures/emails/${name}`, import.meta.url).href));
 
+/** Every name looked up, so tests can see which checks ran. */
+const lookups: string[] = [];
+
 /** Every lookup answers "no such domain", so nothing touches the network and mailauth's verdicts are predictable. */
 const offlineResolver = async (name: string): Promise<string[]> => {
+  lookups.push(name);
   throw Object.assign(new Error(`queryTxt ENOTFOUND ${name}`), { code: "ENOTFOUND" });
 };
+
+let mailSeq = 0;
+/** A small message with a fresh Message-ID (ingestion dedupes on it), plus any extra header lines on top. */
+function makeMail(subject: string, headers: string[] = []): string {
+  const id = `<t${++mailSeq}.${Date.now()}@sender.test>`;
+  return [
+    ...headers,
+    "From: Dana <dana@sender.test>",
+    `To: buyer@${MAIL_DOMAIN}`,
+    `Subject: ${subject}`,
+    `Message-ID: ${id}`,
+    "",
+    "Hello.",
+    "",
+  ].join("\r\n");
+}
+
+/** The first header field of a stored message, unfolded. */
+const firstField = (raw: string) => raw.split(/\r?\n(?=\S)/)[0]!.replace(/\r?\n\s+/g, " ");
 
 /** A bare SMTP conversation, for what nodemailer hides: STARTTLS internals and DATA without SIZE=. */
 function rawClient(port: number) {
@@ -50,9 +73,11 @@ function rawClient(port: number) {
     }
   };
   socket.on("data", onData);
+  const closed = new Promise<void>((resolve) => socket.once("close", () => resolve()));
   const reply = () => until("an SMTP reply", () => replies.shift());
   return {
     reply,
+    closed,
     async command(line: string) {
       socket.write(`${line}\r\n`);
       return reply();
@@ -69,6 +94,22 @@ function rawClient(port: number) {
     },
     close: () => socket.destroy(),
   };
+}
+
+/** One message over a bare session, so tests control EHLO and MAIL FROM exactly. Returns the reply to the final dot. */
+async function rawDeliver(port: number, opts: { ehlo?: string; mailFrom?: string; to?: string; data: string }): Promise<string> {
+  const c = rawClient(port);
+  try {
+    await c.reply();
+    expect(await c.command(`EHLO ${opts.ehlo ?? "client.example"}`)).toMatch(/^250[- ]/);
+    expect(await c.command(`MAIL FROM:${opts.mailFrom ?? "<dana@sender.test>"}`)).toMatch(/^250 /);
+    expect(await c.command(`RCPT TO:<${opts.to ?? `buyer@${MAIL_DOMAIN}`}>`)).toMatch(/^250 /);
+    expect(await c.command("DATA")).toMatch(/^354 /);
+    c.write(opts.data.endsWith("\r\n") ? opts.data : `${opts.data}\r\n`);
+    return await c.command(".");
+  } finally {
+    c.close();
+  }
 }
 
 describe.skipIf(!TEST_DATABASE_URL)("inbound SMTP (Postgres)", () => {
@@ -152,8 +193,177 @@ describe.skipIf(!TEST_DATABASE_URL)("inbound SMTP (Postgres)", () => {
     expect(msg!.auth).toEqual({ spf: "none", dkim: "none", dmarc: "none", source: MX });
 
     const raw = await readFile(path.join(tmp, "blobs", msg!.rawKey!), "utf8");
-    expect(raw.startsWith(`Authentication-Results: ${MX};`)).toBe(true);
+    expect(firstField(raw)).toBe(`Authentication-Results: ${MX}; spf=none; dkim=none; dmarc=none; arc=none`);
+    expect(raw).toMatch(
+      new RegExp(
+        `^Received: from \\[127\\.0\\.0\\.1\\] \\(helo=mail-sor-f41\\.google\\.com\\) by ${MX.replace(/\./g, "\\.")} with ESMTP;`,
+        "m",
+      ),
+    );
     expect(raw).toContain("Message-ID: <CAF7xQm2pLr8=Yt@mail.gmail.com>");
+  });
+
+  /** The stored message and raw text for a subject delivered by a test. */
+  async function stored(subject: string) {
+    const [msg] = await until(`message "${subject}"`, async () => {
+      const rows = await messagesWithSubject(subject);
+      return rows.length ? rows : undefined;
+    });
+    return { msg: msg!, raw: await readFile(path.join(tmp, "blobs", msg!.rawKey!), "utf8") };
+  }
+
+  it("never lets the HELO name inject verdicts into our header", async () => {
+    const reply = await rawDeliver(smtp.port, { ehlo: "a;dkim=pass;dmarc=pass", data: makeMail("helo injection") });
+    expect(reply).toMatch(/^250 /);
+    const { msg, raw } = await stored("helo injection");
+    expect(msg.auth).toEqual({ spf: "none", dkim: "none", dmarc: "none", source: MX });
+    expect(firstField(raw)).toBe(`Authentication-Results: ${MX}; spf=none; dkim=none; dmarc=none; arc=none`);
+    // The HELO survives only as a sanitised comment in the trace line.
+    expect(raw).toMatch(/^Received: from \[127\.0\.0\.1\] \(helo=adkim=passdmarc=pass\) by /m);
+  });
+
+  it("never lets a quoted MAIL FROM inject verdicts into our header", async () => {
+    const reply = await rawDeliver(smtp.port, { mailFrom: '<"x;dmarc=pass"@evil.test>', data: makeMail("mailfrom injection") });
+    expect(reply).toMatch(/^250 /);
+    const { msg, raw } = await stored("mailfrom injection");
+    expect(msg.auth).toEqual({ spf: "none", dkim: "none", dmarc: "none", source: MX });
+    expect(firstField(raw)).not.toContain("evil.test");
+  });
+
+  it("strips forged results that claim our authserv-id and keeps everyone else's", async () => {
+    const data = makeMail("forged results", [
+      `Authentication-Results: ${MX}; dmarc=pass; dkim=pass; spf=pass`,
+      `ARC-Authentication-Results: i=1; relay.${MX};`,
+      " dkim=pass",
+      "Authentication-Results: mx.cloudflare.net; spf=fail",
+    ]);
+    expect(await rawDeliver(smtp.port, { data })).toMatch(/^250 /);
+    const { msg, raw } = await stored("forged results");
+    expect(msg.auth).toEqual({ spf: "none", dkim: "none", dmarc: "none", source: MX });
+    expect(raw.match(/^Authentication-Results:/gim)).toHaveLength(2);
+    expect(raw).not.toMatch(/^ARC-Authentication-Results:/im);
+    expect(raw).toContain("Authentication-Results: mx.cloudflare.net; spf=fail");
+    expect(raw).not.toContain("dmarc=pass");
+  });
+
+  it("records temperror when mailauth itself fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const failing = await startSmtpServer(services, config, {
+      resolver: offlineResolver,
+      authenticate: () => Promise.reject(new Error("mailauth crashed")),
+    });
+    try {
+      expect(await rawDeliver(failing.port, { data: makeMail("auth crash") })).toMatch(/^250 /);
+    } finally {
+      await failing.stop();
+    }
+    const { msg, raw } = await stored("auth crash");
+    expect(msg.auth).toEqual({ spf: "temperror", dkim: "temperror", dmarc: "temperror", source: MX });
+    expect(firstField(raw)).toBe(`Authentication-Results: ${MX}; spf=temperror; dkim=temperror; dmarc=temperror`);
+  });
+
+  it("skips DKIM verification for messages with too many signatures", async () => {
+    const sigs = Array.from({ length: 11 }, (_, i) => `DKIM-Signature: v=1; a=rsa-sha256; d=amplify.test; s=sel${i}; h=from; bh=x; b=y`);
+    lookups.length = 0;
+    expect(await rawDeliver(smtp.port, { data: makeMail("dkim amplification", sigs) })).toMatch(/^250 /);
+    const { msg, raw } = await stored("dkim amplification");
+    expect(msg.auth).toMatchObject({ dkim: "permerror", source: MX });
+    expect(lookups.filter((n) => n.includes("_domainkey"))).toEqual([]);
+    expect(raw.match(/^DKIM-Signature:/gim)).toHaveLength(11);
+  });
+
+  it("accepts bounces, which have an empty MAIL FROM", async () => {
+    expect(await rawDeliver(smtp.port, { mailFrom: "<>", data: makeMail("a bounce") })).toMatch(/^250 /);
+    await stored("a bounce");
+  });
+
+  it("caps recipients per message at 50", async () => {
+    const c = rawClient(smtp.port);
+    try {
+      await c.reply();
+      await c.command("EHLO client.example");
+      await c.command("MAIL FROM:<dana@sender.test>");
+      for (let i = 0; i < 50; i++) expect(await c.command(`RCPT TO:<buyer+r${i}@${MAIL_DOMAIN}>`)).toMatch(/^250 /);
+      expect(await c.command(`RCPT TO:<buyer+r50@${MAIL_DOMAIN}>`)).toMatch(/^452 4\.5\.3 Too many recipients/);
+    } finally {
+      c.close();
+    }
+  });
+
+  it("drops a session after 20 refused recipients", async () => {
+    const c = rawClient(smtp.port);
+    try {
+      await c.reply();
+      await c.command("EHLO client.example");
+      await c.command("MAIL FROM:<dana@sender.test>");
+      for (let i = 0; i < 19; i++) expect(await c.command(`RCPT TO:<guess${i}@${MAIL_DOMAIN}>`)).toMatch(/^550 /);
+      expect(await c.command(`RCPT TO:<guess19@${MAIL_DOMAIN}>`)).toMatch(/^421 4\.7\.0 Too many invalid recipients/);
+      await c.closed;
+    } finally {
+      c.close();
+    }
+  });
+
+  it("limits concurrent sessions per IP and the lifetime of each session", async () => {
+    const limited = await startSmtpServer(services, config, { resolver: offlineResolver, maxSessionsPerIp: 2, sessionLifetimeMs: 1_000 });
+    const clients = [rawClient(limited.port), rawClient(limited.port)];
+    try {
+      for (const c of clients) expect(await c.reply()).toMatch(/^220 /);
+      const third = rawClient(limited.port);
+      expect(await third.reply()).toMatch(/^421 4\.7\.0 Too many connections/);
+      await third.closed;
+
+      // Sessions are cut off at their lifetime, well before the 60s idle timeout.
+      const started = Date.now();
+      await Promise.all(clients.map((c) => c.closed));
+      expect(Date.now() - started).toBeLessThan(3_000);
+
+      const again = rawClient(limited.port);
+      expect(await again.reply()).toMatch(/^220 /);
+      again.close();
+    } finally {
+      for (const c of clients) c.close();
+      await limited.stop();
+    }
+  });
+
+  it("processes a bounded number of messages at once", async () => {
+    const serial = await startSmtpServer(services, config, { resolver: offlineResolver, maxConcurrentDeliveries: 1 });
+    const store = services.blobs.store;
+    const put = store.put.bind(store);
+    let active = 0;
+    let peak = 0;
+    vi.spyOn(store, "put").mockImplementation(async (...args) => {
+      peak = Math.max(peak, ++active);
+      await new Promise((r) => setTimeout(r, 150));
+      active--;
+      return put(...args);
+    });
+    try {
+      const replies = await Promise.all([1, 2, 3].map((n) => rawDeliver(serial.port, { data: makeMail(`serial ${n}`) })));
+      for (const r of replies) expect(r).toMatch(/^250 /);
+      expect(peak).toBe(1);
+    } finally {
+      await serial.stop();
+    }
+  });
+
+  it("finishes in-flight deliveries before stopping", async () => {
+    const draining = await startSmtpServer(services, config, { resolver: offlineResolver });
+    const store = services.blobs.store;
+    const put = store.put.bind(store);
+    let started!: () => void;
+    const putStarted = new Promise<void>((r) => (started = r));
+    vi.spyOn(store, "put").mockImplementation(async (...args) => {
+      started();
+      await new Promise((r) => setTimeout(r, 300));
+      return put(...args);
+    });
+    const delivered = rawDeliver(draining.port, { data: makeMail("in flight at shutdown") });
+    await putStarted;
+    await draining.stop();
+    expect(await delivered).toMatch(/^250 /);
+    expect(await messagesWithSubject("in flight at shutdown")).toHaveLength(1);
   });
 
   it.each([
@@ -238,6 +448,8 @@ describe.skipIf(!TEST_DATABASE_URL)("inbound SMTP (Postgres)", () => {
       expect(server.smtpPort).toBeGreaterThan(0);
       const c = rawClient(server.smtpPort!);
       expect(await c.reply()).toMatch(new RegExp(`^220 ${MX.replace(/\./g, "\\.")}`));
+      // 64 KiB below the pipeline's 25 MiB, leaving room for the headers we prepend.
+      expect(await c.command("EHLO client.example")).toMatch(/SIZE 26148864/);
       c.close();
     } finally {
       await server.stop();
