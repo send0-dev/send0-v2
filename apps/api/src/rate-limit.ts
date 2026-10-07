@@ -85,17 +85,19 @@ export interface RateLimitBinding {
 }
 
 /**
- * Cloudflare's Rate Limiting bindings, one per rule. A binding that is missing at runtime (an
- * account or plan without them) falls back to `fallback`, so limiting degrades instead of failing.
+ * Cloudflare's Rate Limiting bindings, one per rule, checked together with the per-isolate
+ * `local` limiter: a request is refused if either refuses. The binding is eventually consistent and
+ * deliberately permissive (a burst from one client was not refused in production), while the local
+ * count catches bursts that land on one isolate. A missing binding leaves the local limiter alone.
  */
-export function bindingRateLimiter(bindings: Partial<Record<RateRule, RateLimitBinding | undefined>>, fallback: RateLimiter): RateLimiter {
+export function bindingRateLimiter(bindings: Partial<Record<RateRule, RateLimitBinding | undefined>>, local: RateLimiter): RateLimiter {
   return {
     async limit(key, rule) {
       const binding = bindings[rule];
-      if (!binding) return fallback.limit(key, rule);
-      const { success } = await binding.limit({ key });
-      // The binding doesn't say when its window ends; the period is the safe upper bound.
-      return { ok: success, retryAfter: success ? 0 : RATE_LIMITS[rule].periodSeconds };
+      const [mine, shared] = await Promise.all([local.limit(key, rule), binding ? binding.limit({ key }) : null]);
+      if (!mine.ok) return mine;
+      if (shared && !shared.success) return { ok: false, retryAfter: RATE_LIMITS[rule].periodSeconds };
+      return { ok: true, retryAfter: 0 };
     },
   };
 }

@@ -17,7 +17,7 @@ export type Bindings = Pick<Env, "HYPERDRIVE" | "BLOBS" | "EVENTS" | "HUB" | "AS
   Partial<Pick<Env, "RL_KEY" | "RL_KEY_SEND" | "RL_IP">>;
 
 /** Per-isolate counters, used only for a rule whose Rate Limiting binding is missing. */
-const fallbackLimiter = new MemoryRateLimiter();
+const localLimiter = new MemoryRateLimiter();
 
 /** Makes the outbound mailer from the SES settings. Swapped for a recording fake in tests. */
 export type MailerFactory = (ses: SesSettings) => Mailer;
@@ -62,7 +62,7 @@ export function requestServices(
     queue: env.EVENTS,
     mailer,
     publish: publisher(env),
-    rateLimiter: bindingRateLimiter({ key: env.RL_KEY, key_send: env.RL_KEY_SEND, ip: env.RL_IP }, fallbackLimiter),
+    rateLimiter: bindingRateLimiter({ key: env.RL_KEY, key_send: env.RL_KEY_SEND, ip: env.RL_IP }, localLimiter),
     ...(config.sesEvents ? { sesEvents: config.sesEvents } : {}),
     waitUntil: (p) => ctx.waitUntil(p),
   };

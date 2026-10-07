@@ -64,17 +64,28 @@ describe("MemoryRateLimiter", () => {
 });
 
 describe("bindingRateLimiter", () => {
-  it("uses the binding for a rule, and the fallback when the binding is missing", async () => {
+  it("refuses when the binding refuses, and uses the local limiter alone when the binding is missing", async () => {
     const seen: string[] = [];
     const binding = { limit: async ({ key }: { key: string }) => (seen.push(key), { success: key !== "blocked" }) };
-    const fallback = new MemoryRateLimiter({ rules: { ip: { limit: 1, periodSeconds: 60 } } });
-    const rl = bindingRateLimiter({ key: binding, ip: undefined }, fallback);
+    const local = new MemoryRateLimiter({ rules: { ip: { limit: 1, periodSeconds: 60 } } });
+    const rl = bindingRateLimiter({ key: binding, ip: undefined }, local);
     expect(await rl.limit("ok", "key")).toEqual({ ok: true, retryAfter: 0 });
     expect(await rl.limit("blocked", "key")).toEqual({ ok: false, retryAfter: 60 });
     expect(seen).toEqual(["ok", "blocked"]);
     expect((await rl.limit("1.2.3.4", "ip")).ok).toBe(true);
     expect((await rl.limit("1.2.3.4", "ip")).ok).toBe(false);
     expect(seen).toHaveLength(2);
+  });
+
+  it("refuses when the local limiter refuses, even if the binding allows (a permissive binding)", async () => {
+    const binding = { limit: async () => ({ success: true }) };
+    const local = new MemoryRateLimiter({ rules: { key: { limit: 2, periodSeconds: 60 } } });
+    const rl = bindingRateLimiter({ key: binding }, local);
+    expect((await rl.limit("k", "key")).ok).toBe(true);
+    expect((await rl.limit("k", "key")).ok).toBe(true);
+    const third = await rl.limit("k", "key");
+    expect(third.ok).toBe(false);
+    expect(third.retryAfter).toBeGreaterThan(0);
   });
 });
 

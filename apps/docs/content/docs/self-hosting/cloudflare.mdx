@@ -137,4 +137,4 @@ Or deploy by hand with `npm install && npx wrangler deploy`. Database migrations
 - **Hourly cron.** The cron is only a safety net for events the queue missed. The queue consumer sweeps after every batch, so webhooks don't wait for it.
 - **Storage.** Raw mail and attachments live in R2 (10 GB free). Message content is deleted after each inbox's `retention_days` (default 7, at most 30), and messages after 35 days. See [Retention](/self-hosting/operations#retention).
 - **No plan limits.** The hosted service's reply-only free tier and daily send caps are off. You own the SES account and its reputation.
-- **Rate limits.** The [API rate limits](/reference/api#rate-limits) apply, through Workers Rate Limiting bindings. If your account doesn't offer them, each Worker instance counts on its own, which is looser. With Docker, one process counts everything.
+- **Rate limits.** The [API rate limits](/reference/api#rate-limits) apply. Each Worker instance counts requests itself, and Workers Rate Limiting bindings add a count shared across instances in a location. Both are approximate on Workers; with Docker, one process counts everything.
