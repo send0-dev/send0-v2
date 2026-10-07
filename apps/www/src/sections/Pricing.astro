@@ -1,0 +1,196 @@
+---
+import { site } from "../site";
+
+const selfHost = [
+  "The full server, AGPL-3.0",
+  "The same API, SDKs and MCP server as the cloud",
+  "Amazon SES or any SMTP relay for sending",
+  "No limits from us on inboxes, domains or mail",
+  "Community support on GitHub",
+];
+const cloud = [
+  "Addresses on send0.email, ready in seconds",
+  "A free tier: reply-only, with webhooks and events",
+  "We run Postgres, queues, storage and sending",
+  "Suppressions and auto-pause handled for you",
+  "Email support from the people who build it",
+];
+---
+
+<section class="section band" id="pricing" aria-labelledby="pricing-title">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Pricing</span>
+      <h2 id="pricing-title" class="h2">
+        Free to run yourself. <em>Simple when we run it.</em>
+      </h2>
+      <p class="lede">
+        Self-hosting costs you your servers and sending fees: Amazon SES charges about $0.10 per 1,000 emails. Cloud prices will be
+        published before launch, and every plan will include webhooks.
+      </p>
+    </div>
+
+    <div class="cards">
+      <article class="card">
+        <header>
+          <span class="kicker mono">Available today</span>
+          <h3>Self-host</h3>
+          <p class="price">
+            <span class="amount">$0</span> <span class="mono per">forever</span>
+          </p>
+        </header>
+        <ul>
+          {selfHost.map((f) => (
+            <li>{f}</li>
+          ))}
+        </ul>
+        <a class="btn btn-ink" href={site.docs.selfHost}>
+          Self-host send0
+        </a>
+      </article>
+
+      <article class="card cloud">
+        <span class="mark mono" aria-hidden="true">
+          Waitlist
+          <br />
+          open
+        </span>
+        <header>
+          <span class="kicker mono">Launching soon</span>
+          <h3>send0 Cloud</h3>
+          <p class="price">
+            <span class="amount">Free</span> <span class="mono per">tier at launch</span>
+          </p>
+        </header>
+        <ul>
+          {cloud.map((f) => (
+            <li>{f}</li>
+          ))}
+        </ul>
+        <a class="btn btn-primary" href="#waitlist">
+          Join the waitlist
+        </a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .head {
+    text-align: center;
+    margin: 0 auto 52px;
+    max-width: 720px;
+  }
+  .head .lede {
+    margin-inline: auto;
+  }
+  .cards {
+    display: grid;
+    gap: 28px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  @media (min-width: 768px) {
+    .cards {
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+  }
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 30px 30px;
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+  }
+  @media (min-width: 768px) {
+    .card {
+      transform: rotate(-0.6deg);
+    }
+    .cloud {
+      transform: rotate(0.5deg) translateY(8px);
+    }
+  }
+  .kicker {
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .cloud .kicker {
+    color: var(--postal-ink);
+  }
+  h3 {
+    margin-top: 10px;
+    font-size: 30px;
+  }
+  .price {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 14px;
+    padding-bottom: 20px;
+    border-bottom: 1.5px dashed var(--rule);
+  }
+  .amount {
+    font: 400 48px/1 var(--font-display);
+    letter-spacing: -0.03em;
+  }
+  .per {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  ul {
+    list-style: none;
+    margin: 18px 0 28px;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+    flex: 1;
+  }
+  li {
+    position: relative;
+    padding-left: 24px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 7px;
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid var(--ok);
+    border-bottom: 2px solid var(--ok);
+    transform: rotate(-45deg);
+  }
+  .card .btn {
+    align-self: flex-start;
+  }
+  /* a round "waitlist open" postmark */
+  .mark {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    border: 2px solid var(--postal-ink);
+    outline: 1px dashed var(--postal-ink);
+    outline-offset: -7px;
+    color: var(--postal-ink);
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+    transform: rotate(12deg);
+  }
+</style>

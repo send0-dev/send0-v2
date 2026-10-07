@@ -1,30 +1,29 @@
 ---
 import Logo from "./Logo.astro";
+import AirmailRule from "./AirmailRule.astro";
 import { site } from "../site";
+import { getRepoInfo } from "../lib/github";
 
+const repo = await getRepoInfo();
 const year = new Date().getFullYear();
 
 const groups = [
   {
     title: "Product",
     links: [
-      { href: "/#features", label: "Features" },
-      { href: "/#how-it-works", label: "How it works" },
+      { href: "/docs", label: "Docs" },
+      { href: site.docs.quickstart, label: "Quickstart" },
       { href: "/#pricing", label: "Pricing" },
-      { href: "/#faq", label: "FAQ" },
-      { href: "/docs/", label: "Docs" },
       { href: "/#waitlist", label: "Waitlist" },
     ],
   },
   {
     title: "Open source",
     links: [
-      ...(site.repoPublic ? [{ href: site.github, label: "GitHub" }] : []),
-      { href: "/#self-host", label: "Self-hosting" },
-      { href: "/docs/llms-full.txt", label: "Docs for LLMs" },
-      ...(site.repoPublic
-        ? [{ href: `${site.github}/blob/main/LICENSE`, label: "License (AGPL-3.0)" }]
-        : [{ href: "/#faq", label: "Licensing" }]),
+      { href: site.github, label: "GitHub" },
+      { href: site.docs.selfHost, label: "Self-hosting" },
+      { href: site.docs.llms, label: "Docs for LLMs" },
+      { href: `${site.github}/blob/main/LICENSE`, label: "License (AGPL-3.0)" },
     ],
   },
   {
@@ -36,7 +35,7 @@ const groups = [
     ],
   },
   {
-    title: "Contact",
+    title: "Write to us",
     links: [
       { href: `mailto:${site.email.hello}`, label: site.email.hello },
       { href: `mailto:${site.email.support}`, label: site.email.support },
@@ -47,33 +46,41 @@ const groups = [
 ---
 
 <footer class="footer">
-  <div class="column">
-    <div class="top">
-      <div class="about">
-        <Logo />
-        <p>Email inboxes for AI agents. Open source, self-hostable, webhooks on every plan.</p>
-        <span class="pill">
-          <span class="dot"></span>In development · beta soon
+  <AirmailRule />
+  <div class="wrap top">
+    <div class="about">
+      <Logo />
+      <p>Email inboxes for AI agents. Open source, self-hostable, webhooks on every plan.</p>
+      <div class="meta mono">
+        <span class="soon">
+          <span class="dot" aria-hidden="true"></span>Launching soon
         </span>
-      </div>
-      <div class="groups">
-        {groups.map((g) => (
-          <div>
-            <h3>{g.title}</h3>
-            <ul>
-              {g.links.map((l) => (
-                <li>
-                  <a href={l.href}>{l.label}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <a href={repo.releaseUrl} rel="noopener">
+          Self-host {repo.version}
+        </a>
       </div>
     </div>
+    <div class="groups">
+      {groups.map((g) => (
+        <div>
+          <h2>{g.title}</h2>
+          <ul>
+            {g.links.map((l) => (
+              <li>
+                <a href={l.href} rel={l.href.startsWith("http") ? "noopener" : undefined}>
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+  <div class="wrap">
     <div class="bottom">
       <span>
-        © {year} {site.operator}. send0 {site.repoPublic ? "is" : "will be"} open source under AGPL-3.0.
+        © {year} {site.operator}. The send0 server is open source under AGPL-3.0.
       </span>
       <span class="mono">Made in {site.country}</span>
     </div>
@@ -82,17 +89,17 @@ const groups = [
 
 <style>
   .footer {
-    border-top: 1px solid var(--rail);
+    background: var(--paper-alt);
   }
   .top {
     display: grid;
-    gap: 48px;
-    padding: 64px var(--gutter) 48px;
+    gap: 44px;
+    padding-block: 56px 44px;
   }
   @media (min-width: 900px) {
     .top {
       grid-template-columns: 1fr 2fr;
-      padding: 72px 48px 56px;
+      padding-block: 72px 56px;
     }
   }
   .about {
@@ -103,8 +110,35 @@ const groups = [
   }
   .about p {
     max-width: 300px;
-    color: var(--fg-muted);
-    font-size: 14px;
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .meta a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule);
+  }
+  .meta a:hover {
+    color: var(--ink);
+  }
+  .soon {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--postal);
   }
   .groups {
     display: grid;
@@ -116,42 +150,37 @@ const groups = [
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
-  h3 {
-    font: 500 12px/1 var(--font-mono);
-    letter-spacing: 0.04em;
+  h2 {
+    margin-bottom: 14px;
+    font: 500 11.5px/1 var(--font-mono);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--fg-faint);
-    margin-bottom: 16px;
+    color: var(--muted);
   }
   ul {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    gap: 10px;
+    gap: 9px;
   }
   li a {
-    font-size: 14px;
-    color: var(--fg-muted);
+    font-size: 14.5px;
+    color: var(--ink);
     overflow-wrap: anywhere;
     transition: color 0.15s ease;
   }
   li a:hover {
-    color: var(--fg);
+    color: var(--postal-ink);
   }
   .bottom {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px 24px;
-    padding: 20px var(--gutter) 32px;
-    border-top: 1px solid var(--rail);
+    padding-block: 20px 32px;
+    border-top: 1px solid var(--hairline);
     font-size: 13px;
-    color: var(--fg-faint);
-  }
-  @media (min-width: 900px) {
-    .bottom {
-      padding: 20px 48px 32px;
-    }
+    color: var(--muted);
   }
 </style>

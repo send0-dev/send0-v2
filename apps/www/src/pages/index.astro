@@ -1,32 +1,30 @@
 ---
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
-import UseCases from "../components/UseCases.astro";
-import Features from "../components/Features.astro";
-import CodeTabs from "../components/CodeTabs.astro";
-import HowItWorks from "../components/HowItWorks.astro";
-import Safety from "../components/Safety.astro";
-import SelfHost from "../components/SelfHost.astro";
-import Compare from "../components/Compare.astro";
-import Pricing from "../components/Pricing.astro";
-import Founder from "../components/Founder.astro";
-import Faq from "../components/Faq.astro";
-import FinalCta from "../components/FinalCta.astro";
+import Hero from "../sections/Hero.astro";
+import WorksWith from "../sections/WorksWith.astro";
+import AirmailRule from "../components/AirmailRule.astro";
+import CanDo from "../sections/CanDo.astro";
+import StampSheet from "../sections/StampSheet.astro";
+import Developers from "../sections/Developers.astro";
+import Journey from "../sections/Journey.astro";
+import OpenSource from "../sections/OpenSource.astro";
+import Pricing from "../sections/Pricing.astro";
+import Founder from "../sections/Founder.astro";
+import Faq from "../sections/Faq.astro";
+import FinalCta from "../sections/FinalCta.astro";
 ---
 
 <Base>
-  <div class="column">
-    <Hero />
-    <UseCases />
-    <Features />
-    <CodeTabs />
-    <HowItWorks />
-    <Safety />
-    <SelfHost />
-    <Compare />
-    <Pricing />
-    <Founder />
-    <Faq />
-    <FinalCta />
-  </div>
+  <Hero />
+  <AirmailRule />
+  <WorksWith />
+  <CanDo />
+  <StampSheet />
+  <Developers />
+  <Journey />
+  <OpenSource />
+  <Pricing />
+  <Founder />
+  <Faq />
+  <FinalCta />
 </Base>

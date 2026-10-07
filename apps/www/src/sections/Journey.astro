@@ -1,0 +1,139 @@
+---
+import LetterJourney from "../components/LetterJourney.astro";
+import Signpost from "../illustrations/Signpost.astro";
+import { site } from "../site";
+
+const stops = [
+  { title: "Accept", body: "Mail to an unknown address is refused while the sending server is still connected." },
+  { title: "Store", body: "The raw message is saved before anything else touches it, so a failed step never loses mail." },
+  {
+    title: "Understand",
+    body: "MIME parsed, quoted history stripped, codes and links pulled out, SPF, DKIM and DMARC read, injection flagged.",
+  },
+  { title: "Thread", body: "Matched to its conversation by headers first, then by subject and the people on it." },
+  { title: "Notify", body: "Your webhook fires, the event stream updates, and any waiting call wakes up." },
+];
+
+const rules = [
+  { title: "Free accounts are reply-only.", body: "They write only to people who emailed the inbox first, and to the owner." },
+  { title: "50 sends a day, to start.", body: "New accounts begin there, and the limit rises with a clean record." },
+  { title: "Sending pauses itself.", body: "At 0.3% complaints or 5% hard bounces, with an inbox.suspended event." },
+  { title: "No cold outreach, no bulk mail.", body: "And addresses that bounce or complain are suppressed automatically." },
+];
+---
+
+<section class="section band" id="how-it-works" aria-labelledby="journey-title">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">The journey of a letter</span>
+      <h2 id="journey-title" class="h2">
+        From their server <em>to your agent.</em>
+      </h2>
+      <p class="lede">Every message takes the same route, with the same five stops.</p>
+    </div>
+
+    <LetterJourney stops={stops} />
+
+    <div class="rules">
+      <div class="post">
+        <Signpost class="sign" />
+        <div>
+          <h3>Rules of the road</h3>
+          <p>
+            A shared domain only works if nobody abuses it. These are on for every account from day one, and they're in our{" "}
+            <a class="link" href="/acceptable-use">
+              acceptable use policy
+            </a>
+            . Reports to{" "}
+            <a class="link" href={`mailto:${site.email.abuse}`}>
+              {site.email.abuse}
+            </a>{" "}
+            are read by a person.
+          </p>
+        </div>
+      </div>
+      <ul>
+        {rules.map((r) => (
+          <li>
+            <strong>{r.title}</strong> {r.body}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .head {
+    margin-bottom: 48px;
+  }
+  .h2 {
+    max-width: 16em;
+  }
+  .rules {
+    display: grid;
+    gap: 32px;
+    margin-top: 64px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule);
+  }
+  @media (min-width: 1024px) {
+    .rules {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      gap: 64px;
+    }
+  }
+  .post {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .post :global(.sign) {
+    flex: none;
+    width: 92px;
+  }
+  h3 {
+    font-size: 26px;
+  }
+  .post p {
+    margin-top: 10px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  @media (min-width: 640px) {
+    ul {
+      grid-template-columns: 1fr 1fr;
+      gap: 0 32px;
+    }
+  }
+  li {
+    padding: 14px 0 14px 28px;
+    position: relative;
+    font-size: 14.5px;
+    color: var(--muted);
+    border-bottom: 1px dashed var(--rule);
+  }
+  li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 21px;
+    width: 12px;
+    height: 7px;
+    border-left: 2px solid var(--ok);
+    border-bottom: 2px solid var(--ok);
+    transform: rotate(-45deg);
+  }
+  strong {
+    display: block;
+    color: var(--ink);
+    font-weight: 600;
+  }
+</style>

@@ -1,0 +1,190 @@
+---
+import CodeTabs, { type Tab } from "../components/CodeTabs.astro";
+import { site } from "../site";
+
+const tabs: Tab[] = [
+  {
+    id: "ts",
+    label: "TypeScript",
+    file: "agent.ts",
+    lang: "ts",
+    note: "npm install @send0/sdk",
+    code: `import { Send0 } from "@send0/sdk";
+
+const send0 = new Send0(); // reads SEND0_API_KEY
+
+const inbox = await send0.inboxes.create({ name: "signup-agent" });
+console.log(inbox.address); // signup-agent@send0.email
+
+const msg = await send0.inboxes.wait(inbox.id, {
+  from: "*@github.com", // exact address or wildcard
+  timeout: 60,          // seconds
+});
+if (!msg) throw new Error("No email within 60s");
+
+console.log(msg.extracted?.otp);         // "482913"
+console.log(msg.extracted?.action_link); // "https://github.com/verify?..."
+
+await send0.messages.reply(msg.id, { text: "Thanks, confirmed." });`,
+  },
+  {
+    id: "py",
+    label: "Python",
+    file: "agent.py",
+    lang: "python",
+    note: "pip install send0",
+    code: `from send0 import Send0
+
+send0 = Send0()  # reads SEND0_API_KEY
+
+inbox = send0.inboxes.create(name="signup-agent")
+print(inbox.address)  # signup-agent@send0.email
+
+msg = send0.inboxes.wait(inbox.id, from_="*@github.com", timeout=60)
+
+if msg and msg.extracted and msg.extracted.otp:
+    print(msg.extracted.otp)  # "482913"
+
+send0.messages.reply(msg.id, text="Thanks, confirmed.")`,
+  },
+  {
+    id: "curl",
+    label: "cURL",
+    file: "terminal",
+    lang: "bash",
+    note: "Any language that speaks HTTP",
+    code: `# Create an inbox
+curl https://api.send0.dev/v1/inboxes \\
+  -H "Authorization: Bearer $SEND0_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: $(uuidgen)" \\
+  -d '{ "name": "research-agent" }'
+
+# Hold the request until matching mail arrives (up to 60s)
+curl "https://api.send0.dev/v1/inboxes/ibx_7Hc2…/messages/wait?from=*@acme.dev&timeout=60" \\
+  -H "Authorization: Bearer $SEND0_API_KEY"
+
+# Reply in the same thread
+curl https://api.send0.dev/v1/messages/msg_9Kd2…/reply \\
+  -H "Authorization: Bearer $SEND0_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: $(uuidgen)" \\
+  -d '{ "text": "Thanks, confirmed." }'`,
+  },
+  {
+    id: "mcp",
+    label: "MCP",
+    file: "terminal",
+    lang: "bash",
+    note: "Remote at api.send0.dev/mcp, or local over stdio",
+    code: `# Remote: nothing to install
+claude mcp add --transport http send0 https://api.send0.dev/mcp \\
+  --header "Authorization: Bearer s0_live_…"
+
+# Local, over stdio
+claude mcp add send0 --env SEND0_API_KEY=s0_live_… -- npx -y @send0/mcp
+
+# Tools your agent gets:
+#   create_inbox     list_inboxes     wait_for_email
+#   search_messages  get_message      list_threads
+#   get_thread       send_email       reply
+#
+# Message bodies reach the model wrapped as untrusted data,
+# with a warning when a prompt injection is suspected.`,
+  },
+];
+
+const notes = [
+  {
+    k: "Idempotency-Key",
+    v: "on every POST, so a retrying agent never sends the same email twice.",
+  },
+  { k: "Cursor pagination", v: "on every list, with limit and next_cursor." },
+  {
+    k: "send0-signature",
+    v: "on every webhook: HMAC-SHA256, checked in one line with verifyWebhook().",
+  },
+];
+---
+
+<section class="section" id="developers" aria-labelledby="dev-title">
+  <div class="wrap layout">
+    <div class="copy">
+      <span class="eyebrow">For developers</span>
+      <h2 id="dev-title" class="h2">
+        Four ways in. <em>All of them real.</em>
+      </h2>
+      <p class="lede">
+        A REST API described by an OpenAPI 3.1 spec, SDKs for TypeScript and Python, and an MCP server. The same code works against our
+        cloud and against your own server.
+      </p>
+      <dl class="notes">
+        {notes.map((n) => (
+          <div>
+            <dt class="mono">{n.k}</dt>
+            <dd>{n.v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="more">
+        <a class="link" href={site.docs.quickstart}>
+          Quickstart
+        </a>
+        <span aria-hidden="true">·</span>
+        <a class="link" href="https://api.send0.dev/openapi.json" rel="noopener">
+          openapi.json
+        </a>
+        <span aria-hidden="true">·</span>
+        <a class="link" href={site.docs.llms}>
+          Docs for LLMs
+        </a>
+      </p>
+    </div>
+    <CodeTabs tabs={tabs} label="Code examples" />
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 44px;
+  }
+  @media (min-width: 1024px) {
+    .layout {
+      grid-template-columns: minmax(0, 4.2fr) minmax(0, 6.8fr);
+      gap: 64px;
+      align-items: center;
+    }
+  }
+  .notes {
+    margin: 30px 0 0;
+    display: grid;
+    gap: 0;
+  }
+  .notes div {
+    padding: 14px 0;
+    border-top: 1.5px dashed var(--hairline);
+  }
+  .notes div:last-child {
+    border-bottom: 1.5px dashed var(--hairline);
+  }
+  dt {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--postal-ink);
+  }
+  dd {
+    margin: 4px 0 0;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .more {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-top: 22px;
+    font-size: 14.5px;
+    color: var(--muted);
+  }
+</style>

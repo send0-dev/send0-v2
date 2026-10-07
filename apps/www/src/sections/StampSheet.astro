@@ -1,0 +1,132 @@
+---
+import Stamp from "../components/Stamp.astro";
+import StampGlyph from "../illustrations/StampGlyph.astro";
+
+const stamps = [
+  {
+    glyph: "inbox",
+    tint: "butter",
+    title: "An inbox in one call",
+    body: "<code>POST /v1/inboxes</code> returns a live address on send0.email. Add a +tag to the address to sort mail by task.",
+  },
+  {
+    glyph: "wait",
+    tint: "sky",
+    title: "Wait, don't poll",
+    body: "<code>wait</code> holds one request open for up to two minutes and returns the moment a matching message lands.",
+  },
+  {
+    glyph: "thread",
+    tint: "blush",
+    title: "Threads that hold",
+    body: "Message-ID, In-Reply-To and References first. Then subject and people, within 14 days.",
+  },
+  {
+    glyph: "live",
+    tint: "sage",
+    title: "Webhooks and live events",
+    body: "Signed webhooks, retried for about a day, and a server-sent event stream for every new message.",
+  },
+  {
+    glyph: "key",
+    tint: "butter",
+    title: "Keys for one inbox",
+    body: "Limit an API key to specific inboxes and to read, send or admin, so one agent can't read another's mail.",
+  },
+  {
+    glyph: "shield",
+    tint: "sky",
+    title: "Mail is untrusted input",
+    body: "Every message carries SPF, DKIM and DMARC verdicts and a prompt-injection flag before your model sees it.",
+  },
+] as const;
+---
+
+<section class="section band" id="features" aria-labelledby="stamps-title">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="eyebrow">The essentials</span>
+        <h2 id="stamps-title" class="h2">
+          Everything an agent's inbox <em>needs.</em> Nothing it doesn't.
+        </h2>
+      </div>
+      <p class="lede">
+        Email has fifty years of edge cases. send0 parses, threads and checks every message, so your agent gets clean data and a clear
+        signal about who sent it.
+      </p>
+    </div>
+
+    <ul class="sheet">
+      {stamps.map((s, i) => (
+        <li>
+          <Stamp tint={s.tint} value={String(i + 1).padStart(2, "0")} class="land">
+            <StampGlyph name={s.glyph} class="glyph" />
+            <h3>{s.title}</h3>
+            <p set:html={s.body} />
+          </Stamp>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px 64px;
+    margin-bottom: 52px;
+  }
+  @media (min-width: 1024px) {
+    .head {
+      grid-template-columns: 1.2fr 1fr;
+      align-items: end;
+    }
+    .head .lede {
+      margin-bottom: 6px;
+    }
+  }
+  .h2 {
+    max-width: 15em;
+  }
+  .sheet {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 22px;
+  }
+  @media (min-width: 640px) {
+    .sheet {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .sheet {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 26px 28px;
+    }
+  }
+  .sheet li {
+    display: grid;
+  }
+  .sheet li :global(.stamp-wrap:hover) {
+    transform: rotate(-1deg) translateY(-3px);
+  }
+  .sheet :global(.glyph) {
+    width: 46px;
+    height: 46px;
+    margin: -4px 0 14px -4px;
+  }
+  h3 {
+    font-size: 22px;
+    line-height: 1.15;
+  }
+  p {
+    margin-top: 8px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--ink) 78%, transparent);
+  }
+</style>

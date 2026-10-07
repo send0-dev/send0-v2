@@ -1,0 +1,116 @@
+---
+import Postcard from "../components/Postcard.astro";
+import RobotHand from "../illustrations/RobotHand.astro";
+import StringThread from "../illustrations/StringThread.astro";
+import RubberStamp from "../illustrations/RubberStamp.astro";
+---
+
+<section class="section" id="use-cases" aria-labelledby="cando-title">
+  <div class="wrap layout">
+    <div class="head">
+      <span class="eyebrow">What your agent can do</span>
+      <h2 id="cando-title" class="h2">
+        Mail is how the world <em>asks for things.</em>
+      </h2>
+      <p class="lede">
+        Sign-ups send codes. Suppliers reply to orders. Customers answer in threads. With its own address, your agent can take part, and you
+        decide how much it says on its own.
+      </p>
+    </div>
+
+    <div class="cards">
+      <Postcard tint="butter" tilt={-1.2} class="reveal">
+        <RobotHand slot="picture" class="pic" />
+        <h3>Sign up and verify</h3>
+        <p>
+          Your agent types its own address into a sign-up form, then calls <code>wait</code>. The call returns when the email lands, with
+          the code and the verify link already pulled out.
+        </p>
+        <span class="line mono">
+          msg.extracted.otp <span class="c">// "482913"</span>
+        </span>
+      </Postcard>
+
+      <Postcard tint="sky" tilt={0.8} class="reveal shift">
+        <StringThread slot="picture" class="pic" />
+        <h3>Hold a conversation</h3>
+        <p>
+          Replies are matched by Message-ID, In-Reply-To and References, so a back-and-forth with a supplier stays one thread, even when
+          someone edits the subject.
+        </p>
+        <span class="line mono">
+          thread.messages <span class="c">// 3, in order</span>
+        </span>
+      </Postcard>
+
+      <Postcard tint="sage" tilt={-0.6} class="reveal">
+        <RubberStamp slot="picture" class="pic" />
+        <h3>Keep a person in the loop</h3>
+        <p>
+          Put an inbox in approval mode and every outgoing message waits as a draft. A person sends or rejects it from the dashboard or the
+          API.
+        </p>
+        <span class="line mono">
+          send_policy: <span class="s">"approval"</span>
+        </span>
+      </Postcard>
+    </div>
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (min-width: 1024px) {
+    .layout {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      gap: 72px;
+      align-items: start;
+    }
+    .head {
+      position: sticky;
+      top: 120px;
+    }
+  }
+  .cards {
+    display: grid;
+    gap: 24px;
+  }
+  @media (min-width: 1024px) {
+    .shift {
+      margin-left: 48px;
+      margin-right: -16px;
+    }
+  }
+  .cards :global(.pic) {
+    width: 100%;
+    max-width: 168px;
+    max-height: 150px;
+  }
+  h3 {
+    font-size: 23px;
+    padding-right: 48px;
+  }
+  .cards p {
+    margin-top: 8px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .line {
+    display: inline-block;
+    margin-top: 12px;
+    padding-top: 9px;
+    border-top: 1.5px dashed var(--hairline);
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .c {
+    color: var(--muted);
+  }
+  .s {
+    color: var(--postal-ink);
+  }
+</style>

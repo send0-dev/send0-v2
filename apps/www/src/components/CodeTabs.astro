@@ -1,285 +1,160 @@
 ---
+// Tabbed code panel. Highlighting happens at build time with a warm theme that matches the site.
 import { Code } from "astro:components";
 
-const themes = { light: "github-light", dark: "github-dark-default" } as const;
-
-const tabs = [
-  {
-    id: "sdk",
-    label: "TypeScript",
-    file: "support-agent.ts",
-    lang: "ts",
-    note: "npm i @send0/sdk",
-    code: `import { Send0 } from "@send0/sdk";
-
-const send0 = new Send0(process.env.SEND0_API_KEY);
-
-const inbox = await send0.inboxes.create({
-  name: "support-agent",
-  sendPolicy: "reply_only",
-});
-
-// Called by your webhook handler for every new message
-export async function onMessage(id: string) {
-  const msg = await send0.messages.get(id);
-
-  if (msg.safety.promptInjection !== "none") return;
-
-  const answer = await agent.run(msg.extractedText);
-
-  await send0.messages.reply(msg.id, { text: answer });
-}`,
-  },
-  {
-    id: "curl",
-    label: "cURL",
-    file: "terminal",
-    lang: "bash",
-    note: "Any language that speaks HTTP",
-    code: `# Create an inbox
-curl https://api.send0.dev/v1/inboxes \\
-  -H "Authorization: Bearer $SEND0_API_KEY" \\
-  -H "Idempotency-Key: $(uuidgen)" \\
-  -d '{ "name": "research-agent" }'
-
-# → { "id": "ibx_7Hc2", "address": "research-agent@send0.email" }
-
-# Block for up to 60s until a matching message arrives
-curl "https://api.send0.dev/v1/inboxes/ibx_7Hc2/messages/wait?from=*@acme.dev&timeout=60" \\
-  -H "Authorization: Bearer $SEND0_API_KEY"
-
-# → { "id": "msg_9Kd2", "extracted": { "otp": "482913", "links": [...] } }`,
-  },
-  {
-    id: "mcp",
-    label: "MCP",
-    file: "mcp.json",
-    lang: "jsonc",
-    note: "Local over stdio, or remote at mcp.send0.dev",
-    code: `{
-  "mcpServers": {
-    "send0": {
-      "command": "npx",
-      "args": ["-y", "@send0/mcp"],
-      "env": { "SEND0_API_KEY": "s0_live_..." }
-    }
-  }
+export interface Tab {
+  id: string;
+  label: string;
+  file: string;
+  lang: "ts" | "python" | "bash" | "json";
+  note: string;
+  code: string;
 }
+interface Props {
+  tabs: Tab[];
+  label: string;
+}
+const { tabs, label } = Astro.props;
 
-// Tools your agent gets:
-// create_inbox    list_threads    get_thread
-// send_email      reply           wait_for_email
-// search_messages`,
-  },
-  {
-    id: "webhook",
-    label: "Webhook",
-    file: "POST /hooks/mail",
-    lang: "json",
-    note: "send0-signature: t=…,v1=… (HMAC-SHA256)",
-    code: `{
-  "type": "message.received",
-  "data": {
-    "id": "msg_9Kd2",
-    "inbox_id": "ibx_7Hc2",
-    "thread_id": "thr_3Lp8",
-    "from": { "email": "dana@acme.com", "name": "Dana" },
-    "subject": "Re: PO #4471 delivery date",
-    "extracted_text": "Can you confirm Thursday instead?",
-    "auth": { "spf": "pass", "dkim": "pass", "dmarc": "pass" },
-    "safety": { "spam": false, "prompt_injection": "none" },
-    "attachments": [{ "id": "att_x1", "filename": "po.pdf", "size": 84211 }]
-  }
-}`,
-  },
-];
+const warm = {
+  name: "send0-warm",
+  type: "dark",
+  colors: { "editor.background": "#1f1b17", "editor.foreground": "#ede4d6" },
+  settings: [
+    { settings: { foreground: "#ede4d6" } },
+    { scope: ["comment", "punctuation.definition.comment"], settings: { foreground: "#a39581", fontStyle: "italic" } },
+    { scope: ["keyword", "storage", "storage.type", "keyword.control", "keyword.operator.new"], settings: { foreground: "#ff8f5c" } },
+    { scope: ["string", "string.quoted", "punctuation.definition.string"], settings: { foreground: "#b9d48f" } },
+    { scope: ["entity.name.function", "support.function", "meta.function-call"], settings: { foreground: "#8fb8f0" } },
+    { scope: ["constant.numeric", "constant.language", "support.constant"], settings: { foreground: "#f2c66d" } },
+    { scope: ["variable.parameter", "support.type.property-name", "meta.object-literal.key"], settings: { foreground: "#e8c9a8" } },
+    { scope: ["entity.name.type", "entity.name.class", "support.class"], settings: { foreground: "#f2c66d" } },
+    { scope: ["variable.other.constant", "variable.other.readwrite"], settings: { foreground: "#ede4d6" } },
+  ],
+};
 ---
 
-<section class="section" aria-labelledby="dev-title">
-  <div class="layout">
-    <div class="section-head reveal">
-      <span class="eyebrow">For developers</span>
-      <h2 id="dev-title" class="h2">
-        Four ways in. <span class="dim">Ship it in an afternoon.</span>
-      </h2>
-      <p class="lede">
-        A REST API with an OpenAPI 3.1 spec, generated SDKs, an MCP server and signed webhooks. Every POST takes an Idempotency-Key, so your
-        agent can retry safely.
-      </p>
-      <ul class="points">
-        <li>
-          <span class="mono">Bearer</span> keys, scoped to an org or to specific inboxes
-        </li>
-        <li>
-          <span class="mono">Cursor</span> pagination on every list
-        </li>
-        <li>
-          <span class="mono">Stripe-style</span> webhook signatures you already know how to verify
-        </li>
-        <li>
-          <span class="mono">Paths</span> close to other inbox APIs, so switching is a small diff
-        </li>
-      </ul>
-      <p class="preview mono">Shown: the planned v1 API. Details may change before beta.</p>
-    </div>
-
-    <div class="tabs card reveal" data-tabs>
-      <div class="tablist" role="tablist" aria-label="Code examples">
-        {tabs.map((t, i) => (
-          <button
-            role="tab"
-            id={`tab-${t.id}`}
-            aria-controls={`panel-${t.id}`}
-            aria-selected={i === 0 ? "true" : "false"}
-            tabindex={i === 0 ? 0 : -1}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+<div class="tabs" data-tabs>
+  <div class="bar">
+    <div class="list" role="tablist" aria-label={label}>
       {tabs.map((t, i) => (
-        <div role="tabpanel" id={`panel-${t.id}`} aria-labelledby={`tab-${t.id}`} hidden={i !== 0} tabindex="0">
-          <div class="meta mono">
-            <span>{t.file}</span>
-            <span class="note">{t.note}</span>
-          </div>
-          <Code code={t.code} lang={t.lang as any} themes={themes} />
-        </div>
+        <button
+          type="button"
+          role="tab"
+          id={`tab-${t.id}`}
+          aria-controls={`panel-${t.id}`}
+          aria-selected={i === 0 ? "true" : "false"}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          {t.label}
+        </button>
       ))}
     </div>
   </div>
-</section>
+  {tabs.map((t, i) => (
+    <div class="panel" role="tabpanel" id={`panel-${t.id}`} aria-labelledby={`tab-${t.id}`} hidden={i !== 0} tabindex="0">
+      <div class="meta mono">
+        <span>{t.file}</span>
+        <span>{t.note}</span>
+      </div>
+      <Code code={t.code} lang={t.lang} theme={warm as never} />
+    </div>
+  ))}
+</div>
 
 <script>
   document.querySelectorAll<HTMLElement>("[data-tabs]").forEach((root) => {
-    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
-    const select = (tab: HTMLButtonElement) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>("[role=tab]")];
+    const select = (tab: HTMLButtonElement, focus = false) => {
       for (const t of tabs) {
         const on = t === tab;
         t.setAttribute("aria-selected", String(on));
         t.tabIndex = on ? 0 : -1;
         document.getElementById(t.getAttribute("aria-controls")!)!.hidden = !on;
       }
+      if (focus) tab.focus();
     };
     tabs.forEach((tab, i) => {
       tab.addEventListener("click", () => select(tab));
       tab.addEventListener("keydown", (e) => {
-        const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-        if (!dir) return;
-        const next = tabs[(i + dir + tabs.length) % tabs.length]!;
-        next.focus();
-        select(next);
+        const n = tabs.length;
+        const to = { ArrowRight: i + 1, ArrowLeft: i - 1 + n, Home: 0, End: n - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        select(tabs[to % n]!, true);
       });
     });
   });
 </script>
 
 <style>
-  .layout {
-    display: grid;
-    gap: 48px;
-  }
-  @media (min-width: 1000px) {
-    .layout {
-      grid-template-columns: 0.85fr 1.15fr;
-      gap: 56px;
-      align-items: start;
-    }
-    .layout .section-head {
-      margin-bottom: 0;
-      position: sticky;
-      top: 100px;
-    }
-  }
-  .points {
-    list-style: none;
-    margin: 28px 0 0;
-    padding: 0;
-    display: grid;
-    gap: 12px;
-    font-size: 15px;
-    color: var(--fg-muted);
-  }
-  .points li {
-    position: relative;
-    padding-left: 22px;
-  }
-  .points li::before {
-    content: "→";
-    position: absolute;
-    left: 0;
-    top: 1px;
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 13px;
-  }
-  .points .mono {
-    color: var(--fg);
-    font-size: 13.5px;
-  }
-  .preview {
-    margin-top: 28px;
-    font-size: 12px;
-    color: var(--fg-faint);
-  }
   .tabs {
     min-width: 0;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border-radius: 14px;
+    border: 1px solid var(--code-line);
+    box-shadow: var(--shadow-lg);
     overflow: hidden;
-    box-shadow: var(--shadow);
   }
-  .tablist {
-    display: flex;
-    gap: 2px;
-    padding: 6px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-subtle);
+  .bar {
+    background: var(--code-bar);
+    border-bottom: 1px solid var(--code-line);
     overflow-x: auto;
   }
+  .list {
+    display: flex;
+    gap: 2px;
+    padding: 8px 10px 0;
+  }
   [role="tab"] {
-    height: 32px;
-    padding: 0 12px;
+    position: relative;
+    padding: 9px 14px 12px;
     border: 0;
-    border-radius: 6px;
     background: transparent;
-    color: var(--fg-muted);
+    color: var(--code-muted);
     font: 500 13.5px/1 var(--font-sans);
     cursor: pointer;
     white-space: nowrap;
-    transition:
-      background-color 0.15s ease,
-      color 0.15s ease;
+    border-radius: 7px 7px 0 0;
+    transition: color 0.15s ease;
   }
   [role="tab"]:hover {
-    color: var(--fg);
+    color: var(--code-fg);
   }
   [role="tab"][aria-selected="true"] {
-    background: var(--surface);
-    color: var(--fg);
-    box-shadow: 0 0 0 1px var(--border);
+    color: var(--code-fg);
   }
-  [role="tabpanel"] {
-    background: var(--code-bg);
+  [role="tab"][aria-selected="true"]::after {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: -1px;
+    height: 2px;
+    background: var(--code-key);
+    border-radius: 2px;
   }
-  [role="tabpanel"]:focus-visible {
+  [role="tab"]:focus-visible {
+    outline-color: var(--code-fn);
+    outline-offset: -3px;
+  }
+  .panel:focus-visible {
+    outline: 2px solid var(--code-fn);
     outline-offset: -2px;
   }
   .meta {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 16px;
-    padding: 12px 20px 0;
+    gap: 4px 16px;
+    padding: 14px 22px 0;
     font-size: 11.5px;
-    color: var(--fg-faint);
+    color: var(--code-muted);
   }
-  .note {
-    text-align: right;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  [role="tabpanel"] :global(.astro-code) {
-    padding: 14px 20px 24px;
-    font-size: 12.5px;
-    min-height: 420px;
+  .panel :global(.astro-code) {
+    font-size: 13px;
+    padding-top: 12px;
+    min-height: 380px;
   }
 </style>

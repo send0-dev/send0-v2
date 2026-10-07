@@ -1,0 +1,83 @@
+---
+import AddressLabel from "../components/AddressLabel.astro";
+import EnvelopeOpen from "../illustrations/EnvelopeOpen.astro";
+import { site } from "../site";
+---
+
+<section class="section final" id="waitlist" aria-labelledby="final-title">
+  <div class="wrap">
+    <div class="envelope">
+      <div class="art">
+        <EnvelopeOpen class="ill-big" />
+      </div>
+      <div class="copy">
+        <h2 id="final-title" class="h2">
+          Your agent's inbox is <em>one API call</em> away.
+        </h2>
+        <p class="lede">
+          Join the waitlist for send0 Cloud. We'll email you once, when it opens. Prefer your own servers?{" "}
+          <a class="link" href={site.docs.selfHost}>
+            Self-host it today
+          </a>
+          .
+        </p>
+        <div class="form">
+          <AddressLabel source="footer-cta" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .envelope {
+    position: relative;
+    display: grid;
+    gap: 32px;
+    padding: 40px 24px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+  }
+  /* an airmail border */
+  .envelope::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 9px;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--airmail-red) 0 14px,
+      var(--card) 14px 21px,
+      var(--airmail-blue) 21px 35px,
+      var(--card) 35px 42px
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    pointer-events: none;
+  }
+  @media (min-width: 900px) {
+    .envelope {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+      align-items: center;
+      gap: 56px;
+      padding: 64px 72px;
+    }
+  }
+  .art {
+    display: grid;
+    place-items: center;
+  }
+  .art :global(.ill-big) {
+    width: 100%;
+    max-width: min(320px, 70%);
+  }
+  .h2 {
+    max-width: 13em;
+  }
+  .form {
+    margin-top: 28px;
+  }
+</style>

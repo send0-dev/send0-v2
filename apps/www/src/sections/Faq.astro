@@ -1,0 +1,139 @@
+---
+import { site } from "../site";
+
+const faqs = [
+  {
+    q: "What is send0?",
+    a: `An email API where the inbox is the main object. One call gives an agent a real address that sends, receives and threads replies, and tells your code about new mail through webhooks, an event stream or a long-poll <code>wait</code>. It's open source: use our cloud, or run it yourself.`,
+  },
+  {
+    q: "How is it different from a transactional email API?",
+    a: `Transactional APIs are built to send receipts and password resets; receiving is usually an add-on that forwards raw mail to a webhook. send0 starts from the inbox. Messages are parsed, threaded, checked and stored, codes and links are extracted, and your agent replies in the same thread.`,
+  },
+  {
+    q: "When can I use send0 Cloud?",
+    a: `Soon. Join the waitlist and we'll email you once, when it opens, with nothing in between. You can self-host today, and follow along on <a href="${site.github}">GitHub</a>.`,
+  },
+  {
+    q: "Will sites block send0.email addresses as disposable?",
+    a: `We work to make sure they don't. Every send0.email inbox belongs to a verified account, and we never market it as throwaway mail. If an address must never be questioned, self-host on your own domain today; custom domains are coming to paid cloud plans.`,
+  },
+  {
+    q: "How do you keep agents safe from malicious email?",
+    a: `Every inbound message carries SPF, DKIM and DMARC results and a prompt-injection flag with its reasons. The MCP server hands message bodies to the model as untrusted data, never as instructions. Approval mode makes a person sign off before anything is sent, and keys can be limited to a single inbox.`,
+  },
+  {
+    q: "What does AGPL-3.0 mean for me?",
+    a: `Calling send0's API from your app puts no obligations on your code. You can self-host commercially, at any scale. If you change the server itself and offer it to others over a network, you share those changes under the same license. The SDKs and MCP server are MIT.`,
+  },
+];
+---
+
+<section class="section" id="faq" aria-labelledby="faq-title">
+  <div class="wrap layout">
+    <div class="head">
+      <span class="eyebrow">Questions</span>
+      <h2 id="faq-title" class="h2">
+        Asked, <em>and answered.</em>
+      </h2>
+      <p class="lede">
+        Something missing? Write to{" "}
+        <a class="link" href={`mailto:${site.email.hello}`}>
+          {site.email.hello}
+        </a>{" "}
+        and a person will reply.
+      </p>
+    </div>
+    <div class="list">
+      {faqs.map((f, i) => (
+        <details name="faq" open={i === 0}>
+          <summary>
+            <span>{f.q}</span>
+            <span class="plus" aria-hidden="true" />
+          </summary>
+          <div class="answer" set:html={f.a} />
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+  @media (min-width: 1024px) {
+    .layout {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      gap: 72px;
+      align-items: start;
+    }
+  }
+  details {
+    border-bottom: 1px solid var(--rule);
+  }
+  details:first-child {
+    border-top: 1px solid var(--rule);
+  }
+  summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 2px;
+    cursor: pointer;
+    list-style: none;
+    font: 450 20px/1.3 var(--font-display);
+    border-radius: 4px;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:hover {
+    color: var(--postal-ink);
+  }
+  .plus {
+    position: relative;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    transition:
+      transform 0.25s ease,
+      background-color 0.2s ease;
+  }
+  .plus::before,
+  .plus::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 11px;
+    height: 1.75px;
+    background: currentColor;
+    transform: translate(-50%, -50%);
+  }
+  .plus::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+  details[open] .plus {
+    transform: rotate(45deg);
+    background: var(--butter);
+  }
+  .answer {
+    padding: 0 48px 24px 2px;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--muted);
+  }
+  .answer :global(a) {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule);
+  }
+</style>

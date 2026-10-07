@@ -1,224 +1,246 @@
 ---
-// Animated walkthrough of the core agent loop: create an inbox, use it, wait for mail, read the code.
+// Scripted walkthrough: create an inbox, wait for mail, read the code, reply, watch the thread grow.
+// The markup is the final state; the script only hides and replays steps. With reduced motion or
+// no JavaScript, visitors see the finished scene. `?demo=0..6` freezes a step for checking layouts.
+import Envelope from "../illustrations/Envelope.astro";
 ---
 
-<div class="demo" data-demo data-step="0">
-  <div class="pane code-pane">
+<div class="demo" data-demo aria-label="Animated example: an agent gets an inbox, receives a verification code and replies" role="figure">
+  <div class="to mono" data-at="1">
+    <span class="live" aria-hidden="true"></span>
+    <span class="k">To</span> signup-agent@send0.email
+  </div>
+
+  <div class="code">
     <div class="bar">
-      <span class="lights" aria-hidden="true">
+      <span class="dots" aria-hidden="true">
         <i></i>
         <i></i>
         <i></i>
       </span>
       <span class="file mono">agent.ts</span>
+      <span class="status mono" data-only="2">
+        <span class="spin" aria-hidden="true"></span>waiting for *@acme.dev
+      </span>
     </div>
-    <pre
-      class="code mono"
-      aria-label="Example agent code using the send0 SDK"
-    ><code><span class="ln"><span class="k">import</span> {"{"} Send0 {"}"} <span class="k">from</span> <span class="s">"@send0/sdk"</span>;</span>
-<span class="ln"><span class="k">const</span> send0 = <span class="k">new</span> <span class="f">Send0</span>(process.env.SEND0_API_KEY);</span>
+    <pre class="mono"><code><span class="ln" data-line="0"><span class="k">import</span> {"{"} Send0 {"}"} <span class="k">from</span> <span class="s">"@send0/sdk"</span>;</span>
+<span class="ln" data-line="0"><span class="k">const</span> send0 = <span class="k">new</span> <span class="f">Send0</span>();</span>
 <span class="ln"> </span>
-<span class="ln" data-s="1"><span class="c">// 1. Give the agent its own address</span></span>
-<span class="ln" data-s="1"><span class="k">const</span> inbox = <span class="k">await</span> send0.inboxes.<span class="f">create</span>({"{"} name: <span class="s">"signup-agent"</span> {"}"});</span>
+<span class="ln" data-line="1"><span class="k">const</span> inbox = <span class="k">await</span> send0.inboxes.<span class="f">create</span>({"{"} name: <span class="s">"signup-agent"</span> {"}"});</span>
+<span class="ln" data-line="1"><span class="k">await</span> page.<span class="f">fill</span>(<span class="s">"#email"</span>, inbox.address);</span>
 <span class="ln"> </span>
-<span class="ln" data-s="2"><span class="c">// 2. Use it the way a person would</span></span>
-<span class="ln" data-s="2"><span class="k">await</span> browser.<span class="f">fill</span>(<span class="s">"#email"</span>, inbox.address);</span>
-<span class="ln" data-s="2"><span class="k">await</span> browser.<span class="f">click</span>(<span class="s">"Create account"</span>);</span>
+<span class="ln" data-line="2 3"><span class="k">const</span> msg = <span class="k">await</span> send0.inboxes.<span class="f">wait</span>(inbox.id, {"{"} from: <span class="s">"*@acme.dev"</span> {"}"});</span>
+<span class="ln" data-line="2 3"><span class="k">if</span> (!msg) <span class="k">return</span>;</span>
+<span class="ln" data-line="4"><span class="k">await</span> page.<span class="f">fill</span>(<span class="s">"#code"</span>, msg.extracted?.otp ?? <span class="s">""</span>);</span>
 <span class="ln"> </span>
-<span class="ln" data-s="3"><span class="c">// 3. Block until the verification email lands</span></span>
-<span class="ln" data-s="3"><span class="k">const</span> msg = <span class="k">await</span> send0.inboxes.<span class="f">wait</span>(inbox.id, {"{"}</span>
-<span class="ln" data-s="3">  from: <span class="s">"*@acme.dev"</span>, timeout: <span class="n">60</span>,</span>
-<span class="ln" data-s="3">{"}"});</span>
-<span class="ln"> </span>
-<span class="ln" data-s="5"><span class="c">// 4. The code is already extracted</span></span>
-<span class="ln" data-s="5"><span class="k">await</span> browser.<span class="f">fill</span>(<span class="s">"#code"</span>, msg.extracted.otp);</span></code></pre>
+<span class="ln" data-line="5 6"><span class="k">await</span> send0.messages.<span class="f">reply</span>(msg.id, {"{"} text: <span class="s">"Confirmed, thanks!"</span> {"}"});</span></code></pre>
   </div>
 
-  <div class="pane inbox-pane" aria-live="off">
-    <div class="bar">
-      <span class="addr mono">
-        <span class="live" aria-hidden="true"></span>
-        <span class="addr-text">signup-agent@send0.email</span>
-      </span>
-      <span class="tag count">0 messages</span>
-    </div>
+  <div class="env" data-at="3">
+    <Envelope />
+  </div>
 
-    <div class="body">
-      <div class="state empty">
-        <span class="mono hint">POST /v1/inboxes</span>
-        <p>Creating inbox…</p>
+  <div class="thread">
+    <article class="letter" data-at="3">
+      <header>
+        <span class="avatar" aria-hidden="true">
+          D
+        </span>
+        <div class="who">
+          <strong>Dana at Acme</strong>
+          <span class="mono">dana@acme.dev</span>
+        </div>
+        <span class="time mono">now</span>
+      </header>
+      <p class="subject">Welcome to Acme</p>
+      <p class="body">
+        Your access code is <mark data-at="4">482913</mark>. Reply to this email to confirm you're in.
+      </p>
+      <div class="chips mono">
+        <span class="chip ok">spf · dkim · dmarc pass</span>
+        <span class="chip">prompt_injection: none</span>
+        <span class="chip otp" data-at="4">
+          extracted.otp "482913"
+        </span>
       </div>
-
-      <ul class="events mono">
-        <li data-s="1">
-          <span class="t">00.00s</span> inbox.created <span class="v">ibx_7Hc2</span>
-        </li>
-        <li data-s="2">
-          <span class="t">00.41s</span> address used on <span class="v">acme.dev/signup</span>
-        </li>
-        <li data-s="3">
-          <span class="t">00.42s</span> waiting for <span class="v">*@acme.dev</span>
-          <span class="spinner" aria-hidden="true"></span>
-        </li>
-        <li data-s="4">
-          <span class="t">03.17s</span> message.received <span class="v">msg_9Kd2</span>
-        </li>
-      </ul>
-
-      <article class="mail" data-s="4">
-        <header>
-          <span class="avatar" aria-hidden="true">
-            A
-          </span>
-          <div>
-            <strong>Acme</strong> <span class="from mono">noreply@acme.dev</span>
-            <p class="subject">Your Acme verification code</p>
-          </div>
-        </header>
-        <div class="checks">
-          <span class="chk">SPF pass</span>
-          <span class="chk">DKIM pass</span>
-          <span class="chk">DMARC pass</span>
-          <span class="chk neutral">injection: none</span>
-        </div>
-        <div class="extracted mono">
-          <div class="row">
-            <span class="key">extracted.otp</span>
-            <span class="otp">482913</span>
-          </div>
-          <div class="row">
-            <span class="key">extracted.links</span>
-            <span class="link">acme.dev/verify?t=…</span>
-          </div>
-        </div>
-      </article>
+    </article>
+    <div class="slip out" data-at="5">
+      <span class="who mono">signup-agent</span>
+      <span class="text">Confirmed, thanks!</span>
+      <span class="tag mono">sent</span>
+    </div>
+    <div class="slip" data-at="6">
+      <span class="who mono">Dana</span>
+      <span class="text">Great, you're all set.</span>
+      <span class="tag mono">3 in thread</span>
     </div>
   </div>
 </div>
 
 <script>
-  const demos = document.querySelectorAll<HTMLElement>("[data-demo]");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  demos.forEach((demo) => {
-    const count = demo.querySelector<HTMLElement>(".count")!;
-    const set = (step: number) => {
-      demo.dataset.step = String(step);
-      count.textContent = step >= 4 ? "1 message" : "0 messages";
+  document.querySelectorAll<HTMLElement>("[data-demo]").forEach((demo) => {
+    const at = demo.querySelectorAll<HTMLElement>("[data-at]");
+    const only = demo.querySelectorAll<HTMLElement>("[data-only]");
+    const lines = demo.querySelectorAll<HTMLElement>("[data-line]");
+
+    const show = (step: number) => {
+      at.forEach((el) => el.classList.toggle("on", Number(el.dataset.at) <= step));
+      only.forEach((el) => el.classList.toggle("on", Number(el.dataset.only) === step));
+      lines.forEach((el) => el.classList.toggle("now", el.dataset.line!.split(" ").includes(String(step))));
     };
 
     const frozen = new URLSearchParams(location.search).get("demo");
-    if (reduce || frozen) {
-      set(frozen ? Number(frozen) : 5);
+    if (frozen) {
+      demo.dataset.anim = "";
+      show(Number(frozen));
       return;
     }
+    if (reduce) return;
 
-    // [step, time it stays on screen in ms]
-    const timeline: [number, number][] = [
+    // [step, how long it stays, ms]
+    const timeline = [
       [0, 900],
       [1, 1500],
-      [2, 1500],
-      [3, 2200],
-      [4, 1400],
-      [5, 4200],
-    ];
+      [2, 1700],
+      [3, 1500],
+      [4, 1900],
+      [5, 1600],
+      [6, 4200],
+    ] as const;
     let i = 0;
-    let timer: number | undefined;
-    let running = false;
+    let timer = 0;
+    let visible = false;
+    let held = false;
 
     const tick = () => {
       const [step, ms] = timeline[i]!;
-      set(step);
+      show(step);
       i = (i + 1) % timeline.length;
       timer = window.setTimeout(tick, ms);
     };
+    const sync = () => {
+      window.clearTimeout(timer);
+      if (visible && !held) timer = window.setTimeout(tick, 400);
+    };
 
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting && !running) {
-        running = true;
-        tick();
-      } else if (!entry?.isIntersecting && running) {
-        running = false;
-        window.clearTimeout(timer);
-      }
-    });
-    io.observe(demo);
+    demo.dataset.anim = "";
+    show(0);
+    new IntersectionObserver(([e]) => {
+      visible = !!e?.isIntersecting;
+      sync();
+    }).observe(demo);
+    // Pause while someone is reading it.
+    demo.addEventListener("mouseenter", () => ((held = true), sync()));
+    demo.addEventListener("mouseleave", () => ((held = false), sync()));
+    demo.addEventListener("focusin", () => ((held = true), sync()));
+    demo.addEventListener("focusout", () => ((held = false), sync()));
   });
 </script>
 
 <style>
   .demo {
+    position: relative;
     display: grid;
-    gap: 12px;
+    gap: 14px;
     text-align: left;
   }
-  @media (min-width: 960px) {
-    .demo {
-      grid-template-columns: 1.15fr 1fr;
-      gap: 0;
-    }
-    .code-pane {
-      border-radius: var(--radius) 0 0 var(--radius);
-    }
-    .inbox-pane {
-      border-left: 0 !important;
-      border-radius: 0 var(--radius) var(--radius) 0;
-    }
+
+  /* ---- Address tag ---- */
+  .to {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    background: var(--card);
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    font-size: 12.5px;
+    box-shadow: 0 2px 0 var(--ink);
+  }
+  .to .k {
+    color: var(--muted);
+  }
+  .live {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 3px var(--ok-tint);
   }
 
-  .pane {
+  /* ---- Code card ---- */
+  .code {
     min-width: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border-radius: 12px;
+    border: 1px solid var(--code-line);
+    box-shadow: var(--shadow-lg);
     overflow: hidden;
   }
   .bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
-    height: 44px;
+    height: 38px;
     padding: 0 14px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-subtle);
+    background: var(--code-bar);
+    border-bottom: 1px solid var(--code-line);
   }
-  .lights {
+  .dots {
     display: flex;
     gap: 6px;
   }
-  .lights i {
-    width: 10px;
-    height: 10px;
+  .dots i {
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: var(--border-strong);
+    background: var(--code-line);
   }
   .file {
     font-size: 12px;
-    color: var(--fg-faint);
-    margin-right: auto;
-    margin-left: 6px;
+    color: var(--code-muted);
   }
-
-  /* Code */
-  .code {
+  .status {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--code-num);
+  }
+  .spin {
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  pre {
     margin: 0;
-    padding: 18px 0;
-    font-size: 12.5px;
-    line-height: 1.75;
-    overflow-x: auto;
-    color: var(--fg);
+    padding: 14px 0 18px;
     white-space: normal;
+    font-size: 12.25px;
+    line-height: 1.8;
+    overflow-x: auto;
   }
-  .code code {
+  code {
     display: block;
     min-width: max-content;
   }
   .ln {
     display: block;
     white-space: pre;
-    padding: 0 18px;
+    padding: 0 18px 0 16px;
     border-left: 2px solid transparent;
     transition:
       background-color 0.3s ease,
@@ -226,269 +248,240 @@
       opacity 0.3s ease;
   }
   .k {
-    color: #c2410c;
+    color: var(--code-key);
   }
   .s {
-    color: #15803d;
+    color: var(--code-str);
   }
   .f {
-    color: #1d4ed8;
+    color: var(--code-fn);
   }
-  .n {
-    color: #9333ea;
+  .demo[data-anim] .ln {
+    opacity: 0.55;
   }
-  .c {
-    color: var(--fg-faint);
-  }
-  :global(:root[data-theme="dark"]) .k {
-    color: #fb923c;
-  }
-  :global(:root[data-theme="dark"]) .s {
-    color: #86efac;
-  }
-  :global(:root[data-theme="dark"]) .f {
-    color: #93c5fd;
-  }
-  :global(:root[data-theme="dark"]) .n {
-    color: #d8b4fe;
-  }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .k {
-      color: #fb923c;
-    }
-    :global(:root:not([data-theme="light"])) .s {
-      color: #86efac;
-    }
-    :global(:root:not([data-theme="light"])) .f {
-      color: #93c5fd;
-    }
-    :global(:root:not([data-theme="light"])) .n {
-      color: #d8b4fe;
-    }
+  .demo[data-anim] .ln.now {
+    opacity: 1;
+    background: rgb(255 143 92 / 0.1);
+    border-left-color: var(--code-key);
   }
 
-  .demo[data-step="1"] .ln[data-s="1"],
-  .demo[data-step="2"] .ln[data-s="2"],
-  .demo[data-step="3"] .ln[data-s="3"],
-  .demo[data-step="4"] .ln[data-s="3"],
-  .demo[data-step="5"] .ln[data-s="5"] {
-    background: var(--accent-soft);
-    border-left-color: var(--accent);
+  /* ---- Envelope ---- */
+  .env {
+    display: none;
   }
 
-  /* Inbox */
-  .addr {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    font-size: 12.5px;
-    color: var(--fg);
-  }
-  .addr-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.7s steps(24, end);
-  }
-  .demo:not([data-step="0"]) .addr-text {
-    clip-path: inset(0 0 0 0);
-  }
-  .live {
-    width: 7px;
-    height: 7px;
-    flex: none;
-    border-radius: 50%;
-    background: var(--fg-faint);
-    transition: background-color 0.3s ease;
-  }
-  .demo:not([data-step="0"]) .live {
-    background: var(--ok);
-    box-shadow: 0 0 0 3px var(--ok-soft);
-  }
-
-  .body {
+  /* ---- Letter and replies ---- */
+  .thread {
     position: relative;
-    padding: 16px;
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .state.empty {
     display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 6px;
-    min-height: 120px;
-    color: var(--fg-faint);
-    font-size: 14px;
-    transition: opacity 0.3s ease;
-  }
-  .hint {
-    font-size: 11.5px;
-    padding: 2px 8px;
-    border: 1px dashed var(--border-strong);
-    border-radius: 5px;
-  }
-  .demo:not([data-step="0"]) .state.empty {
-    display: none;
-  }
-
-  .events {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-    font-size: 11.5px;
-    color: var(--fg-muted);
-  }
-  .events li {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    animation: rise 0.35s ease both;
-  }
-  .events .t {
-    color: var(--fg-faint);
-  }
-  .events .v {
-    color: var(--fg);
-  }
-  .demo[data-step="1"] .events li[data-s="1"],
-  .demo[data-step="2"] .events li:is([data-s="1"], [data-s="2"]),
-  .demo[data-step="3"] .events li:is([data-s="1"], [data-s="2"], [data-s="3"]),
-  .demo:is([data-step="4"], [data-step="5"]) .events li {
-    display: flex;
-  }
-  .spinner {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1.5px solid var(--border-strong);
-    border-top-color: var(--accent);
-    animation: spin 0.8s linear infinite;
-  }
-  .demo:is([data-step="4"], [data-step="5"]) .spinner {
-    display: none;
-  }
-
-  .mail {
-    display: none;
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    background: var(--bg);
-    animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-  .demo:is([data-step="4"], [data-step="5"]) .mail {
-    display: block;
-  }
-  .mail header {
-    display: flex;
     gap: 10px;
-    align-items: flex-start;
+  }
+  /* the red thread that ties the conversation together */
+  .thread::before {
+    content: "";
+    position: absolute;
+    left: 22px;
+    top: 40px;
+    bottom: 22px;
+    border-left: 1.5px dashed var(--airmail-red);
+  }
+  .letter {
+    position: relative;
+    padding: 16px 18px 16px;
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+  .letter header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .avatar {
     display: grid;
     place-items: center;
     width: 30px;
     height: 30px;
-    flex: none;
-    border-radius: 8px;
-    background: var(--fg);
-    color: var(--bg);
-    font-weight: 600;
-    font-size: 13px;
+    border-radius: 50%;
+    background: var(--sage);
+    border: 1.5px solid var(--ink);
+    font: 600 13px/1 var(--font-display);
+    position: relative;
+    z-index: 1;
   }
-  .mail strong {
-    font-size: 13.5px;
+  .who {
+    display: grid;
+    line-height: 1.25;
+  }
+  .who strong {
+    font-size: 14px;
     font-weight: 600;
   }
-  .from {
+  .who span {
     font-size: 11.5px;
-    color: var(--fg-faint);
+    color: var(--muted);
+  }
+  .time {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: var(--muted);
   }
   .subject {
-    font-size: 13.5px;
-    color: var(--fg-muted);
-    margin-top: 1px;
+    margin-top: 12px;
+    font: 500 17px/1.3 var(--font-display);
   }
-  .checks {
+  .body {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  mark {
+    padding: 0 3px;
+    border-radius: 3px;
+    color: var(--ink);
+    font: 600 14px var(--font-mono);
+    background: linear-gradient(var(--butter), var(--butter)) no-repeat 0 0 / 100% 100%;
+    box-shadow: inset 0 -2px 0 var(--postal);
+    transition: background-size 0.5s ease;
+  }
+  .demo[data-anim] mark:not(.on) {
+    background-size: 0% 100%;
+    box-shadow: none;
+    color: inherit;
+    font-weight: 400;
+  }
+  .chips {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin: 12px 0;
+    margin-top: 12px;
   }
-  .chk {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 5px;
-    background: var(--ok-soft);
+  .chip {
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--hairline);
+    background: var(--paper);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .chip.ok {
     color: var(--ok);
-    font: 500 11px/1 var(--font-mono);
+    background: var(--ok-tint);
+    border-color: transparent;
   }
-  .chk::before {
-    content: "✓";
+  .chip.otp {
+    color: var(--ink);
+    background: var(--butter);
+    border-color: color-mix(in srgb, var(--postal) 50%, transparent);
   }
-  .chk.neutral {
-    background: var(--bg-subtle);
-    color: var(--fg-muted);
-  }
-  .extracted {
-    display: grid;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 7px;
-    background: var(--bg-subtle);
-    font-size: 11.5px;
-  }
-  .row {
+  .slip {
+    position: relative;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 10px 14px 10px 42px;
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    font-size: 14px;
+  }
+  .slip::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--sage);
+    border: 1.5px solid var(--ink);
+  }
+  .slip.out::before {
+    background: var(--postal);
+  }
+  .slip .who {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .slip .text {
+    flex: 1;
     min-width: 0;
   }
-  .key {
-    color: var(--fg-faint);
-  }
-  .link {
-    color: var(--fg-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .tag {
+    font-size: 11px;
+    color: var(--muted);
     white-space: nowrap;
   }
-  .otp {
-    padding: 2px 8px;
-    border-radius: 5px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    color: var(--fg);
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
-  }
-  .demo[data-step="5"] .otp {
-    background: var(--accent);
-    color: var(--accent-fg);
+  .slip.out .tag {
+    color: var(--postal-ink);
   }
 
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
+  /* ---- Step visibility (only while the script is running) ---- */
+  .demo[data-anim] [data-at],
+  .demo[data-anim] [data-only] {
+    transition:
+      opacity 0.45s ease,
+      transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
+  .demo:not([data-anim]) .status {
+    display: none;
+  }
+  .demo[data-anim] :is(.to, .letter, .slip, .chip.otp, .status):not(.on) {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .demo[data-anim] .letter.on {
+    transition-delay: 0.3s;
+  }
+
+  /* ---- Desktop: an arranged desk ---- */
+  @media (min-width: 1180px) {
+    .demo {
+      display: block;
+      height: 600px;
+    }
+    .to {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 3;
+      transform: rotate(2deg);
+    }
+    .demo[data-anim] .to:not(.on) {
+      transform: rotate(2deg) translateY(-8px);
+    }
+    .code {
+      position: absolute;
+      top: 22px;
+      left: 0;
+      width: 92%;
+      z-index: 1;
+    }
+    .env {
+      display: block;
+      position: absolute;
+      left: -4px;
+      top: 372px;
+      width: 172px;
+      z-index: 2;
+      transform: rotate(-9deg);
+    }
+    .demo[data-anim] .env {
+      transition:
+        opacity 0.4s ease,
+        transform 0.8s cubic-bezier(0.2, 0.9, 0.25, 1.1);
+    }
+    .demo[data-anim] .env:not(.on) {
+      opacity: 0;
+      transform: translate(340px, -40px) rotate(14deg);
+    }
+    .thread {
+      position: absolute;
+      right: 0;
+      top: 318px;
+      width: 64%;
+      z-index: 3;
     }
   }
 </style>
