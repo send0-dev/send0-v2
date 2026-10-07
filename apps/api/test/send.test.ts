@@ -4,10 +4,12 @@ import { parseInbound } from "@send0/core";
 import { schema } from "@send0/db";
 import type { EventEnvelope } from "@send0/pipeline";
 import { eq } from "drizzle-orm";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app";
 import { handleSesEvent, PAUSE_RULES } from "../src/sending/ses-events";
+import { verifySnsMessage } from "../src/sending/sns-signature";
 import { deliver, fixture, setup, type TestEnv } from "./helpers";
+import { createSnsSigner, type SnsTestSigner } from "./sns-signer";
 
 const outbox: SendRawInput[] = [];
 let mailerFails: MailerError | null = null;
@@ -22,14 +24,22 @@ const published: EventEnvelope[] = [];
 const types = () => published.map((e) => e.type);
 
 let t: TestEnv;
+let sns: SnsTestSigner;
 let inboxId: string;
 const parsed = async (i = -1) => parseInbound(outbox.at(i)!.raw, { trustedAuthservIds: [] });
 
 beforeAll(async () => {
+  sns = await createSnsSigner();
+  const certCache = new Map<string, CryptoKey>();
   t = await setup({
     mailer,
     publish: async (_o, e) => void published.push(e),
-    sesEvents: { token: "tok_" + "x".repeat(40), topicArn: "arn:aws:sns:ap-south-1:1:send0-ses-events" },
+    sesEvents: {
+      token: "tok_" + "x".repeat(40),
+      topicArn: "arn:aws:sns:ap-south-1:1:send0-ses-events",
+      // The real verifier, pointed at a test certificate instead of AWS.
+      verify: (msg) => verifySnsMessage(msg, { fetch: sns.fetch, certCache }),
+    },
   });
   inboxId = (await t.call("POST", "/v1/inboxes", { body: { name: "procurement-agent", display_name: "Procurement Agent" } })).body.id;
   // Dana emails us first, which is what lets a free, reply-only inbox write back.
@@ -337,43 +347,93 @@ describe("SNS endpoint", () => {
   const post = (body: unknown, token?: string) =>
     t.app.request(url(token), { method: "POST", body: JSON.stringify(body), headers: { "content-type": "text/plain" } });
   const topic = "arn:aws:sns:ap-south-1:1:send0-ses-events";
+  const confirmUrl = "https://sns.ap-south-1.amazonaws.com/?Action=ConfirmSubscription&Token=t";
+  const subscription = (SubscribeURL = confirmUrl) => ({
+    Type: "SubscriptionConfirmation",
+    TopicArn: topic,
+    Message: "",
+    SubscribeURL,
+    Token: "t",
+  });
+  const notification = (msgId: string, event: object) => ({
+    Type: "Notification",
+    TopicArn: topic,
+    Message: JSON.stringify({ mail: { messageId: "x", tags: { msg_id: [msgId] } }, ...event }),
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
 
   it("hides itself without the token and rejects other topics", async () => {
-    expect((await post({ Type: "Notification", TopicArn: topic, Message: "{}" }, "wrong")).status).toBe(404);
-    expect((await post({ Type: "Notification", TopicArn: "arn:aws:sns:x:1:evil", Message: "{}" })).status).toBe(403);
+    expect((await post(await sns.sign({ Type: "Notification", TopicArn: topic, Message: "{}" }), "wrong")).status).toBe(404);
+    expect((await post(await sns.sign({ Type: "Notification", TopicArn: "arn:aws:sns:x:1:evil", Message: "{}" }))).status).toBe(403);
   });
 
   it("confirms the subscription only against SNS hosts", async () => {
     const fetchSpy = vi.fn(async () => new Response("ok"));
     vi.stubGlobal("fetch", fetchSpy);
-    expect(
-      (await post({ Type: "SubscriptionConfirmation", TopicArn: topic, Message: "", SubscribeURL: "https://evil.example.com/x" })).status,
-    ).toBe(400);
-    expect(
-      (
-        await post({
-          Type: "SubscriptionConfirmation",
-          TopicArn: topic,
-          Message: "",
-          SubscribeURL: "https://sns.ap-south-1.amazonaws.com/?Action=ConfirmSubscription&Token=t",
-        })
-      ).status,
-    ).toBe(200);
+    expect((await post(await sns.sign(subscription("https://evil.example.com/x")))).status).toBe(400);
+    expect((await post(await sns.sign(subscription()))).status).toBe(200);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    vi.unstubAllGlobals();
   });
 
-  it("applies notifications", async () => {
+  it("never fetches the SubscribeURL of an unsigned or forged confirmation", async () => {
+    const fetchSpy = vi.fn(async () => new Response("ok"));
+    vi.stubGlobal("fetch", fetchSpy);
+    const logs = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const signed = await sns.sign(subscription());
+    const { Signature: _s, ...unsigned } = signed;
+    const forged = await (await createSnsSigner()).sign(subscription());
+    for (const body of [subscription(), unsigned, forged, { ...signed, SubscribeURL: confirmUrl + "&x=1" }]) {
+      const res = await post(body);
+      expect(res.status).toBe(403);
+      expect(await res.json()).toMatchObject({ error: { code: "forbidden", message: "Invalid SNS signature." } });
+    }
+    expect(fetchSpy).not.toHaveBeenCalled();
+    const lines = logs.mock.calls.map((c) => JSON.parse(String(c[0])) as Record<string, unknown>);
+    expect(lines.every((l) => l.event === "sns.signature_rejected" && typeof l.reason === "string" && Object.keys(l).length === 2)).toBe(
+      true,
+    );
+    logs.mockRestore();
+  });
+
+  it("applies signed notifications", async () => {
     const m = (await send({ to: "dana@gmail.com", subject: "via sns", text: "x" })).body;
-    const res = await post({
-      Type: "Notification",
-      TopicArn: topic,
-      Message: JSON.stringify({
-        eventType: "Delivery",
-        mail: { messageId: "x", tags: { msg_id: [m.id] } },
-        delivery: { recipients: ["dana@gmail.com"] },
-      }),
-    });
+    const res = await post(await sns.sign(notification(m.id, { eventType: "Delivery", delivery: { recipients: ["dana@gmail.com"] } })));
     expect(await res.json()).toMatchObject({ ok: true, handled: true, status: "delivered" });
+  });
+
+  it.each(["1", "2"] as const)("applies a signed bounce end to end (SignatureVersion %s)", async (version) => {
+    const m = (await send({ to: "dana@gmail.com", subject: `bounce v${version}`, text: "x" })).body;
+    const bounce = { eventType: "Bounce", bounce: { bounceType: "Permanent", bouncedRecipients: [{ emailAddress: "dana@gmail.com" }] } };
+    try {
+      const res = await post(await sns.sign(notification(m.id, bounce), { version }));
+      expect(res.status).toBe(200);
+      expect((await t.call("GET", `/v1/messages/${m.id}`)).body.status).toBe("bounced");
+      const sup = await t.db.select().from(schema.suppressions).where(eq(schema.suppressions.orgId, t.orgId));
+      expect(sup).toMatchObject([{ email: "dana@gmail.com", reason: "bounce" }]);
+    } finally {
+      await t.db.delete(schema.suppressions).where(eq(schema.suppressions.orgId, t.orgId));
+      await t.db.update(schema.orgs).set({ sendingPausedAt: null, sendingPausedReason: null }).where(eq(schema.orgs.id, t.orgId));
+    }
+  });
+
+  it("rejects tampered and stale notifications without acting", async () => {
+    const logs = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const m = (await send({ to: "dana@gmail.com", subject: "tamper", text: "x" })).body;
+    const signed = await sns.sign(notification(m.id, { eventType: "Delivery", delivery: { recipients: ["dana@gmail.com"] } }));
+    const complaint = notification(m.id, {
+      eventType: "Complaint",
+      complaint: { complainedRecipients: [{ emailAddress: "dana@gmail.com" }] },
+    });
+    const stale = new Date(Date.now() - 2 * 3600_000).toISOString();
+    for (const body of [{ ...signed, Message: complaint.Message }, await sns.sign({ ...complaint, Timestamp: stale })]) {
+      expect((await post(body)).status).toBe(403);
+    }
+    expect((await t.call("GET", `/v1/messages/${m.id}`)).body.status).toBe("sent");
+    expect(logs.mock.calls.map((c) => JSON.parse(String(c[0])) as unknown)).toEqual([
+      { event: "sns.signature_rejected", reason: "signature_mismatch" },
+      { event: "sns.signature_rejected", reason: "expired" },
+    ]);
+    logs.mockRestore();
   });
 });

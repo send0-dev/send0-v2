@@ -3,6 +3,7 @@ import type { Mailer } from "@send0/adapters/mailer";
 import type { Limits } from "@send0/config";
 import type { Db } from "@send0/db";
 import type { EventEnvelope, HubClient, QueueLike } from "@send0/pipeline";
+import type { SnsVerifyResult } from "./sending/sns-signature";
 
 export type Scope = "read" | "send" | "admin";
 export const SCOPES: readonly Scope[] = ["read", "send", "admin"];
@@ -41,8 +42,11 @@ export interface AppDeps {
    * When set, requests skip API-key auth and act with this context.
    */
   presetAuth?: AuthContext;
-  /** SNS → SES events endpoint: shared secret in the URL, and the only topic we accept */
-  sesEvents?: { token: string; topicArn: string };
+  /**
+   * SNS → SES events endpoint: shared secret in the URL, the only topic we accept, and the
+   * SNS signature check (defaults to verifySnsMessage; tests inject one with a test certificate).
+   */
+  sesEvents?: { token: string; topicArn: string; verify?: (msg: unknown) => Promise<SnsVerifyResult> };
   /** Defer work past the response (ctx.waitUntil on Workers). */
   waitUntil?: (p: Promise<unknown>) => void;
   now?: () => Date;
