@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@send0/adapters": "workspace:*",
+    "@send0/config": "workspace:*",
     "@send0/core": "workspace:*",
     "@send0/db": "workspace:*",
     "@send0/pipeline": "workspace:*"

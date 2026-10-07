@@ -1,15 +1,17 @@
 import type { BlobStore } from "@send0/adapters/blob";
-import { newId, parseInbound, type ParsedMessage } from "@send0/core";
+import { isReservedLocalPart, newId, parseInbound, parseRecipient, type ParsedMessage, type Recipient } from "@send0/core";
 import type { Db } from "@send0/db";
-import { findInboxByAddress, ingestMessage, publish, type HubNamespaceLike, type IngestResult, type QueueLike } from "@send0/pipeline";
-import { checkRecipient } from "./recipient";
+import { publish, type HubNamespaceLike, type QueueLike } from "./events";
+import { findInboxByAddress } from "./inbox-lookup";
+import { ingestMessage, type IngestResult } from "./ingest";
 
-/** Cloudflare Email Routing accepts up to 25 MiB per message. */
+/** The largest message we accept (Cloudflare Email Routing's limit; the SMTP listener uses the same). */
 export const MAX_MESSAGE_BYTES = 25 * 1024 * 1024;
 
+/** What inbound handling needs from config: our domains and the MX whose auth results we trust. */
 export interface InboundConfig {
-  MAIL_DOMAINS: string;
-  TRUSTED_AUTHSERV_IDS: string;
+  mailDomains: string[];
+  trustedAuthservIds: string[];
 }
 
 export interface InboundDeps {
@@ -27,6 +29,21 @@ export interface InboundMessage {
   readonly raw: ReadableStream<Uint8Array>;
   readonly rawSize: number;
   setReject(reason: string): void;
+}
+
+export type RecipientCheck =
+  { ok: true; recipient: Recipient } | { ok: false; reason: "invalid" | "foreign_domain" | "reserved"; smtp: string };
+
+/**
+ * Cheap checks before touching the database: syntax, one of our domains, not a reserved name.
+ * Runs while the SMTP session is open, so a refusal becomes a 5xx to the sending server.
+ */
+export function checkRecipient(to: string, mailDomains: string[]): RecipientCheck {
+  const recipient = parseRecipient(to);
+  if (!recipient) return { ok: false, reason: "invalid", smtp: "5.1.3 Bad recipient address syntax" };
+  if (!mailDomains.includes(recipient.domain)) return { ok: false, reason: "foreign_domain", smtp: "5.7.1 Relaying denied" };
+  if (isReservedLocalPart(recipient.localPart)) return { ok: false, reason: "reserved", smtp: "5.1.1 Mailbox unavailable" };
+  return { ok: true, recipient };
 }
 
 export function rawKey(orgId: string, id: string, at: Date): string {
@@ -62,13 +79,13 @@ function summarize(key: string, m: ParsedMessage, r: IngestResult) {
  * Order matters: refuse early (SMTP 5xx), write the raw .eml before anything else,
  * then parse and ingest. A database failure throws, so the sender retries; ingestion is idempotent.
  */
-export async function handleEmail(
+export async function receiveMessage(
   message: InboundMessage,
   cfg: InboundConfig,
   deps: InboundDeps,
   now = new Date(),
 ): Promise<IngestResult | null> {
-  const check = checkRecipient(message.to, cfg);
+  const check = checkRecipient(message.to, cfg.mailDomains);
   if (!check.ok) return (reject(message, check.reason, check.smtp), null);
   if (message.rawSize > MAX_MESSAGE_BYTES) {
     return (reject(message, "too_large", "5.3.4 Message too big", { size: message.rawSize }), null);
@@ -91,9 +108,7 @@ export async function handleEmail(
   let parsed: ParsedMessage;
   try {
     parsed = await parseInbound(raw, {
-      trustedAuthservIds: cfg.TRUSTED_AUTHSERV_IDS.split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
+      trustedAuthservIds: cfg.trustedAuthservIds,
     });
   } catch (err) {
     // Accepted and stored; a parser bug must never bounce mail. It can be re-ingested from raw_key.
