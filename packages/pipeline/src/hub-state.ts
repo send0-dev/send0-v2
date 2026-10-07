@@ -97,6 +97,11 @@ export class HubState {
     }
   }
 
+  close(): void {
+    for (const w of this.waiters) this.settle(w, null);
+    this.subscribers.clear();
+  }
+
   private prune() {
     const cutoff = this.now() - RECENT_MAX_AGE_MS;
     this.recent = this.recent.filter((r) => Date.parse(r.created_at) >= cutoff).slice(-RECENT_MAX);

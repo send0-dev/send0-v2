@@ -7,11 +7,6 @@ export const EVENTS_QUEUE = "send0-events";
 const logError = (event: string, err: unknown, extra: Record<string, unknown> = {}) =>
   console.error(JSON.stringify({ event, ...extra, error: String(err) }));
 
-/**
- * The self-hosted stand-in for Cloudflare Queues, on pg-boss in the same Postgres (no Redis).
- * Matches the hosted contract: a handler that throws is retried later, and `delaySeconds` defers
- * delivery. Node-only: import from `@send0/pipeline/node/pg-boss-queue`.
- */
 export class PgBossQueue implements QueueLike {
   private constructor(
     private readonly boss: PgBoss,
@@ -24,7 +19,7 @@ export class PgBossQueue implements QueueLike {
    * the events queue exists. `retryDelaySeconds` and `pollingIntervalSeconds` exist so tests run fast.
    */
   static async start(opts: { url: string; retryDelaySeconds?: number; pollingIntervalSeconds?: number }): Promise<PgBossQueue> {
-    const boss = new PgBoss({ connectionString: opts.url, schema: "pgboss" });
+    const boss = new PgBoss({ connectionString: opts.url, schema: "pgboss", max: 4 });
     boss.on("error", (err) => logError("pg_boss.error", err)); // an unhandled 'error' event would crash the process
     await boss.start();
     // Backoff is capped at an hour, so the 10th retry still lands within a day.
@@ -33,7 +28,6 @@ export class PgBossQueue implements QueueLike {
     return new PgBossQueue(boss, retry, opts.pollingIntervalSeconds ?? 2);
   }
 
-  /** QueueLike: enqueue a message, optionally held back for `delaySeconds`. Retry settings ride on each job. */
   async send(message: QueueMessage, opts: { delaySeconds?: number } = {}): Promise<string | null> {
     return this.boss.send(EVENTS_QUEUE, message, { ...this.retry, ...(opts.delaySeconds ? { startAfter: opts.delaySeconds } : {}) });
   }
@@ -42,7 +36,7 @@ export class PgBossQueue implements QueueLike {
   async consume(handler: (msg: QueueMessage) => Promise<void>, opts: { concurrency?: number } = {}): Promise<void> {
     await this.boss.work<QueueMessage>(
       EVENTS_QUEUE,
-      { localConcurrency: opts.concurrency ?? 5, pollingIntervalSeconds: this.pollingIntervalSeconds },
+      { batchSize: 1, localConcurrency: opts.concurrency ?? 5, pollingIntervalSeconds: this.pollingIntervalSeconds },
       async (jobs: Job<QueueMessage>[]) => {
         for (const job of jobs) await handler(job.data);
       },

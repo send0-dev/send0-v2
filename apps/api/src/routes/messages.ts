@@ -89,18 +89,22 @@ export const inboxMessageRoutes = new Hono<AppEnv>()
       return c.json({ object: "wait_result", timed_out: false, message: serializeMessage(m, atts.get(m.id) ?? []) });
     };
 
-    // 1. Already here? The hub keeps recent events, so nothing slips through between this check and step 2.
-    const [existing] = await db
-      .select()
-      .from(messages)
-      .where(and(eq(messages.inboxId, inbox.id), ...filterConditions({ ...filter, since: since.toISOString() })))
-      .orderBy(asc(messages.createdAt), asc(messages.id))
-      .limit(1);
+    const findStored = async () => {
+      const [m] = await db
+        .select()
+        .from(messages)
+        .where(and(eq(messages.inboxId, inbox.id), ...filterConditions({ ...filter, since: since.toISOString() })))
+        .orderBy(asc(messages.createdAt), asc(messages.id))
+        .limit(1);
+      return m;
+    };
+
+    const existing = await findStored();
     if (existing || !hub) return respond(existing);
 
-    // 2. Block on the inbox's hub until a match arrives or the timeout passes.
     const event = await hub.wait(inbox.id, filter, since.getTime(), q.timeout * 1000);
-    if (!event) return respond(undefined);
+
+    if (!event) return respond(await findStored());
     const [arrived] = await db
       .select()
       .from(messages)

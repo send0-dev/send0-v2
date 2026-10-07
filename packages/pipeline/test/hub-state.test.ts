@@ -43,3 +43,14 @@ describe("HubState.comment", () => {
     expect(got).toEqual([": resync\n\n", ": ping\n\n"]);
   });
 });
+
+describe("HubState.close", () => {
+  it("settles pending waits with null and drops subscribers", async () => {
+    const hub = new HubState();
+    hub.subscribe(() => {});
+    const waiting = hub.wait({}, Date.now(), 120_000);
+    hub.close();
+    expect(await waiting).toBeNull();
+    expect(hub.isIdle()).toBe(true);
+  });
+});

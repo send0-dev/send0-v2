@@ -122,6 +122,30 @@ describe("GET /messages/wait", () => {
   });
 });
 
+describe("GET /messages/wait when the hub misses an event", () => {
+  let t: TestEnv;
+  let inboxId: string;
+  const lossyHub: HubClient = {
+    wait: async () => {
+      await deliver(t.db, "lossy-agent@send0.email", fixture("otp-subject.eml"));
+      return null;
+    },
+    stream: async () => new Response(""),
+  };
+
+  beforeAll(async () => {
+    t = await setup({ hub: lossyHub });
+    inboxId = (await t.call("POST", "/v1/inboxes", { body: { name: "lossy-agent" } })).body.id;
+  });
+  afterAll(() => t.close());
+
+  it("checks the database once more before reporting a timeout", async () => {
+    const r = await t.call("GET", `/v1/inboxes/${inboxId}/messages/wait?from=*@linear.app&timeout=1`);
+    expect(r.body).toMatchObject({ object: "wait_result", timed_out: false });
+    expect(r.body.message.extracted.otp).toBe("731902");
+  });
+});
+
 describe("GET /events/stream", () => {
   let t: TestEnv;
   let inboxId: string;

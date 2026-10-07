@@ -14,12 +14,12 @@ async function until(check: () => boolean, ms = 10_000): Promise<void> {
 
 describe.skipIf(!TEST_DATABASE_URL)("PgBossQueue", () => {
   let drop: () => Promise<void>;
+  let url: string;
   let queue: PgBossQueue;
   const received: { msg: QueueMessage; at: number }[] = [];
   const attempts = new Map<string, number>();
 
   beforeAll(async () => {
-    let url: string;
     ({ url, drop } = await createPgTestDatabase());
     queue = await PgBossQueue.start({ url, retryDelaySeconds: 1, pollingIntervalSeconds: 0.5 });
     await queue.consume(async (msg) => {
@@ -57,6 +57,16 @@ describe.skipIf(!TEST_DATABASE_URL)("PgBossQueue", () => {
     expect(got("dlv_later")).toBeUndefined();
     await until(() => !!got("dlv_later"));
     expect(got("dlv_later")!.at - sentAt).toBeGreaterThanOrEqual(1900);
+  });
+
+  it("starts again on the same database (a restart), and both instances share the queue", async () => {
+    const second = await PgBossQueue.start({ url, pollingIntervalSeconds: 0.5 });
+    try {
+      await second.send({ kind: "fanout", eventId: "evt_from_second" });
+      await until(() => !!got("evt_from_second"));
+    } finally {
+      await second.stop();
+    }
   });
 
   it("registers a cron schedule", async () => {
