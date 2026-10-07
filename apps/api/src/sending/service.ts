@@ -1,11 +1,10 @@
 import { MailerError } from "@send0/adapters/mailer";
-import { HOSTED_LIMITS } from "@send0/config";
 import { buildMime, displayNameFromLocalPart, newId, normalizeSubject, rfcMessageId } from "@send0/core";
 import { schema, type MailboxJson } from "@send0/db";
 import { serializeMessage, toEnvelope } from "@send0/pipeline";
 import { eq, sql } from "drizzle-orm";
 import { ApiError } from "../errors";
-import type { AppDeps, AuthContext } from "../types";
+import type { AppDeps, AuthContext, ResolvedDeps } from "../types";
 import { checkSendPolicy } from "./policy";
 
 const { orgs, threads, messages, drafts, events, usage } = schema;
@@ -73,7 +72,7 @@ async function recordEvent(deps: AppDeps, orgId: string, inboxId: string | null,
  * `approved` is set when an admin approves a draft, which skips the approval step.
  */
 export async function send(
-  deps: AppDeps,
+  deps: ResolvedDeps,
   auth: AuthContext,
   inbox: InboxRow,
   domain: string,
@@ -86,7 +85,7 @@ export async function send(
   if (!org) throw new ApiError(404, "not_found", "Organization not found.");
 
   const recipients = [...new Set([...lower(payload.to), ...lower(payload.cc), ...lower(payload.bcc)])];
-  await checkSendPolicy(db, { org, inbox, recipients, now, mailDomains: deps.mailDomains, limits: deps.limits ?? HOSTED_LIMITS });
+  await checkSendPolicy(db, { org, inbox, recipients, now, mailDomains: deps.mailDomains, limits: deps.limits });
 
   if (inbox.sendPolicy === "approval" && !opts.approved) {
     const [draft] = await db

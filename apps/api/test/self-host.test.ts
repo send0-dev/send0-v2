@@ -53,14 +53,43 @@ describe("limits switched off (self-host)", () => {
   });
 
   it("ignores the daily cap", async () => {
-    const r = await t.call("POST", `/v1/inboxes/${inboxId}/messages`, {
-      body: { to: "stranger@example.com", subject: "Again", text: "Hello" },
-    });
-    expect(r.status).toBe(201);
+    await t.db.update(schema.orgs).set({ dailySendLimit: 1 }).where(eq(schema.orgs.id, t.orgId));
+    for (const subject of ["One", "Two"]) {
+      const r = await t.call("POST", `/v1/inboxes/${inboxId}/messages`, {
+        body: { to: "stranger@example.com", subject, text: "Hello" },
+      });
+      expect(r.status).toBe(201);
+    }
   });
 
   it("ignores the plan's inbox cap", async () => {
-    for (let i = 0; i < 6; i++) expect((await t.call("POST", "/v1/inboxes", { body: {} })).status).toBe(201);
+    await t.db.update(schema.orgs).set({ plan: "free" }).where(eq(schema.orgs.id, t.orgId));
+    for (let i = 0; i < 6; i++) expect((await t.call("POST", "/v1/inboxes", { body: { name: `cap${i}` } })).status).toBe(201);
+  });
+
+  it("still refuses suppressed recipients", async () => {
+    await t.db.insert(schema.suppressions).values({ orgId: t.orgId, email: "bounced@example.com", reason: "bounce" });
+    const r = await t.call("POST", `/v1/inboxes/${inboxId}/messages`, {
+      body: { to: "bounced@example.com", subject: "x", text: "y" },
+    });
+    expect(r.status).toBe(422);
+    expect(r.body.error.code).toBe("recipient_suppressed");
+  });
+
+  it("still holds approval inboxes as drafts", async () => {
+    const approval = (await t.call("POST", "/v1/inboxes", { body: { name: "approver", send_policy: "approval" } })).body;
+    const r = await t.call("POST", `/v1/inboxes/${approval.id}/messages`, {
+      body: { to: "stranger@example.com", subject: "x", text: "y" },
+    });
+    expect(r.status).toBe(202);
+    expect(r.body.object).toBe("draft");
+  });
+
+  it("allows reserved local parts on domains we don't host", async () => {
+    const r = await t.call("POST", `/v1/inboxes/${inboxId}/messages`, {
+      body: { to: "postmaster@example.com", subject: "x", text: "y" },
+    });
+    expect(r.status).toBe(201);
   });
 
   it("still honours an inbox's own reply-only policy", async () => {
@@ -76,6 +105,7 @@ describe("limits switched off (self-host)", () => {
 
   it("reports no limits in usage", async () => {
     const r = await t.call("GET", "/v1/usage");
+    expect(r.status).toBe(200);
     expect(r.body.inboxes.limit).toBeNull();
     expect(r.body.sends_today.limit).toBeNull();
   });

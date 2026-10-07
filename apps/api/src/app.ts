@@ -1,3 +1,4 @@
+import { HOSTED_LIMITS } from "@send0/config";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { requireApiKey } from "./auth";
@@ -15,13 +16,18 @@ import { statsRoutes } from "./routes/stats";
 import { usageRoutes } from "./routes/usage";
 import { draftRoutes, inboxDraftRoutes, inboxSendRoutes, messageSendRoutes } from "./routes/send";
 import { threadRoutes } from "./routes/threads";
-import type { AppDeps, AppEnv } from "./types";
+import type { AppDeps, AppEnv, ResolvedDeps } from "./types";
 
 export function createApp(deps: AppDeps) {
   const app = new Hono<AppEnv>();
+  const resolved: ResolvedDeps = {
+    ...deps,
+    mailDomains: deps.mailDomains.map((d) => d.toLowerCase()),
+    limits: deps.limits ?? HOSTED_LIMITS,
+  };
 
   app.use(async (c, next) => {
-    c.set("deps", deps);
+    c.set("deps", resolved);
     c.set("requestId", c.req.header("cf-ray") ?? crypto.randomUUID());
     await next();
     c.header("x-request-id", c.get("requestId"));

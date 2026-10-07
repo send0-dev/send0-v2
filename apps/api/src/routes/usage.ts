@@ -1,4 +1,3 @@
-import { HOSTED_LIMITS } from "@send0/config";
 import { schema } from "@send0/db";
 import { and, count, eq, gte, isNull, ne } from "drizzle-orm";
 import { Hono } from "hono";
@@ -13,7 +12,7 @@ const { orgs, inboxes, messages } = schema;
 export const usageRoutes = new Hono<AppEnv>().get("/", async (c) => {
   const auth = c.get("auth");
   requireScope(auth, "read");
-  const { db, now = () => new Date(), limits = HOSTED_LIMITS } = c.get("deps");
+  const { db, now = () => new Date(), limits } = c.get("deps");
   const at = now();
   const [[org], [inboxCount], [sent]] = await Promise.all([
     db.select().from(orgs).where(eq(orgs.id, auth.orgId)),

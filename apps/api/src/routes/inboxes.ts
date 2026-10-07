@@ -1,4 +1,3 @@
-import { HOSTED_LIMITS } from "@send0/config";
 import { isReservedLocalPart, isValidLocalPart, newId } from "@send0/core";
 import { schema } from "@send0/db";
 import { and, count, eq, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
@@ -84,7 +83,7 @@ export const inboxRoutes = new Hono<AppEnv>()
     const auth = c.get("auth");
     requireScope(auth, "send");
     if (auth.inboxIds) throw forbidden("Keys limited to specific inboxes can't create new inboxes.");
-    const { db, mailDomains, limits = HOSTED_LIMITS } = c.get("deps");
+    const { db, mailDomains, limits } = c.get("deps");
     const body = c.req.valid("json");
 
     const localPart = body.name ?? randomLocalPart();

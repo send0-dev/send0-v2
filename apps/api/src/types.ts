@@ -21,7 +21,7 @@ export interface AuthContext {
 
 export interface AppDeps {
   db: Db;
-  /** Domains this install receives mail for; the first is the default for new inboxes. */
+  /** Domains this install receives mail for; the first is the default for new inboxes. createApp lowercases them. */
   mailDomains: string[];
   /** Hosted-service limits (plan inbox caps, reply-only free plan, daily send cap). Defaults to HOSTED_LIMITS. */
   limits?: Limits;
@@ -47,9 +47,12 @@ export interface AppDeps {
   now?: () => Date;
 }
 
+/** AppDeps after createApp fills in defaults; what routes see. */
+export type ResolvedDeps = Omit<AppDeps, "limits"> & { limits: Limits };
+
 export type AppEnv = {
   Variables: {
-    deps: AppDeps;
+    deps: ResolvedDeps;
     auth: AuthContext;
     requestId: string;
   };
