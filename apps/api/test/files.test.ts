@@ -29,6 +29,23 @@ afterEach(async () => {
 });
 
 describe("GET /v1/files/:token", () => {
+  it("survives lone surrogates, blocks header injection and bad content types", async () => {
+    const { reader } = memoryReader({ a: { bytes: new Uint8Array([1]), contentType: "text/html\r\nSet-Cookie: x" } });
+    t = await setup({ fileServer: { signer, reader } });
+    const url = await signer.signedGetUrl("a", {
+      expiresIn: 60,
+      filename: "bad\ud800\r\nSet-Cookie: x=1.txt",
+      contentType: "text/html\r\nSet-Cookie: y",
+    });
+    const res = await t.app.request(path(url));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toBeNull();
+    expect(res.headers.get("content-type")).toBe("application/octet-stream");
+    expect(res.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(res.headers.get("content-disposition")).not.toMatch(/[\r\n]/);
+    expect(res.headers.get("content-disposition")).toContain("%EF%BF%BD");
+  });
+
   it("streams the file with download headers, without an API key", async () => {
     const { reader } = memoryReader({ "att/a": { bytes: new TextEncoder().encode("PDFDATA"), contentType: "application/octet-stream" } });
     t = await setup({ fileServer: { signer, reader } });

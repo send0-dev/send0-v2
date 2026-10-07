@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -44,10 +44,62 @@ describe("FsBlobStore", () => {
 
   it("rejects unsafe keys", async () => {
     await writeFile(path.join(dir, "secret.txt"), "top secret");
-    const bad = ["../secret.txt", "a/../../secret.txt", "/etc/passwd", "a\\b", "a\0b", "x.meta.json", "a/x.meta.json", "", "a//b", "./a"];
+    const bad = [
+      "../secret.txt",
+      "a/../../secret.txt",
+      "/etc/passwd",
+      "a\\b",
+      "a\0b",
+      "x.meta.json",
+      "a/x.meta.json",
+      "",
+      "a//b",
+      "./a",
+      "a:stream",
+      "x.META.JSON",
+      ".hidden",
+      "a/.b",
+      "a b",
+      "a/b/",
+    ];
     for (const k of bad) {
       await expect(store.put(k, bytes("x"), { contentType: "text/plain" }), `put ${JSON.stringify(k)}`).rejects.toThrow();
       await expect(store.get(k), `get ${JSON.stringify(k)}`).rejects.toThrow();
     }
+  });
+
+  it("accepts reserved-looking names under the allowlist", async () => {
+    await store.put("CON", bytes("x"), { contentType: "text/plain" });
+    expect(await new Response((await store.get("CON"))!.body).text()).toBe("x");
+  });
+
+  it("rejects symlinked directories pointing outside root", async () => {
+    const outside = path.join(dir, "outside");
+    await mkdir(outside);
+    await writeFile(path.join(outside, "f"), "secret");
+    await mkdir(path.join(dir, "root"), { recursive: true });
+    await symlink(outside, path.join(dir, "root/link"));
+    await expect(store.get("link/f")).rejects.toThrow();
+    await expect(store.put("link/new", bytes("x"), { contentType: "text/plain" })).rejects.toThrow();
+    expect(await readdir(outside)).toEqual(["f"]);
+  });
+
+  it("rejects a symlinked file", async () => {
+    await writeFile(path.join(dir, "secret.txt"), "secret");
+    await mkdir(path.join(dir, "root"), { recursive: true });
+    await symlink(path.join(dir, "secret.txt"), path.join(dir, "root/file"));
+    await expect(store.get("file")).rejects.toThrow();
+  });
+
+  it("writes body and sidecar with no temp files left", async () => {
+    await store.put("d/k", bytes("x"), { contentType: "text/plain" });
+    expect((await readdir(path.join(dir, "root/d"))).sort()).toEqual(["k", "k.meta.json"]);
+  });
+
+  it("cancelling the stream releases the file", async () => {
+    await store.put("big", new Uint8Array(1 << 20), { contentType: "application/octet-stream" });
+    const stored = (await store.get("big"))!;
+    await stored.body.cancel();
+    await rm(path.join(dir, "root"), { recursive: true, force: true });
   });
 });

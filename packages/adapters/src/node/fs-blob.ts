@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { createReadStream } from "node:fs";
-import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
+import { mkdir, open, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 import type { BlobReader, BlobStore, PutOptions, StoredBlob } from "../blob/types";
 
 const META_SUFFIX = ".meta.json";
+const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._=@+-]*$/;
 
 /** Blob store on local disk (self-host on Node). Keys map to files under `rootDir`; metadata sits in a sidecar. */
 export class FsBlobStore implements BlobStore, BlobReader {
@@ -15,26 +16,30 @@ export class FsBlobStore implements BlobStore, BlobReader {
     this.root = path.resolve(rootDir);
   }
 
-  /** Resolves a key to a path inside the root, or throws. */
+  /** Resolves a key to a path inside the root, or throws. Each segment must match a strict allowlist. */
   private resolve(key: string): string {
-    if (!key || key.includes("\0") || key.includes("\\") || key.startsWith("/") || path.isAbsolute(key) || key.endsWith(META_SUFFIX)) {
-      throw new Error(`Invalid blob key: ${JSON.stringify(key)}`);
-    }
-    if (key.split("/").some((seg) => seg === ".." || seg === "." || seg === ""))
-      throw new Error(`Invalid blob key: ${JSON.stringify(key)}`);
+    const bad = () => new Error(`Invalid blob key: ${JSON.stringify(key)}`);
+    if (!key || key.toLowerCase().endsWith(META_SUFFIX)) throw bad();
+    if (!key.split("/").every((seg) => SEGMENT.test(seg))) throw bad();
     const full = path.resolve(this.root, key);
-    if (!full.startsWith(this.root + path.sep)) throw new Error(`Invalid blob key: ${JSON.stringify(key)}`);
+    if (!full.startsWith(this.root + path.sep)) throw bad();
     return full;
+  }
+
+  /** Throws unless the real (symlink-resolved) directory is inside the real root. */
+  private async assertInside(dir: string): Promise<void> {
+    const [realRoot, realDir] = await Promise.all([realpath(this.root), realpath(dir)]);
+    if (realDir !== realRoot && !realDir.startsWith(realRoot + path.sep)) throw new Error("Blob path escapes the storage root");
   }
 
   /** Writes via a temp file in the same directory, then renames, so readers never see partial files. */
   private async writeAtomic(file: string, data: Uint8Array | string): Promise<void> {
     const tmp = `${file}.${randomUUID()}.tmp`;
     try {
-      await writeFile(tmp, data);
+      await writeFile(tmp, data, { flag: "wx" });
       await rename(tmp, file);
     } catch (err) {
-      await rm(tmp, { force: true });
+      await rm(tmp, { force: true }).catch(() => {});
       throw err;
     }
   }
@@ -42,28 +47,45 @@ export class FsBlobStore implements BlobStore, BlobReader {
   async put(key: string, body: Uint8Array<ArrayBuffer>, opts: PutOptions): Promise<void> {
     const file = this.resolve(key);
     await mkdir(path.dirname(file), { recursive: true });
-    await this.writeAtomic(file, body);
+    await this.assertInside(path.dirname(file));
+    // Sidecar first: a body never exists without its metadata.
     await this.writeAtomic(file + META_SUFFIX, JSON.stringify({ contentType: opts.contentType, metadata: opts.metadata ?? {} }));
+    await this.writeAtomic(file, body);
   }
 
   async get(key: string): Promise<StoredBlob | null> {
     const file = this.resolve(key);
-    let size: number;
     try {
-      const s = await stat(file);
-      if (!s.isFile()) return null;
-      size = s.size;
+      await this.assertInside(path.dirname(file));
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
       throw err;
     }
-    let contentType: string | null = null;
+    let fh;
     try {
-      const meta = JSON.parse(await readFile(file + META_SUFFIX, "utf8")) as { contentType?: unknown };
-      if (typeof meta.contentType === "string") contentType = meta.contentType;
-    } catch {
-      // no sidecar: serve without a stored content type
+      fh = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw err;
     }
-    return { body: Readable.toWeb(createReadStream(file)) as unknown as ReadableStream<Uint8Array>, contentType, size };
+    try {
+      const st = await fh.stat();
+      if (!st.isFile()) {
+        await fh.close();
+        return null;
+      }
+      let contentType: string | null = null;
+      try {
+        const meta = JSON.parse(await readFile(file + META_SUFFIX, "utf8")) as { contentType?: unknown };
+        if (typeof meta.contentType === "string") contentType = meta.contentType;
+      } catch {
+        // no sidecar: serve without a stored content type
+      }
+      // The stream owns the handle and closes it on end, error or cancel.
+      return { body: Readable.toWeb(fh.createReadStream()) as unknown as ReadableStream<Uint8Array>, contentType, size: st.size };
+    } catch (err) {
+      await fh.close().catch(() => {});
+      throw err;
+    }
   }
 }
