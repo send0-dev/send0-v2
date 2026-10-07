@@ -5,25 +5,26 @@
 import Envelope from "../illustrations/Envelope.astro";
 ---
 
-<div class="demo" data-demo aria-label="Animated example: an agent gets an inbox, receives a verification code and replies" role="figure">
-  <div class="to mono" data-at="1">
-    <span class="live" aria-hidden="true"></span>
-    <span class="k">To</span> signup-agent@send0.email
-  </div>
-
-  <div class="code">
-    <div class="bar">
-      <span class="dots" aria-hidden="true">
-        <i></i>
-        <i></i>
-        <i></i>
-      </span>
-      <span class="file mono">agent.ts</span>
-      <span class="status mono" data-only="2">
-        <span class="spin" aria-hidden="true"></span>waiting for *@acme.dev
-      </span>
+<div class="demo-frame">
+  <div class="demo" data-demo aria-label="Animated example: an agent gets an inbox, receives a verification code and replies" role="figure">
+    <div class="to mono" data-at="1">
+      <span class="live" aria-hidden="true"></span>
+      <span class="k">To</span> signup-agent@send0.email
     </div>
-    <pre class="mono"><code><span class="ln" data-line="0"><span class="k">import</span> {"{"} Send0 {"}"} <span class="k">from</span> <span class="s">"@send0/sdk"</span>;</span>
+
+    <div class="code">
+      <div class="bar">
+        <span class="dots" aria-hidden="true">
+          <i></i>
+          <i></i>
+          <i></i>
+        </span>
+        <span class="file mono">agent.ts</span>
+        <span class="status mono" data-only="2">
+          <span class="spin" aria-hidden="true"></span>waiting for *@acme.dev
+        </span>
+      </div>
+      <pre class="mono"><code><span class="ln" data-line="0"><span class="k">import</span> {"{"} Send0 {"}"} <span class="k">from</span> <span class="s">"@send0/sdk"</span>;</span>
 <span class="ln" data-line="0"><span class="k">const</span> send0 = <span class="k">new</span> <span class="f">Send0</span>();</span>
 <span class="ln"> </span>
 <span class="ln" data-line="1"><span class="k">const</span> inbox = <span class="k">await</span> send0.inboxes.<span class="f">create</span>({"{"} name: <span class="s">"signup-agent"</span> {"}"});</span>
@@ -34,45 +35,46 @@ import Envelope from "../illustrations/Envelope.astro";
 <span class="ln" data-line="4"><span class="k">await</span> page.<span class="f">fill</span>(<span class="s">"#code"</span>, msg.extracted?.otp ?? <span class="s">""</span>);</span>
 <span class="ln"> </span>
 <span class="ln" data-line="5 6"><span class="k">await</span> send0.messages.<span class="f">reply</span>(msg.id, {"{"} text: <span class="s">"Confirmed, thanks!"</span> {"}"});</span></code></pre>
-  </div>
-
-  <div class="env" data-at="3">
-    <Envelope />
-  </div>
-
-  <div class="thread">
-    <article class="letter" data-at="3">
-      <header>
-        <span class="avatar" aria-hidden="true">
-          D
-        </span>
-        <div class="who">
-          <strong>Dana at Acme</strong>
-          <span class="mono">dana@acme.dev</span>
-        </div>
-        <span class="time mono">now</span>
-      </header>
-      <p class="subject">Welcome to Acme</p>
-      <p class="body">
-        Your access code is <mark data-at="4">482913</mark>. Reply to this email to confirm you're in.
-      </p>
-      <div class="chips mono">
-        <span class="chip ok">spf · dkim · dmarc pass</span>
-        <span class="chip">prompt_injection: none</span>
-        <span class="chip otp" data-at="4">
-          extracted.otp "482913"
-        </span>
-      </div>
-    </article>
-    <div class="slip out" data-at="5">
-      <span class="who mono">signup-agent</span>
-      <span class="text">Confirmed, thanks!</span>
-      <span class="tag mono">sent</span>
     </div>
-    <div class="slip" data-at="6">
-      <span class="who mono">Dana</span>
-      <span class="text">Great, you're all set.</span>
-      <span class="tag mono">3 in thread</span>
+
+    <div class="env" data-at="3">
+      <Envelope />
+    </div>
+
+    <div class="thread">
+      <article class="letter" data-at="3">
+        <header>
+          <span class="avatar" aria-hidden="true">
+            D
+          </span>
+          <div class="who">
+            <strong>Dana at Acme</strong>
+            <span class="mono">dana@acme.dev</span>
+          </div>
+          <span class="time mono">now</span>
+        </header>
+        <p class="subject">Welcome to Acme</p>
+        <p class="body">
+          Your access code is <mark data-at="4">482913</mark>. Reply to this email to confirm you're in.
+        </p>
+        <div class="chips mono">
+          <span class="chip ok">spf · dkim · dmarc pass</span>
+          <span class="chip">prompt_injection: none</span>
+          <span class="chip otp" data-at="4">
+            extracted.otp "482913"
+          </span>
+        </div>
+      </article>
+      <div class="slip out" data-at="5">
+        <span class="who mono">signup-agent</span>
+        <span class="text">Confirmed, thanks!</span>
+        <span class="tag mono">sent</span>
+      </div>
+      <div class="slip" data-at="6">
+        <span class="who mono">Dana</span>
+        <span class="text">Great, you're all set.</span>
+        <span class="tag mono">3 in thread</span>
+      </div>
     </div>
   </div>
 </div>
@@ -140,8 +142,14 @@ import Envelope from "../illustrations/Envelope.astro";
 </script>
 
 <style>
+  /* The desk layout depends on the room the demo has, not the window. */
+  .demo-frame {
+    container-type: inline-size;
+  }
   .demo {
     position: relative;
+    max-width: 700px;
+    margin-inline: auto;
     display: grid;
     gap: 14px;
     text-align: left;
@@ -424,6 +432,12 @@ import Envelope from "../illustrations/Envelope.astro";
       opacity 0.45s ease,
       transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+  .demo[data-anim] .thread::before {
+    transition: opacity 0.4s ease;
+  }
+  .demo[data-anim] .thread:not(:has(.slip.on))::before {
+    opacity: 0;
+  }
   .demo:not([data-anim]) .status {
     display: none;
   }
@@ -436,7 +450,7 @@ import Envelope from "../illustrations/Envelope.astro";
   }
 
   /* ---- Desktop: an arranged desk ---- */
-  @media (min-width: 1180px) {
+  @container (min-width: 600px) {
     .demo {
       display: block;
       height: 600px;

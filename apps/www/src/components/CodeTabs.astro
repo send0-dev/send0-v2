@@ -52,7 +52,7 @@ const warm = {
     </div>
   </div>
   {tabs.map((t, i) => (
-    <div class="panel" role="tabpanel" id={`panel-${t.id}`} aria-labelledby={`tab-${t.id}`} hidden={i !== 0} tabindex="0">
+    <div class="panel" role="tabpanel" id={`panel-${t.id}`} aria-labelledby={`tab-${t.id}`} hidden={i !== 0}>
       <div class="meta mono">
         <span>{t.file}</span>
         <span>{t.note}</span>
@@ -138,10 +138,6 @@ const warm = {
   [role="tab"]:focus-visible {
     outline-color: var(--code-fn);
     outline-offset: -3px;
-  }
-  .panel:focus-visible {
-    outline: 2px solid var(--code-fn);
-    outline-offset: -2px;
   }
   .meta {
     display: flex;

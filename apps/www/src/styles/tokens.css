@@ -5,6 +5,7 @@
   --paper: #faf6ef;
   --paper-alt: #f3ede2;
   --card: #fffdf8;
+  --stamp-paper: #fffdf8;
   --ink: #1e1a16;
   --muted: #6e655b; /* 5.3:1 on paper */
   --faint: #9a8f82; /* decorative only, never body text */
@@ -25,7 +26,7 @@
   --blush: #fbe0cf;
 
   /* States */
-  --ok: #2f7a3d;
+  --ok: #286934;
   --ok-tint: #e2efdc;
 
   /* Code panels stay warm dark in both themes */
@@ -72,6 +73,8 @@
     --paper: #171411;
     --paper-alt: #1d1915;
     --card: #221d18;
+    --stamp-paper: #3a332c;
+    --stamp-paper: #3a332c;
     --ink: #f3eadb;
     --muted: #b8ab97;
     --faint: #7d7264;
