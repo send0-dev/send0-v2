@@ -40,7 +40,7 @@ const faqs = [
   },
   {
     q: "What does self-hosting need?",
-    a: `A server that runs Docker, Postgres, S3-compatible storage such as MinIO, and a way to send, either Amazon SES or any SMTP relay. Receiving needs port 25 open, or you can forward mail from Cloudflare Email Routing to your instance.`,
+    a: `A server that runs Docker with port 25 open, a domain you control, and a way to send: Amazon SES or any SMTP relay. The compose file brings Postgres and automatic HTTPS; files go on local disk or any S3. Prefer serverless? Deploy one Worker to your own Cloudflare account with your Postgres, R2 and SES.`,
   },
 ];
 ---

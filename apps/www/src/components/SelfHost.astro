@@ -5,8 +5,8 @@ const rows = [
   { part: "HTTP API", cloud: "Hono on Cloudflare Workers", self: "The same Hono app on Node" },
   { part: "Receiving", cloud: "Cloudflare Email Routing", self: "Built-in SMTP listener" },
   { part: "Sending", cloud: "Amazon SES, isolated per org", self: "Amazon SES or any SMTP relay" },
-  { part: "Database", cloud: "Postgres", self: "Postgres 16" },
-  { part: "Files", cloud: "Cloudflare R2", self: "MinIO or any S3" },
+  { part: "Database", cloud: "Postgres", self: "Postgres 17" },
+  { part: "Files", cloud: "Cloudflare R2", self: "Local disk or any S3" },
   { part: "Queues", cloud: "Cloudflare Queues", self: "pg-boss on Postgres, no Redis" },
   { part: "Real-time", cloud: "Durable Objects", self: "Postgres LISTEN/NOTIFY" },
 ];
@@ -30,22 +30,29 @@ const rows = [
             View the source
           </a>
         )}
-        <a class={site.repoPublic ? "btn btn-secondary" : "btn btn-primary"} href="#waitlist">
-          Get notified at beta
-        </a>
+        {site.repoPublic ? (
+          <a class="btn btn-secondary" href={`${site.github}/tree/main/selfhost#readme`} rel="noopener">
+            Self-hosting guide
+          </a>
+        ) : (
+          <a class="btn btn-primary" href="#waitlist">
+            Get notified at beta
+          </a>
+        )}
       </div>
     </div>
 
     <div class="term card reveal" aria-label="Self-hosting commands">
       <div class="bar mono">
         <span>~/send0</span>
-        <span class="soon">self-host guide ships with beta</span>
+        <span class="soon">{site.repoPublic ? "v0.1 · Docker or Cloudflare" : "self-host guide ships with beta"}</span>
       </div>
       <pre class="mono"><span class="p">$</span> git clone {site.github.replace("https://", "")}
 <span class="p">$</span> cd send0-v2/selfhost && cp .env.example .env
 <span class="p">$</span> docker compose up -d
-<span class="o">✓ postgres   ✓ minio   ✓ api   ✓ smtp-in   ✓ worker</span>
-<span class="o">send0 is running at http://localhost:8080</span></pre>
+<span class="o">✓ postgres   ✓ send0 (api · smtp · worker)   ✓ caddy</span>
+<span class="p">$</span> docker compose exec send0 send0 doctor
+<span class="o">send0 is running at https://mail.yourcompany.com</span></pre>
     </div>
   </div>
 
