@@ -13,6 +13,11 @@ const token = z.string().min(1).max(200);
 export const accountRoutes = new Hono<WebEnv>()
   .get("/me", (c) => c.json(meJson(c.get("session"))))
 
+  .get("/instance", async (c) => {
+    const { auth, instance } = c.get("deps");
+    return c.json({ mail_domains: instance.mailDomains, signup_open: await auth.accounts.signupOpen() });
+  })
+
   .post("/signup", async (c) => {
     const b = await readBody(c, z.object({ email, password, name: z.string().trim().max(80).optional() }));
     const { session } = await c.get("deps").auth.accounts.signUp({ ...b, ...clientMeta(c) });

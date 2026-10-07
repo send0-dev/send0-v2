@@ -8,6 +8,8 @@ export interface WebDeps {
   gateway: Gateway;
   /** e.g. https://app.send0.dev: the only origin allowed to change state */
   appUrl: string;
+  /** Facts about this install the SPA needs before sign-in */
+  instance: { mailDomains: string[] };
   /** false only in local dev over http */
   secureCookies?: boolean;
 }

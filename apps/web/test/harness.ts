@@ -9,7 +9,7 @@ import { createWebApp, SESSION_COOKIE, type Gateway } from "../worker/app";
 export const APP = "https://app.test";
 
 /** The dashboard Worker over an in-memory Postgres, with the real API behind its gateway. */
-export async function createHarness(opts: { gateway?: Gateway } = {}) {
+export async function createHarness(opts: { gateway?: Gateway; allowSignup?: boolean } = {}) {
   const { db, close } = await createTestDb();
   const outbox: SendRawInput[] = [];
   const auth: Auth = createAuth({
@@ -17,6 +17,7 @@ export async function createHarness(opts: { gateway?: Gateway } = {}) {
     mailer: { sendRaw: async (m) => (outbox.push(m), { providerMessageId: "x" }) },
     from: { name: "send0", email: "noreply@send0.dev" },
     appUrl: APP,
+    allowSignup: opts.allowSignup,
   });
   await db.insert(schema.domains).values({ id: "dom_1", name: "send0.email", kind: "shared", status: "verified" });
   const gateway: Gateway =
@@ -24,11 +25,12 @@ export async function createHarness(opts: { gateway?: Gateway } = {}) {
     (async (req, as) =>
       createApi({
         db,
+        mailDomains: ["send0.email"],
         files: { signedGetUrl: async () => "https://files.test/x" },
         mailer: { sendRaw: async () => ({ providerMessageId: "ses-x" }) },
         presetAuth: { orgId: as.orgId, keyId: as.userId, mode: "live", scopes: as.scopes, inboxIds: null, actor: "user" },
       }).fetch(req));
-  const web = createWebApp({ auth, appUrl: APP, gateway });
+  const web = createWebApp({ auth, appUrl: APP, gateway, instance: { mailDomains: ["send0.email"] } });
 
   /** The newest link emailed to `to`. */
   const lastLink = async (to: string) => {

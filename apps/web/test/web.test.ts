@@ -92,6 +92,7 @@ describe("API proxy", () => {
     const spy = createWebApp({
       auth: h.auth,
       appUrl: APP,
+      instance: { mailDomains: ["send0.email"] },
       gateway: async (req, as) => (seen.push({ req, as }), Response.json({ ok: true })),
     });
     const login = await h.web.request(APP + "/auth/login", {
@@ -208,5 +209,23 @@ describe("teams", () => {
     await mia("POST", "/auth/login", { email: "mia@team.com", password: "lantern-cove-88" });
     expect((await mia("GET", "/auth/me")).body.workspace).toBeNull();
     expect((await mia("GET", "/api/v1/inboxes")).body.error.code).toBe("no_workspace");
+  });
+});
+
+describe("instance info", () => {
+  it("tells the app its mail domains and whether sign-up is open", async () => {
+    const h = await createHarness();
+    const b = h.browser();
+    expect((await b("GET", "/auth/instance")).body).toEqual({ mail_domains: ["send0.email"], signup_open: true });
+    await h.close();
+  });
+
+  it("reports sign-up closed once the first account exists on an invite-only install", async () => {
+    const h = await createHarness({ allowSignup: false });
+    const b = h.browser();
+    expect((await b("GET", "/auth/instance")).body.signup_open).toBe(true);
+    await b("POST", "/auth/signup", { email: "owner@acme.dev", password: "tangerine-orbit-42", name: "Owner" });
+    expect((await h.browser()("GET", "/auth/instance")).body.signup_open).toBe(false);
+    await h.close();
   });
 });
