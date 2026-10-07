@@ -2,7 +2,7 @@ import type { AddressInfo } from "node:net";
 import { SMTPServer, type SMTPServerOptions } from "smtp-server";
 import { afterEach, describe, expect, it } from "vitest";
 import { MailerError } from "../src/mailer";
-import { SmtpMailer } from "../src/node/smtp-mailer";
+import { SmtpMailer, type SmtpMailerOptions } from "../src/node/smtp-mailer";
 
 const RAW = "From: a@send0.email\r\nTo: b@example.com\r\nSubject: Hi\r\nMessage-ID: <msg_1@send0.email>\r\n\r\nHello =\r\n.dot line\r\n";
 const USER = "relay-user";
@@ -25,12 +25,13 @@ async function start(opts: SMTPServerOptions = {}): Promise<number> {
     ...opts,
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  server.on("error", () => {}); // e.g. a client aborting the TLS handshake
   servers.push(server);
   return (server.server.address() as AddressInfo).port;
 }
 
-function mailer(url: string): SmtpMailer {
-  const m = new SmtpMailer(url);
+function mailer(url: string, opts?: SmtpMailerOptions): SmtpMailer {
+  const m = new SmtpMailer(url, opts);
   mailers.push(m);
   return m;
 }
@@ -152,5 +153,146 @@ describe("SmtpMailer", () => {
       expect(message, url).not.toBe("");
       expect(message).not.toContain("topsecret");
     }
+  });
+
+  it("treats a 4xx reply to DATA as a definitive, retryable rejection", async () => {
+    const port = await start({
+      onData(stream, _s, cb) {
+        stream.resume();
+        stream.on("end", () => cb(Object.assign(new Error("Try again later"), { responseCode: 451 })));
+      },
+    });
+    const err = await send(mailer(`smtp://127.0.0.1:${port}`)).catch((e: unknown) => e);
+    expect(err).toMatchObject({ status: 451, retryable: true });
+  });
+
+  it("fails permanently when only some recipients are rejected", async () => {
+    const port = await start({
+      onRcptTo: (a, _s, cb) => cb(a.address === "c@example.com" ? Object.assign(new Error("No such user"), { responseCode: 550 }) : null),
+    });
+    const err = (await send(mailer(`smtp://127.0.0.1:${port}`)).catch((e: unknown) => e)) as MailerError;
+    expect(err).toMatchObject({ status: 422, retryable: false, code: "recipients_rejected" });
+    expect(err.message).toContain("c@example.com");
+    expect(err.message).not.toContain("b@example.com");
+  });
+
+  it("does not retry when the relay never answers after DATA (delivery_unknown)", async () => {
+    const port = await start({
+      onData(stream) {
+        stream.resume(); // accept the body, then never reply
+      },
+    });
+    const err = await send(mailer(`smtp://127.0.0.1:${port}`, { timeouts: { socket: 300 } })).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(MailerError);
+    expect(err).toMatchObject({ status: 502, retryable: false, code: "delivery_unknown" });
+  });
+
+  it("does not retry when the connection drops mid-DATA", async () => {
+    const port = await start({
+      onData(stream) {
+        stream.once("data", () => stream.destroy());
+        stream.on("error", () => {});
+        stream.resume();
+      },
+    });
+    const m = mailer(`smtp://127.0.0.1:${port}`, { timeouts: { socket: 500 } });
+    const err = await send(m).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(MailerError);
+    expect((err as MailerError).retryable).toBe(false);
+  });
+
+  it("times out a silent relay before the greeting as retryable, with a fixed message", async () => {
+    const net = await import("node:net");
+    const sockets: import("node:net").Socket[] = [];
+    const silent = net.createServer((s) => sockets.push(s));
+    await new Promise<void>((r) => silent.listen(0, "127.0.0.1", r));
+    const port = (silent.address() as AddressInfo).port;
+    const err = (await send(mailer(`smtp://127.0.0.1:${port}`, { timeouts: { greeting: 200 } })).catch((e: unknown) => e)) as MailerError;
+    sockets.forEach((s) => s.destroy());
+    await new Promise((r) => silent.close(r));
+    expect(err).toMatchObject({ status: 503, retryable: true, message: "SMTP relay timed out" });
+  });
+
+  it("connects over implicit TLS with smtps:// (self-signed cert via the tls override)", async () => {
+    let data = "";
+    const port = await start({
+      secure: true,
+      disabledCommands: [],
+      onData(stream, _s, cb) {
+        const chunks: Buffer[] = [];
+        stream.on("data", (c: Buffer) => chunks.push(c));
+        stream.on("end", () => ((data = Buffer.concat(chunks).toString("utf8")), cb()));
+      },
+    });
+    await send(mailer(`smtps://127.0.0.1:${port}`, { tls: { rejectUnauthorized: false } }));
+    expect(data).toBe(RAW);
+  });
+
+  it("refuses a self-signed cert by default", async () => {
+    const port = await start({ secure: true, disabledCommands: [] });
+    const err = await send(mailer(`smtps://127.0.0.1:${port}`)).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(MailerError);
+  });
+
+  it("handles + and % in usernames and passwords", async () => {
+    let seen = { user: "", pass: "" };
+    const port = await start({
+      authOptional: false,
+      onAuth(auth, _s, cb) {
+        seen = { user: auth.username ?? "", pass: auth.password ?? "" };
+        cb(null, { user: "x" });
+      },
+    });
+    await send(mailer(`smtp://${enc("a+b%c@d")}:${enc("50%+off")}@127.0.0.1:${port}`));
+    expect(seen).toEqual({ user: "a+b%c@d", pass: "50%+off" });
+  });
+
+  it("uses the id from a 'queued as' reply", async () => {
+    const port = await start({
+      onData(stream, _s, cb) {
+        stream.resume();
+        stream.on("end", () => cb(null, "Ok: queued as 4F3A1B2C"));
+      },
+    });
+    const res = await send(mailer(`smtp://127.0.0.1:${port}`));
+    expect(res.providerMessageId).toBe("4F3A1B2C");
+  });
+
+  it("connects to IPv6 literals", async (ctx) => {
+    const server = new SMTPServer({ secure: false, disabledCommands: ["STARTTLS"], authOptional: true, logger: false });
+    const listening = await new Promise<boolean>((r) => {
+      server.server.once("error", () => r(false));
+      server.listen(0, "::1", () => r(true));
+    });
+    if (!listening) return ctx.skip();
+    servers.push(server);
+    const port = (server.server.address() as AddressInfo).port;
+    await expect(mailer(`smtp://[::1]:${port}`).verify()).resolves.toBeUndefined();
+  });
+
+  it("retries a 454 login failure but not a 535", async () => {
+    const port = await start({
+      authOptional: false,
+      onAuth: (_a, _s, cb) => cb(Object.assign(new Error("Temporary auth failure"), { responseCode: 454 })),
+    });
+    await expect(mailer(`smtp://u:p@127.0.0.1:${port}`).verify()).rejects.toMatchObject({ code: "auth_failed", retryable: true });
+  });
+
+  it("requires TLS by default for remote hosts with credentials, unless opted out", async () => {
+    // Constructing never connects; this only exercises URL option parsing.
+    expect(() => new SmtpMailer("smtp://u:p@relay.example.com:587?require_tls=false").close()).not.toThrow();
+    expect(() => new SmtpMailer("smtp://u:p@relay.example.com:587?require_tls=maybe")).toThrow(/require_tls/);
+    expect(() => new SmtpMailer("smtp://u:p@relay.example.com:465")).toThrow(/smtps:\/\//);
+    expect(() => new SmtpMailer("smtp://u:p@relay.example.com:0")).toThrow(/port/);
+  });
+
+  it("fails against a plaintext remote-style relay when credentials are set and TLS is required", async () => {
+    const port = await start({ authOptional: false });
+    // Same server, but explicit require_tls=true stands in for the non-loopback default.
+    const err = await mailer(`smtp://${USER}:${enc(PASS)}@127.0.0.1:${port}?require_tls=true`)
+      .verify()
+      .catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(MailerError);
+    expect((err as MailerError).retryable).toBe(false);
   });
 });

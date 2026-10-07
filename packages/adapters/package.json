@@ -21,7 +21,6 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261005.1",
     "@types/node": "^24",
-    "@types/nodemailer": "^8.0.2",
     "@types/smtp-server": "^3.5.13",
     "smtp-server": "^3.19.17",
     "typescript": "^5.9.0",
