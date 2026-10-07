@@ -135,7 +135,7 @@ No accounts or services needed: tests and the local server use an in-memory Post
 
 ## Self-hosting
 
-Run the same API, SDKs, MCP server and dashboard on your own domain. Two editions, from [v0.1.0](https://github.com/send0-dev/send0-v2/releases/tag/v0.1.0):
+Run the same API, SDKs, MCP server and dashboard on your own domain. Two editions, from [v0.1.1](https://github.com/send0-dev/send0-v2/releases/tag/v0.1.1):
 
 - **Docker Compose:** Postgres, the send0 server (with its own SMTP server for inbound mail) and Caddy on one machine. Sends through any SMTP relay or Amazon SES. Image: `ghcr.io/send0-dev/send0`. Files in [`selfhost/`](selfhost).
 - **Cloudflare:** one Worker on your account, with Email Routing, R2, Queues, a Durable Object, your Postgres through Hyperdrive, and Amazon SES. [Deploy to Cloudflare](https://deploy.workers.cloudflare.com/?url=https://github.com/send0-dev/send0-cloudflare).

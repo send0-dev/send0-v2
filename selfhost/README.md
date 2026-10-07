@@ -12,7 +12,7 @@ You need a Linux server with Docker (Docker Compose v2) and inbound port 25 open
 ```sh
 mkdir send0 && cd send0
 for f in compose.yml Caddyfile .env.example; do
-  curl -fsSLO "https://raw.githubusercontent.com/send0-dev/send0-v2/v0.1.0/selfhost/$f"
+  curl -fsSLO "https://raw.githubusercontent.com/send0-dev/send0-v2/v0.1.1/selfhost/$f"
 done
 cp .env.example .env    # fill in DOMAIN, MAIL_DOMAIN, OWNER_EMAIL, SECRET_KEY, POSTGRES_PASSWORD, SMTP_URL
 ```

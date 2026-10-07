@@ -33,7 +33,7 @@ Get the three files from the release tag:
 ```bash
 mkdir send0 && cd send0
 for f in compose.yml Caddyfile .env.example; do
-  curl -fsSLO "https://raw.githubusercontent.com/send0-dev/send0-v2/v0.1.0/selfhost/$f"
+  curl -fsSLO "https://raw.githubusercontent.com/send0-dev/send0-v2/v0.1.1/selfhost/$f"
 done
 cp .env.example .env
 ```
@@ -53,7 +53,7 @@ SECRET_KEY=          # openssl rand -hex 32
 POSTGRES_PASSWORD=   # openssl rand -hex 24
 SMTP_URL=smtp://user:password@smtp.example.net:587
 
-SEND0_VERSION=0.1.0
+SEND0_VERSION=0.1.1
 ```
 
 | Variable            | What it is                                                                                                                           |
