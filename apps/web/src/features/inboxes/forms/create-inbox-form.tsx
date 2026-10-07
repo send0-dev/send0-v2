@@ -23,7 +23,15 @@ const schema = z.object({
 });
 type Values = z.infer<typeof schema>;
 
-export function CreateInboxForm({ onCreated, onCancel }: { onCreated: (inbox: Inbox) => void; onCancel: () => void }) {
+export function CreateInboxForm({
+  onCreated,
+  onCancel,
+  domain,
+}: {
+  onCreated: (inbox: Inbox) => void;
+  onCancel: () => void;
+  domain: string;
+}) {
   const create = useCreateInbox();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: "", displayName: "", sendPolicy: "reply_only" } });
 
@@ -54,7 +62,7 @@ export function CreateInboxForm({ onCreated, onCancel }: { onCreated: (inbox: In
                     className="h-8 min-w-0 flex-1 bg-transparent px-2.5 text-sm outline-none placeholder:text-muted-foreground/70"
                   />
                 </FormControl>
-                <span className="pr-2.5 font-mono text-[12.5px] text-muted-foreground">@send0.email</span>
+                <span className="pr-2.5 font-mono text-[12.5px] text-muted-foreground">@{domain}</span>
               </div>
               <FormDescription>Leave empty for a random address.</FormDescription>
               <FormMessage />

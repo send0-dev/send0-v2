@@ -24,6 +24,11 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return data as T;
 }
 
+export interface Instance {
+  mail_domains: string[];
+  signup_open: boolean;
+}
+
 export interface WorkspaceRef {
   id: string;
   name: string;
@@ -65,6 +70,7 @@ type Ok = { ok: true };
 
 export const authClient = {
   me: () => request<Me>("GET", "/me"),
+  instance: () => request<Instance>("GET", "/instance"),
   signUp: (b: { name?: string; email: string; password: string }) => request<Ok>("POST", "/signup", b),
   logIn: (b: { email: string; password: string }) => request<Ok>("POST", "/login", b),
   logOut: () => request<Ok>("POST", "/logout"),

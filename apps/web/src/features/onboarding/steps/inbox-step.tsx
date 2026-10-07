@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, FormRootError } from "@/components/ui/form";
 import { useCreateInbox } from "@/features/inboxes/api/use-inbox-mutations";
+import { useMailDomain } from "@/features/session/api/use-instance";
 import { applyServerError } from "@/lib/form-errors";
 import { StepHeader } from "../components/step-header";
 
@@ -30,6 +31,7 @@ function suggestAddress(owner: string | null | undefined) {
 
 export function InboxStep({ owner, onDone }: { owner: string | null; onDone: (inbox: Inbox) => void }) {
   const create = useCreateInbox();
+  const domain = useMailDomain();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: suggestAddress(owner) } });
   const onSubmit = form.handleSubmit((v) =>
     create.mutate({ name: v.name }, { onSuccess: onDone, onError: (e) => applyServerError(form, e) }),
@@ -58,7 +60,7 @@ export function InboxStep({ owner, onDone }: { owner: string | null; onDone: (in
                       className="h-10 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none"
                     />
                   </FormControl>
-                  <span className="pr-3 font-mono text-[12.5px] text-muted-foreground">@send0.email</span>
+                  <span className="pr-3 font-mono text-[12.5px] text-muted-foreground">@{domain}</span>
                 </div>
                 <FormDescription>Letters, numbers, dots, dashes and underscores.</FormDescription>
                 <FormMessage />

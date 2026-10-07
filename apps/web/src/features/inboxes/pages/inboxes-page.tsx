@@ -13,12 +13,14 @@ import { pluralize } from "@/lib/format";
 import { useCan } from "@/lib/permissions";
 import { useHotkeys } from "@/lib/use-hotkeys";
 import { useListNavigation } from "@/lib/use-list-navigation";
+import { useMailDomain } from "@/features/session/api/use-instance";
 import { useInboxes } from "../api/use-inboxes";
 import { CreateInboxDialog } from "../components/create-inbox-dialog";
 import { InboxesList } from "../components/inboxes-list";
 
 export default function InboxesPage() {
   const inboxes = useInboxes();
+  const domain = useMailDomain();
   const canManage = useCan("inbox.manage");
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
@@ -67,7 +69,7 @@ export default function InboxesPage() {
               />
               {items.length < 6 && (
                 <ListHint title="Agents can create their own inboxes">
-                  <CodeBlock code={`await send0.inboxes.create({ name: "signup-agent" });\n// → signup-agent@send0.email`} />
+                  <CodeBlock code={`await send0.inboxes.create({ name: "signup-agent" });\n// → signup-agent@${domain}`} />
                 </ListHint>
               )}
             </>

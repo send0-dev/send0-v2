@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 const PLAN = { free: "Free plan", pro: "Pro plan", scale: "Scale plan" } as const;
 
-function Meter({ label, used, limit, hint }: { label: string; used: number; limit: number; hint?: string }) {
+function Meter({ label, used, limit, hint }: { label: string; used: number; limit: number | null; hint?: string }) {
   const pct = limit ? (used / limit) * 100 : 0;
   const tone = pct >= 100 ? "bg-destructive" : pct >= 80 ? "bg-warning" : "bg-brand";
   return (
@@ -16,10 +16,17 @@ function Meter({ label, used, limit, hint }: { label: string; used: number; limi
         <span className="text-muted-foreground">{label}</span>
         <span className="tabular">
           <span className="font-medium text-foreground">{formatCount(used)}</span>
-          <span className="text-faint"> / {formatCount(limit)}</span>
+          {limit === null ? (
+            <>
+              <span className="text-faint"> · </span>
+              <span className="text-faint">No limit</span>
+            </>
+          ) : (
+            <span className="text-faint"> / {formatCount(limit)}</span>
+          )}
         </span>
       </div>
-      <Progress value={pct} indicatorClassName={tone} aria-label={`${label}: ${used} of ${limit}`} />
+      {limit !== null && <Progress value={pct} indicatorClassName={tone} aria-label={`${label}: ${used} of ${limit}`} />}
       {hint && <span className="text-[11px] text-faint">{hint}</span>}
     </div>
   );
@@ -31,7 +38,7 @@ export function LimitsCard({ usage, className }: { usage: Usage; className?: str
     <Card className={cn("flex flex-col", className)}>
       <CardHeader>
         <CardTitle>Limits</CardTitle>
-        <Badge variant="outline">{PLAN[usage.plan]}</Badge>
+        {(usage.inboxes.limit !== null || usage.sends_today.limit !== null) && <Badge variant="outline">{PLAN[usage.plan]}</Badge>}
       </CardHeader>
       <CardContent className="grid gap-5">
         <Meter
