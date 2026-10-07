@@ -1,3 +1,4 @@
+import { parseSmtpUrl } from "@send0/adapters/node/smtp-mailer";
 import { ConfigError, parseCoreConfig, type CoreConfig } from "@send0/config";
 import { isIP } from "node:net";
 import { fileURLToPath } from "node:url";
@@ -173,7 +174,15 @@ export function loadConfig(input: Record<string, string | undefined> = process.e
     problems.push(...missing(env, ["SMTP_URL"], "when MAILER=smtp (smtp://user:pass@host:587)"));
     if (env.SMTP_URL && !/^smtps?:\/\/[^/]/i.test(env.SMTP_URL)) {
       problems.push("SMTP_URL: must be an smtp:// or smtps:// URL, like smtp://user:pass@host:587");
-    } else if (env.SMTP_URL) mailer = { kind: "smtp", url: env.SMTP_URL };
+    } else if (env.SMTP_URL) {
+      // The mailer's own parser, so a URL that passes here can't fail at start. Its messages never include the password.
+      try {
+        parseSmtpUrl(env.SMTP_URL);
+        mailer = { kind: "smtp", url: env.SMTP_URL };
+      } catch (err) {
+        problems.push(`SMTP_URL: ${(err instanceof Error ? err.message : String(err)).replace(/^SMTP_URL:?\s*/, "")}`);
+      }
+    }
   } else if (mailerKind === "ses") {
     const sesVars = ["SES_REGION", "SES_ACCESS_KEY_ID", "SES_SECRET_ACCESS_KEY", "SES_CONFIGURATION_SET"] as const;
     const gaps = missing(env, [...sesVars], "when MAILER=ses");

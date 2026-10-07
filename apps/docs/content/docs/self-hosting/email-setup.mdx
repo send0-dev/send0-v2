@@ -1,0 +1,206 @@
+---
+title: Mail setup and deliverability
+description: DNS, port 25, inbound authentication, relays, SES and SMTP_URL for a self-hosted send0.
+---
+
+This page covers the Docker edition in detail. On Cloudflare, Email Routing receives mail and SES sends it; see [Deploy to Cloudflare](/self-hosting/cloudflare#after-deploying).
+
+## Receiving
+
+### MX record
+
+Mail for `MAIL_DOMAIN` goes wherever its MX record points. Point it at `DOMAIN`, or at `MX_HOSTNAME` if you set one:
+
+```text
+agents.example.com.  MX  10 mail.example.com.
+```
+
+Use a subdomain that only send0 receives for. An MX record replaces any other mail server for that name.
+
+### Port 25
+
+Other mail servers always deliver on port 25. Compose maps host port 25 to send0's SMTP server on port 2525 in the container. send0 only needs port 25 **inbound**; it sends through your relay on 587 or 465.
+
+Some hosting providers block port 25, and some unblock it on request. To test from a machine outside the server's network:
+
+```bash
+nc -vz mail.example.com 25
+```
+
+A test from the server itself can fail even when the port is open, if the network doesn't route traffic back to its own public IP (hairpin NAT).
+
+### What send0 accepts
+
+send0 checks every recipient during the SMTP session, so senders get a bounce instead of silent loss:
+
+| Recipient                                         | Reply                              |
+| ------------------------------------------------- | ---------------------------------- |
+| An active inbox (plus-tags like `bot+task@` work) | `250`, accepted                    |
+| An address that isn't an inbox                    | `550 5.1.1 Mailbox does not exist` |
+| A disabled inbox                                  | `550 5.2.1 Mailbox disabled`       |
+| A domain not in `MAIL_DOMAINS`                    | `550 5.7.1 Relaying denied`        |
+| A reserved name, like `postmaster@`               | `550 5.1.1 Mailbox unavailable`    |
+
+Messages over about 25 MiB get `552 5.3.4 Message too big`. If the database or storage fails, send0 answers `451` and the sender retries later.
+
+### Inbound authentication
+
+send0's SMTP server checks SPF, DKIM, DMARC and ARC for each message itself. It adds an `Authentication-Results` header named after `MX_HOSTNAME`, and removes any header from the sender that claims the same name. Each message's `auth` field shows the SPF, DKIM and DMARC verdicts:
+
+```json
+"auth": { "spf": "pass", "dkim": "pass", "dmarc": "pass" }
+```
+
+SPF is checked against the IP that connected to send0. If another server relays mail to send0, SPF sees that server's IP.
+
+On Cloudflare, Email Routing checks the message and send0 reads the `Authentication-Results` it writes as `mx.cloudflare.net`. That id is always trusted; `TRUSTED_AUTHSERV_IDS` adds to it.
+
+### IPv6 and Docker's proxy
+
+When a sender connects over IPv6 and Docker's userland proxy forwards the connection, send0 sees the Docker bridge's address instead of the sender's. SPF then fails for those senders, and they all share one per-IP connection limit.
+
+Avoid it in one of two ways:
+
+- Give the MX hostname an A record only, with no AAAA. Senders then connect over IPv4. Set `MX_HOSTNAME` to a separate name, like `mx.example.com`, if `DOMAIN` needs an AAAA record for the web.
+- Turn on native IPv6 in Docker, so connections reach the container with their real address.
+
+### Inbound TLS
+
+send0 offers STARTTLS with a self-signed certificate for `MX_HOSTNAME`. Sending servers use STARTTLS opportunistically and accept that. To use a real certificate, mount it into the container and set `SMTP_TLS_CERT` and `SMTP_TLS_KEY` to the paths inside it. The container runs as user ID 10001, so it must be able to read the key.
+
+### Reserved addresses
+
+These local parts can't be inboxes, on any of your mail domains: `postmaster`, `abuse`, `admin`, `administrator`, `hostmaster`, `webmaster`, `support`, `noreply`, `no-reply`, `security`, `billing` and `mailer-daemon`. Mail to them is refused, and send0 won't send to them on your mail domains.
+
+So point DMARC reports, abuse contacts and similar addresses at a mailbox on another domain, like `dmarc@example.com`.
+
+## Sending
+
+send0 builds each message, with threading headers and a `Message-ID` on your mail domain, and hands it to a relay or to SES. It doesn't sign the message itself: the relay or SES adds the DKIM signature.
+
+|                                      | SMTP relay (`MAILER=smtp`)    | Amazon SES (`MAILER=ses`)                               |
+| ------------------------------------ | ----------------------------- | ------------------------------------------------------- |
+| Setup                                | One `SMTP_URL`                | IAM keys, a configuration set, and SNS for events       |
+| DKIM                                 | Signed by the relay           | Signed by SES (Easy DKIM)                               |
+| `delivered`, `bounced`, `complained` | No. Messages stay `sent`      | Yes, with `SES_EVENTS_TOKEN` and `SES_EVENTS_TOPIC_ARN` |
+| Bounce and complaint suppression     | No. Your relay may do its own | Yes                                                     |
+| Automatic pause                      | No                            | Yes                                                     |
+
+### What you lose without SES events
+
+send0 learns about delivery, bounces and complaints only from SES events. With a relay, or with SES but no events subscription:
+
+- sent messages stay `sent`; there are no `message.delivered`, `message.bounced` or `message.complained` webhooks
+- addresses that hard-bounce or complain aren't added to the suppression list, so send0 will send to them again
+- sending isn't paused automatically when complaints pass 0.3% or hard bounces pass 5% (over 30 days, from 20 sent)
+
+Watch bounces and complaints in your relay's dashboard instead.
+
+### Domain records
+
+Set these up for each mail domain you send from:
+
+- **Verify the domain at your relay** (or in SES). The relay must be allowed to send as `@agents.example.com`.
+- **DKIM.** Add the records your relay gives you. This is what makes DMARC pass.
+- **SPF.** Add your relay to a TXT record on the mail domain, like `v=spf1 include:<relay's SPF domain> ~all`. `send0 doctor` warns when the mail domain has no SPF record. Many relays also offer a custom return-path (bounce) domain; set it up as they describe.
+- **DMARC.** Start with monitoring, then tighten once reports look clean:
+
+  ```text
+  _dmarc.agents.example.com.  TXT  "v=DMARC1; p=none; rua=mailto:dmarc@example.com"
+  ```
+
+send0 gives the relay the inbox's address as the envelope sender. Most relays replace it with their own bounce address and handle bounces themselves. If yours keeps it, bounce reports arrive in the sending inbox as ordinary messages.
+
+### Warm-up
+
+A new sending domain has no reputation. Start with low volume, mostly replies to people who wrote first, and grow slowly. The advice in [Deliverability](/guides/deliverability) applies to your domain too.
+
+### SES
+
+To send through SES directly:
+
+```bash title=".env"
+MAILER=ses
+SES_REGION=us-east-1
+SES_ACCESS_KEY_ID=…
+SES_SECRET_ACCESS_KEY=…
+SES_CONFIGURATION_SET=send0
+```
+
+1. Verify the mail domain as an SES identity with Easy DKIM, and add the CNAME records.
+2. Create the configuration set.
+3. Give the IAM user `ses:SendRawEmail`, and `ses:GetAccount` for `send0 doctor`.
+4. Request production access. Until then, SES only delivers to verified addresses, and the doctor warns about it.
+
+For delivery events, add an SNS topic as the configuration set's event destination, set `SES_EVENTS_TOKEN` (`openssl rand -hex 32`) and `SES_EVENTS_TOPIC_ARN`, and subscribe `https://mail.example.com/internal/ses-events?token=<SES_EVENTS_TOKEN>` to the topic over HTTPS. send0 confirms the subscription.
+
+## SMTP_URL
+
+```text
+smtp://user:password@host:587     STARTTLS
+smtps://user:password@host:465    TLS from the start
+```
+
+- The port is required.
+- `smtp://` connects in plain text and upgrades with STARTTLS when the relay offers it.
+- When the URL has a user or password and the host isn't `localhost` or a loopback address, STARTTLS is **required**. If the relay doesn't offer it, sending fails instead of exposing the password.
+- Add `?require_tls=false` only for a relay on a private network without TLS. Add `?require_tls=true` to require STARTTLS even without credentials. Both accept `true`, `false`, `1` or `0`.
+- Port 465 uses TLS from the start, so it needs `smtps://`. `smtp://…:465` is rejected.
+- send0 checks `SMTP_URL` when it starts, with the rest of the configuration. A problem shows up in the `Invalid configuration:` list and in `send0 doctor`, naming the rule but never the password.
+- Percent-encode special characters in the user and password. `@` becomes `%40`, `/` becomes `%2F`, `:` becomes `%3A`:
+
+  ```bash
+  python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' 'p@ss/word'
+  # p%40ss%2Fword
+  ```
+
+### Examples
+
+<Tabs items={['Postmark', 'Resend', 'Mailgun', 'SES SMTP', 'Google Workspace']}>
+  <Tab value="Postmark">
+    The user and password are both your server's API token.
+
+    ```bash
+    SMTP_URL=smtp://<server-token>:<server-token>@smtp.postmarkapp.com:587
+    ```
+
+  </Tab>
+  <Tab value="Resend">
+    The user is `resend`; the password is an API key.
+
+    ```bash
+    SMTP_URL=smtps://resend:<api-key>@smtp.resend.com:465
+    ```
+
+  </Tab>
+  <Tab value="Mailgun">
+    The user is the domain's SMTP login, so its `@` is encoded. For an EU domain, use `smtp.eu.mailgun.org`.
+
+    ```bash
+    SMTP_URL=smtp://postmaster%40agents.example.com:<smtp-password>@smtp.mailgun.org:587
+    ```
+
+  </Tab>
+  <Tab value="SES SMTP">
+    Use SES SMTP credentials, not IAM access keys, and the endpoint for your region. SMTP passwords often contain `/` or `+`, so encode them.
+
+    ```bash
+    SMTP_URL=smtp://<smtp-username>:<smtp-password>@email-smtp.us-east-1.amazonaws.com:587
+    ```
+
+    With a relay, send0 gets no SES events. Use `MAILER=ses` to get them.
+
+  </Tab>
+  <Tab value="Google Workspace">
+    Workspace's SMTP relay service, set up in the Admin console to accept mail from your server's IP. There are no credentials, so require TLS explicitly.
+
+    ```bash
+    SMTP_URL=smtp://smtp-relay.gmail.com:587?require_tls=true
+    ```
+
+    For which senders and domains the relay accepts, see Google's SMTP relay settings.
+
+  </Tab>
+</Tabs>
+
+`send0 doctor` logs in to the relay without sending, so run it after every change.

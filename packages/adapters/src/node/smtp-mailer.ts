@@ -10,7 +10,8 @@ export interface SmtpMailerOptions {
   tls?: ConnectionOptions;
 }
 
-interface SmtpSettings {
+/** What an SMTP_URL means, as the mailer connects with it. */
+export interface SmtpSettings {
   host: string;
   port: number;
   secure: boolean;
@@ -26,8 +27,11 @@ function parseBool(name: string, value: string): boolean {
   throw new Error(`SMTP_URL option ${name} must be true, false, 1 or 0`);
 }
 
-/** Parses `smtp://user:pass@host:587[?require_tls=true|false]` or `smtps://…:465`. Never echoes credentials in errors. */
-function parseSmtpUrl(url: string): SmtpSettings {
+/**
+ * Parses `smtp://user:pass@host:587[?require_tls=true|false]` or `smtps://…:465` without connecting, so config
+ * loading can check SMTP_URL up front. Throws an Error whose message starts with "SMTP_URL "; never echoes credentials.
+ */
+export function parseSmtpUrl(url: string): SmtpSettings {
   let u: URL;
   try {
     u = new URL(url);

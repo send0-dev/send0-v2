@@ -1,0 +1,306 @@
+---
+title: Docker Compose
+description: Run Postgres, send0 and Caddy on one server, with mail on your own domain.
+---
+
+The compose file runs three containers:
+
+- `postgres`: Postgres 17, the only database
+- `send0`: the image `ghcr.io/send0-dev/send0`, for linux/amd64 and linux/arm64. It serves the API and dashboard, receives mail on port 25, and delivers webhooks
+- `caddy`: HTTPS in front of `send0`
+
+The examples use `mail.example.com` for the dashboard and API (`DOMAIN`) and `agents.example.com` for inboxes (`MAIL_DOMAIN`). Replace both with your own.
+
+<Steps>
+<Step>
+
+### Check the prerequisites
+
+- A Linux server with a public IP, and Docker with Docker Compose v2 (`docker compose version`).
+- A domain whose DNS you control.
+- **Inbound port 25 open.** Mail servers always deliver on port 25. Many cloud providers block it by default; some unblock it on request.
+- A way to send: an SMTP relay (Postmark, Resend, Mailgun, SES SMTP, Google Workspace) or Amazon SES. The relay must be allowed to send from your mail domain.
+
+Use a subdomain for mail, like `agents.example.com`. Its MX record points at send0, so it can't be a domain whose mail already goes to Google Workspace or Microsoft 365.
+
+</Step>
+<Step>
+
+### Download the files
+
+Get the three files from the release tag:
+
+```bash
+mkdir send0 && cd send0
+for f in compose.yml Caddyfile .env.example; do
+  curl -fsSLO "https://raw.githubusercontent.com/send0-dev/send0-v2/v0.1.1/selfhost/$f"
+done
+cp .env.example .env
+```
+
+</Step>
+<Step>
+
+### Fill in `.env`
+
+Set the required values. Blank means unset.
+
+```bash title=".env"
+DOMAIN=mail.example.com
+MAIL_DOMAIN=agents.example.com
+OWNER_EMAIL=you@example.com
+SECRET_KEY=          # openssl rand -hex 32
+POSTGRES_PASSWORD=   # openssl rand -hex 24
+SMTP_URL=smtp://user:password@smtp.example.net:587
+
+SEND0_VERSION=0.1.1
+```
+
+| Variable            | What it is                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `DOMAIN`            | The hostname people and SDKs use. Caddy gets an HTTPS certificate for it. A hostname only: no `https://`, no path.                   |
+| `MAIL_DOMAIN`       | The domain your inboxes live on. Defaults to `DOMAIN`. For several domains, set `MAIL_DOMAINS` instead.                              |
+| `OWNER_EMAIL`       | The only email that can create the first account. That account owns the install.                                                     |
+| `SECRET_KEY`        | Signs download links. At least 32 characters.                                                                                        |
+| `POSTGRES_PASSWORD` | The database password. Compose puts it inside `DATABASE_URL`, so it must be URL-safe: hex from `openssl` is.                         |
+| `SMTP_URL`          | Your outbound relay. Percent-encode special characters in the user and password. See [SMTP_URL](/self-hosting/email-setup#smtp_url). |
+| `SEND0_VERSION`     | The image tag. Defaults to `latest`. Pin it so upgrades happen when you choose.                                                      |
+
+Generate the two secrets:
+
+```bash
+openssl rand -hex 32   # SECRET_KEY
+openssl rand -hex 24   # POSTGRES_PASSWORD
+```
+
+To send through Amazon SES instead of a relay, set `MAILER=ses` and the `SES_*` variables. Every setting is in the [configuration reference](/self-hosting/configuration#docker-compose).
+
+<Callout type="warn">
+  Set `POSTGRES_PASSWORD` before the first start. Postgres stores it when it creates the database
+  volume, so changing it later in `.env` breaks the connection.
+</Callout>
+
+</Step>
+<Step>
+
+### Add DNS records
+
+Point `DOMAIN` at the server and `MAIL_DOMAIN`'s MX at `DOMAIN`. Add your relay's SPF and DKIM records, and a DMARC record. With a server at `203.0.113.10`:
+
+| Type         | Name                        | Value                                                                                                           |
+| ------------ | --------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| A            | `mail.example.com`          | `203.0.113.10`                                                                                                  |
+| AAAA         | `mail.example.com`          | The server's IPv6 address, if it has one. See the [IPv6 note](/self-hosting/email-setup#ipv6-and-dockers-proxy) |
+| MX           | `agents.example.com`        | `10 mail.example.com`                                                                                           |
+| TXT          | `agents.example.com`        | `v=spf1 include:<your relay's SPF domain> ~all`                                                                 |
+| TXT or CNAME | As your relay instructs     | Your relay's DKIM record(s)                                                                                     |
+| TXT          | `_dmarc.agents.example.com` | `v=DMARC1; p=none; rua=mailto:dmarc@example.com`                                                                |
+
+- To use a different name for the MX, like `mx.example.com`, point it at the server with an A record, use it in the MX record, and set `MX_HOSTNAME=mx.example.com`.
+- If your DNS is on Cloudflare, leave these records **DNS only** (grey cloud). A proxied record doesn't carry SMTP.
+
+[Mail setup and deliverability](/self-hosting/email-setup) explains each record.
+
+</Step>
+<Step>
+
+### Start it
+
+```bash
+docker compose up -d
+```
+
+Compose pulls the images, starts Postgres, and then starts send0, which applies database migrations before it serves anything. Caddy requests the certificate for `DOMAIN` on first start, so DNS must already point at the server.
+
+Watch it come up:
+
+```bash
+docker compose logs -f send0
+```
+
+Logs are JSON lines. When you see `"event":"server.listening"` and `"event":"smtp.listening"`, it's ready.
+
+</Step>
+<Step>
+
+### Run the doctor
+
+```bash
+docker compose exec send0 send0 doctor
+```
+
+```text
+send0 doctor
+
+✓ config                    loaded (https://mail.example.com, mail for agents.example.com)
+✓ database                  connected; migrations are up to date
+✓ mailer                    SMTP relay smtp.example.net:587 accepted the connection and login
+✓ mx agents.example.com     MX → mail.example.com
+✓ spf agents.example.com    v=spf1 include:spf.example.net ~all
+! port 25 mail.example.com  could not connect (no answer within 5s); may be blocked by your provider, or hairpin NAT
+                            - Test from another network: `nc -vz <host> 25`.
+✓ public url                https://mail.example.com/healthz answered 200
+
+6 ok, 1 warning(s), 0 failed
+```
+
+`✓` passed, `!` is a warning and `✗` failed. The command exits with `1` if anything failed; warnings don't fail it.
+
+| Check          | What it does                                                                                                                                                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `config`       | Validates every variable and lists all problems at once. If it fails, the other checks don't run.                                                                                                                                                      |
+| `database`     | Connects to Postgres. Warns about pending migrations; they run on the next start.                                                                                                                                                                      |
+| `mailer`       | SMTP: connects to the relay and logs in, without sending. SES: checks the keys. Warns if the account is still in the SES sandbox, fails if sending is disabled.                                                                                        |
+| `mx <domain>`  | One per mail domain. Passes if the MX points at `DOMAIN` or `MX_HOSTNAME`, or at a host with the same IP as `DOMAIN`. Warns if it points somewhere else, which is fine only if that host forwards port 25 here. Fails with no MX.                      |
+| `spf <domain>` | One per mail domain. Warns if there's no `v=spf1` TXT record.                                                                                                                                                                                          |
+| `port 25 <mx>` | Opens a TCP connection to the MX host on port 25, from inside the container. A warning can mean your provider blocks port 25, or that the server can't reach its own public IP (hairpin NAT). Test from another network: `nc -vz mail.example.com 25`. |
+| `public url`   | Fetches `PUBLIC_URL/healthz`. Warns if it isn't reachable or doesn't answer 200; usually DNS or a certificate that Caddy hasn't issued yet.                                                                                                            |
+
+Fix failures before going further. Read warnings: each one says what might be wrong.
+
+</Step>
+<Step>
+
+### Sign up and test
+
+1. Open `https://mail.example.com` and sign up with `OWNER_EMAIL`.
+2. Click the link in the verification email. It's sent through your relay, so it also proves sending works.
+3. Follow the onboarding: name your workspace, create a first inbox and an API key. An inbox called `test` gets the address `test@agents.example.com`.
+4. Email that address from your own mailbox. It appears in the dashboard within seconds.
+5. Reply from the dashboard, and check that the reply lands in the same conversation in your mail client.
+
+Then invite your team from the dashboard. Create more keys under **API keys**.
+
+</Step>
+<Step>
+
+### Use it from your code
+
+The API, MCP server and dashboard share one origin: `https://mail.example.com`. Point each client at it.
+
+<Tabs items={['TypeScript', 'Python', 'MCP (local)', 'MCP (remote)', 'cURL']}>
+  <Tab value="TypeScript">
+    ```ts
+    import { Send0 } from "@send0/sdk";
+
+    const send0 = new Send0({ apiKey: process.env.SEND0_API_KEY, baseUrl: "https://mail.example.com" });
+    ```
+
+  </Tab>
+  <Tab value="Python">
+    ```python
+    from send0 import Send0
+
+    send0 = Send0(base_url="https://mail.example.com")  # reads SEND0_API_KEY
+    ```
+
+  </Tab>
+  <Tab value="MCP (local)">
+    ```bash
+    claude mcp add send0 \
+      --env SEND0_API_KEY=s0_live_… \
+      --env SEND0_BASE_URL=https://mail.example.com \
+      -- npx -y @send0/mcp
+    ```
+
+  </Tab>
+  <Tab value="MCP (remote)">
+    ```bash
+    claude mcp add --transport http send0 https://mail.example.com/mcp \
+      --header "Authorization: Bearer s0_live_…"
+    ```
+
+  </Tab>
+  <Tab value="cURL">
+    ```bash
+    curl https://mail.example.com/v1/inboxes \
+      -H "Authorization: Bearer $SEND0_API_KEY"
+    ```
+
+  </Tab>
+</Tabs>
+
+The OpenAPI spec is at `https://mail.example.com/openapi.json`.
+
+</Step>
+</Steps>
+
+## Ports
+
+| Host port         | Container         | What                                           |
+| ----------------- | ----------------- | ---------------------------------------------- |
+| 25                | `send0` port 2525 | Inbound mail (the MX)                          |
+| 80                | `caddy`           | Certificate challenges, and redirects to HTTPS |
+| 443 (TCP and UDP) | `caddy`           | HTTPS and HTTP/3                               |
+
+The API and dashboard listen on port 3000 inside the compose network. Don't publish it: Caddy reaches it there, and send0 trusts `X-Forwarded-For` from private addresses (see `TRUSTED_PROXIES`).
+
+## Volumes
+
+| Volume         | Mounted at                 | Holds                                                              |
+| -------------- | -------------------------- | ------------------------------------------------------------------ |
+| `postgres`     | `/var/lib/postgresql/data` | The database                                                       |
+| `blobs`        | `/data` in `send0`         | Raw mail and attachments, in `/data/blobs` (with `BLOB_DRIVER=fs`) |
+| `caddy_data`   | `/data` in `caddy`         | Certificates and ACME account keys                                 |
+| `caddy_config` | `/config` in `caddy`       | Caddy's saved config                                               |
+
+Compose names the project `send0`, so on the host the volumes are `send0_postgres`, `send0_blobs` and so on. Back up the first two; see [Backups](/self-hosting/operations#backups).
+
+## HTTPS
+
+The `Caddyfile` serves `DOMAIN` and proxies to `send0:3000`. Caddy gets a certificate from a public ACME CA (Let's Encrypt or ZeroSSL) on first start and renews it on its own. That needs:
+
+- `DOMAIN` resolving to this server
+- ports 80 and 443 reachable from the internet
+
+If the certificate doesn't arrive, check `docker compose logs caddy`.
+
+If you change `PORT`, change `send0:3000` in the `Caddyfile` to match.
+
+## Running roles separately
+
+The send0 process has three roles:
+
+- `http`: the API, MCP and the dashboard
+- `smtp`: the inbound mail server
+- `worker`: webhook delivery, the outbox sweep every five minutes, and a daily purge of deleted workspaces
+
+`send0 start` runs all three. `--only` runs a subset:
+
+```bash
+send0 start --only=http,smtp
+send0 start --only=worker
+```
+
+For example, to run the worker in its own container, add a `compose.override.yml` next to `compose.yml` (Compose reads it automatically):
+
+```yaml title="compose.override.yml"
+services:
+  send0:
+    command: ["start", "--only=http,smtp"]
+
+  send0-worker:
+    image: ghcr.io/send0-dev/send0:${SEND0_VERSION:-latest}
+    command: ["start", "--only=worker"]
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://send0:${POSTGRES_PASSWORD}@postgres:5432/send0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - blobs:/data
+    stop_grace_period: 30s
+```
+
+Every process runs pending migrations at start (one at a time, under a lock) and shares events through Postgres, so live streams and `wait` work across processes. Scheduled jobs run once per tick however many workers you run.
+
+- Run at least one `worker`, or webhooks are never delivered.
+- With `BLOB_DRIVER=fs`, every process must mount the same `blobs` volume. To run roles on different machines, use `BLOB_DRIVER=s3`.
+- Each process opens up to 10 Postgres connections.
+
+## Next
+
+- [Mail setup and deliverability](/self-hosting/email-setup)
+- [Upgrades, backups and troubleshooting](/self-hosting/operations)

@@ -1,0 +1,112 @@
+---
+title: Upgrades, backups and troubleshooting
+description: Keep a self-hosted send0 current, backed up, secure and working.
+---
+
+Commands run in the directory with `compose.yml`. For the Cloudflare edition, see [Upgrading](/self-hosting/cloudflare#upgrading) there.
+
+## Upgrading
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+send0 applies database migrations when it starts, before it serves anything. If several send0 processes start at once, they take turns under a lock.
+
+- **Pin a version.** Set `SEND0_VERSION=0.1.1` in `.env` to stay on one release, or `0.1` to get its patch releases. `latest` moves to every new release. To upgrade, change it and run the commands above.
+- **Back up first.** Migrations change the database, and there's no automatic rollback.
+- **Check the release notes** on [GitHub releases](https://github.com/send0-dev/send0-v2/releases). If `compose.yml`, `Caddyfile` or `.env.example` changed, download them again from the new tag.
+
+## Backups
+
+Back up the database and the blobs (raw mail and attachments). One without the other is incomplete: messages point at blobs by key.
+
+```bash
+docker compose exec -T postgres pg_dump -U send0 -Fc send0 > send0-$(date +%F).dump
+docker run --rm -v send0_blobs:/data -v "$PWD":/backup alpine \
+  tar czf /backup/blobs-$(date +%F).tgz -C /data .
+```
+
+Also keep a copy of `.env`. Without `SECRET_KEY` and the passwords, a restore needs new secrets.
+
+- With `BLOB_DRIVER=s3`, the blobs live in your bucket. Back it up with your provider's tools, like versioning or replication.
+- On Cloudflare, back up Postgres with `pg_dump` and your connection string, or your provider's backups (Neon has point-in-time restore). R2 has an S3-compatible API, so any S3 tool can copy the `send0-blobs` bucket.
+
+### Restoring
+
+On a new server, with the same `.env`, `compose.yml` and `Caddyfile`:
+
+```bash
+docker compose up -d postgres
+docker compose exec -T postgres pg_restore -U send0 -d send0 --clean --if-exists < send0-2026-10-07.dump
+docker run --rm -v send0_blobs:/data -v "$PWD":/backup alpine \
+  tar xzf /backup/blobs-2026-10-07.tgz -C /data
+docker compose up -d
+```
+
+Then run `docker compose exec send0 send0 doctor`, and move DNS if the server's IP changed.
+
+## Logs
+
+send0 writes one JSON object per line, with an `event` field.
+
+```bash
+docker compose logs -f send0
+docker compose logs send0 | grep '"event":"message.rejected"'
+```
+
+On Cloudflare, use Workers Logs in the dashboard, or `npx wrangler tail send0`.
+
+| Event                                                  | Means                                                                                          |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `server.listening`, `smtp.listening`, `worker.started` | A role started                                                                                 |
+| `message.received`                                     | An inbound message was stored, with its sender, subject, thread and auth verdicts              |
+| `message.rejected`                                     | An inbound message was refused, with the `reason`                                              |
+| `smtp.ingest_failed`, `smtp.lookup_failed`             | The SMTP server couldn't store a message or look up an inbox; the sender got `451` and retries |
+| `auth.email_failed`                                    | A verification, reset or invite email couldn't be sent. Check the relay or SES                 |
+| `sending.paused`                                       | SES events pushed a workspace over the bounce or complaint limit                               |
+| `queue.error`, `sweep.error`                           | Webhook delivery or the outbox sweep failed; it's retried                                      |
+| `sweep`                                                | The outbox sweep found and re-queued missed events or deliveries                               |
+| `sns.subscription_confirmed`                           | The SES events subscription is confirmed                                                       |
+| `healthz.failed`                                       | `/healthz` couldn't reach Postgres                                                             |
+| `config.invalid`, `boot.failed`, `migrations.applied`  | Cloudflare only: settings rejected, database boot failed, migrations ran                       |
+| `server.crashed`                                       | The process stopped on an unexpected error                                                     |
+
+## Scaling
+
+One container runs all three roles: `http`, `smtp` and `worker`. To split them, or run more than one, see [Running roles separately](/self-hosting/docker#running-roles-separately).
+
+- Inbound memory is bounded by `SMTP_MAX_CLIENTS` (default 30 sessions, each up to about 25 MiB).
+- Each send0 process opens up to 10 Postgres connections.
+- Roles on different machines need `BLOB_DRIVER=s3`, because the `smtp` role writes blobs that `http` reads.
+
+## Security checklist
+
+- **Set `OWNER_EMAIL` and sign up right away.** Until that account exists, sign-up is open to `OWNER_EMAIL` only, and it must verify the address. Whoever controls that mailbox claims the install, so use an address you control.
+- **Keep port 3000 unpublished.** Only Caddy should reach it. The compose file doesn't publish it.
+- **Set `TRUSTED_PROXIES` if your network has other private hosts.** By default, send0 believes `X-Forwarded-For` from any loopback or private address, which covers Caddy. If other machines on a private network can reach port 3000, narrow it to the Docker network's range. It matters for rate limits and session records.
+- **Rotate `SECRET_KEY`** by setting a new value and running `docker compose up -d`. It signs download links for blobs on local disk (and for every download on Cloudflare). Links already issued stop working; they last 15 minutes anyway. Sessions and API keys aren't affected. With `BLOB_DRIVER=s3`, links are pre-signed by S3 instead.
+- **Treat `SES_EVENTS_TOKEN` as a password.** It's the only credential on `/internal/ses-events`, and it's part of the SNS subscription URL. send0 also refuses messages from any topic except `SES_EVENTS_TOPIC_ARN`. To rotate it, set a new token, then replace the subscription with the new URL.
+- **Keep `.env` private.** It holds every secret. Don't commit it.
+
+## Troubleshooting
+
+| Symptom                                                                                             | Cause                                                                          | Fix                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `send0` keeps restarting; logs start with `Invalid configuration:`                                  | A setting is missing or invalid. Each line names one                           | Fix `.env`, then `docker compose up -d`. `restart` doesn't reload `.env`.                                                                                           |
+| Dashboard shows **send0 isn't configured yet** (Cloudflare)                                         | A var or secret is missing or invalid                                          | Fix the listed variables, deploy again, reload. See [If a setting is wrong](/self-hosting/cloudflare#if-a-setting-is-wrong).                                        |
+| Doctor: `✗ database cannot connect`                                                                 | Postgres isn't up, or `POSTGRES_PASSWORD` changed after the volume was created | `docker compose ps` and `docker compose logs postgres`. Put the original password back, or change it inside Postgres with `ALTER USER`.                             |
+| Doctor: `✗ mailer` with "rejected the login"                                                        | Wrong relay credentials                                                        | Check the user and password in `SMTP_URL`. See [SMTP_URL](/self-hosting/email-setup#smtp_url).                                                                      |
+| `Invalid configuration:` lists `SMTP_URL`, like "port 465 uses implicit TLS" or "is missing a port" | The URL doesn't match the rules for `SMTP_URL`                                 | Fix it as the message says. See [SMTP_URL](/self-hosting/email-setup#smtp_url).                                                                                     |
+| Doctor: `✗ mx … no MX record`                                                                       | The mail domain has no MX                                                      | Add `MAIL_DOMAIN MX 10 DOMAIN`. DNS can take a while to update.                                                                                                     |
+| Doctor: `! port 25 … could not connect`, or no mail arrives at all                                  | Your provider blocks port 25, or hairpin NAT                                   | Run `nc -vz mail.example.com 25` from another network. If it fails, ask your provider to open inbound port 25, or move to one that allows it.                       |
+| Doctor: `! public url … is not reachable`                                                           | DNS doesn't point at the server yet, or Caddy hasn't got a certificate         | Check the A record and `docker compose logs caddy`. Ports 80 and 443 must be open.                                                                                  |
+| Dashboard actions fail with `403` "Cross-site request refused."                                     | The browser's URL doesn't match `PUBLIC_URL` (by default `https://DOMAIN`)     | Open send0 at exactly that URL, or set `PUBLIC_URL` to the origin you use, then `docker compose up -d`.                                                             |
+| Mail doesn't arrive in an inbox                                                                     | MX, port 25, or the recipient                                                  | Run the doctor. Then `grep '"event":"message.rejected"'` in the logs: the `reason` says why. On Cloudflare, check the Email Routing catch-all points at the Worker. |
+| Senders get `550 5.1.1 Mailbox does not exist`                                                      | No inbox with that address                                                     | Create the inbox. Check the domain is in `MAIL_DOMAIN` or `MAIL_DOMAINS`.                                                                                           |
+| Senders get `550 5.7.1 Relaying denied`                                                             | The domain isn't one of your mail domains                                      | Add it to `MAIL_DOMAINS`.                                                                                                                                           |
+| Sign-up fails with `signup_closed`: "This send0 is waiting for its owner to sign up."               | No account exists yet, and the email isn't `OWNER_EMAIL`                       | Sign up with exactly `OWNER_EMAIL`.                                                                                                                                 |
+| Sign-up fails with `signup_closed`: "Sign-up is closed here."                                       | The owner exists and `ALLOW_SIGNUP` is `false`                                 | Ask a workspace owner or admin for an invite, or set `ALLOW_SIGNUP=true`.                                                                                           |
+| The verification email never arrives                                                                | Sending fails (`auth.email_failed` in the logs), or SES is in the sandbox      | Run the doctor. With SES in the sandbox, verify the recipient address in SES. Then use resend on the verification screen.                                           |
+| SPF fails for mail from some senders                                                                | They connect over IPv6 through Docker's proxy                                  | See [IPv6 and Docker's proxy](/self-hosting/email-setup#ipv6-and-dockers-proxy).                                                                                    |
+| `503` with `starting_up` (Cloudflare)                                                               | The database took too long to wake up                                          | Retry after a few seconds.                                                                                                                                          |

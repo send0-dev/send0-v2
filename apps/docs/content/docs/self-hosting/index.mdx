@@ -1,0 +1,67 @@
+---
+title: Self-hosting overview
+description: Run send0 on your own servers and your own domain, with Docker Compose or one Cloudflare Worker.
+---
+
+Self-hosted send0 is the same product as send0.dev: the same REST API, SDKs, MCP server and dashboard. It runs for one team, on infrastructure you own, and receives mail on your domain instead of `send0.email`.
+
+The current release is [v0.1.1](https://github.com/send0-dev/send0-v2/releases/tag/v0.1.1).
+
+## Two editions
+
+|                          | Docker Compose                                                             | Cloudflare                                                                                                                     |
+| ------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| What runs where          | One server: Postgres, the send0 container and Caddy                        | One Worker on your Cloudflare account, plus a Postgres you bring (reached through Hyperdrive)                                  |
+| Receiving mail           | Built-in SMTP server on port 25. It checks SPF, DKIM, DMARC and ARC itself | Cloudflare Email Routing hands each message to the Worker                                                                      |
+| Sending mail             | Any SMTP relay (`SMTP_URL`), or Amazon SES                                 | Amazon SES only                                                                                                                |
+| Database                 | Postgres 17 in the compose file                                            | Any Postgres. Neon's free plan works                                                                                           |
+| Raw mail and attachments | A local Docker volume, or any S3-compatible bucket                         | An R2 bucket                                                                                                                   |
+| Queue                    | pg-boss, inside Postgres. No Redis                                         | Cloudflare Queues                                                                                                              |
+| Real-time (SSE, `wait`)  | Postgres `LISTEN`/`NOTIFY`                                                 | Durable Objects                                                                                                                |
+| HTTPS                    | Caddy gets and renews the certificate                                      | Cloudflare                                                                                                                     |
+| Cost                     | A server with port 25 open, plus your relay's or SES's sending fees        | Can start at $0 on free plans, plus SES sending fees                                                                           |
+| Free-tier notes          | None                                                                       | Workers Free allows 10 ms of CPU per request, which password sign-in can exceed. See [limits](/self-hosting/cloudflare#limits) |
+
+## How to choose
+
+Pick **Docker Compose** if:
+
+- you want mail and data on a machine you control
+- you want to send through an SMTP relay you already use (Postmark, Resend, Mailgun, Google Workspace)
+- your mail domain's DNS isn't on Cloudflare
+
+Pick **Cloudflare** if:
+
+- you don't want to run a server, or can't get port 25 open
+- your mail domain's DNS is already on Cloudflare
+- you're fine with Amazon SES for sending
+
+<Cards>
+  <Card
+    title="Docker Compose"
+    href="/self-hosting/docker"
+    description="Postgres, send0 and Caddy on one server, with HTTPS and a built-in MX."
+  />
+  <Card
+    title="Deploy to Cloudflare"
+    href="/self-hosting/cloudflare"
+    description="One button. A Worker, R2, a queue and a Durable Object on your account."
+  />
+</Cards>
+
+## What's different from send0.dev
+
+- **No plan limits.** Reply-only free accounts, daily send caps and inbox caps are off. You own the sending reputation.
+- **Closed sign-up.** Only `OWNER_EMAIL` can create the first account, and that account owns the install. After that, people join by invite. Set `ALLOW_SIGNUP=true` to let anyone sign up after the owner.
+- **Your domain.** Inboxes live on the domains in `MAIL_DOMAIN` or `MAIL_DOMAINS`, like `agent@agents.example.com`.
+- **Point the SDKs at your URL.** Pass your server's URL as `baseUrl` (TypeScript), `base_url` (Python) or `SEND0_BASE_URL` (MCP). See [Docker Compose](/self-hosting/docker#use-it-from-your-code).
+
+## License
+
+The server is [AGPL-3.0](https://github.com/send0-dev/send0-v2/blob/main/LICENSE); the SDKs and the MCP server are MIT.
+
+## Next
+
+- [Configuration reference](/self-hosting/configuration): every setting for both editions
+- [Mail setup and deliverability](/self-hosting/email-setup): MX, SPF, DKIM, DMARC and `SMTP_URL`
+- [Upgrades, backups and troubleshooting](/self-hosting/operations)

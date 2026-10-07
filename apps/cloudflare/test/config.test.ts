@@ -40,9 +40,17 @@ describe("loadConfig", () => {
     expect(c.mailFrom).toBe("robot@acme.dev");
     expect(c.ownerEmail).toBe("owner@acme.dev");
     expect(c.publicUrl).toBe("https://mail.acme.dev");
-    expect(c.trustedAuthservIds).toEqual(["mx.acme.dev"]);
+    expect(c.trustedAuthservIds).toEqual(["mx.acme.dev", "mx.cloudflare.net"]);
     expect(c.ses).toEqual({ region: "us-east-1", accessKeyId: "AKIAEXAMPLE", secretAccessKey: "s".repeat(40), configurationSet: "send0" });
     expect(c.sesEvents).toEqual({ token: "t".repeat(32), topicArn: "arn:aws:sns:us-east-1:123456789012:send0" });
+  });
+
+  it("always trusts Email Routing's authserv-id, once", () => {
+    expect(loadConfig({ ...VARS, TRUSTED_AUTHSERV_IDS: "MX.Cloudflare.net, mx.acme.dev" }).trustedAuthservIds).toEqual([
+      "mx.cloudflare.net",
+      "mx.acme.dev",
+    ]);
+    expect(loadConfig({ ...VARS, TRUSTED_AUTHSERV_IDS: " " }).trustedAuthservIds).toEqual(["mx.cloudflare.net"]);
   });
 
   it("lets sign-up open without an owner", () => {
