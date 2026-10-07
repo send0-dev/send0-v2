@@ -8,12 +8,10 @@ import { site } from "../site";
       <div class="photo" aria-hidden="true">
         <img src="/kunal.png" alt="" width="84" height="96" decoding="async" />
       </div>
-      <span class="eyebrow">A note from the founder</span>
-      <h2 id="founder-title">
-        Hi, I'm Kunal.
-        <br />
-        <em>I'm building send0.</em>
-      </h2>
+      <span class="eyebrow">
+        <b>07</b> A note from the founder
+      </span>
+      <h2 id="founder-title">Hi, I'm Kunal.</h2>
       <div class="body">
         <p>
           I build software for a living, and more of it every month is agents. They keep hitting the same wall: email. A sign-up needs a
@@ -93,9 +91,6 @@ import { site } from "../site";
     font-size: clamp(28px, 3.2vw, 38px);
     line-height: 1.1;
   }
-  h2 em {
-    color: var(--postal-ink);
-  }
   .body {
     margin-top: 22px;
   }
@@ -120,7 +115,8 @@ import { site } from "../site";
   }
   .name {
     display: block;
-    font: italic 400 26px/1.1 var(--font-display);
+    font: 650 22px/1.1 var(--font-display);
+    letter-spacing: -0.02em;
   }
   .role {
     font-size: 13.5px;

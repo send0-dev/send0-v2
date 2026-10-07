@@ -10,7 +10,7 @@ const { size = 26, wordmark = true } = Astro.props;
   <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
     <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--ink)"></rect>
     <ellipse cx="16" cy="16.5" rx="6.2" ry="8" fill="none" stroke="var(--paper)" stroke-width="3.2"></ellipse>
-    <circle cx="25.5" cy="6.5" r="5" fill="var(--postal)" stroke="var(--paper)" stroke-width="2"></circle>
+    <circle cx="25.5" cy="6.5" r="5" fill="var(--accent-bg)" stroke="var(--paper)" stroke-width="2"></circle>
   </svg>
   {wordmark && <span class="word">send0</span>}
 </span>
@@ -23,7 +23,8 @@ const { size = 26, wordmark = true } = Astro.props;
     color: var(--ink);
   }
   .word {
-    font: 560 21px/1 var(--font-display);
+    font: 700 21px/1 var(--font-display);
+    letter-spacing: -0.04em;
     letter-spacing: -0.02em;
   }
 </style>

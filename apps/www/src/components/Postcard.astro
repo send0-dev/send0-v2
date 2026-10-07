@@ -1,14 +1,16 @@
 ---
 // The back of a postcard: a picture side and a message side, split by a ruled line, with a stamp box.
 interface Props {
-  tint?: "sage" | "sky" | "butter" | "blush";
+  tint?: "sage" | "sky" | "butter";
   tilt?: number;
+  /** Entrance delay in seconds, to stagger a stack of cards. */
+  delay?: number;
   class?: string;
 }
-const { tint = "sky", tilt = 0, class: cls } = Astro.props;
+const { tint = "sky", tilt = 0, delay = 0, class: cls } = Astro.props;
 ---
 
-<article class:list={["postcard", cls]} style={`--tilt:${tilt}deg`}>
+<article class:list={["postcard", cls]} style={`--tilt:${tilt}deg;--d:${delay}s`} data-reveal="card">
   <div class:list={["picture", tint]}>
     <slot name="picture" />
   </div>
@@ -31,7 +33,8 @@ const { tint = "sky", tilt = 0, class: cls } = Astro.props;
       transform 0.3s ease,
       box-shadow 0.3s ease;
   }
-  .postcard:hover {
+  .postcard:hover,
+  :global(html.js) .postcard.in:hover {
     transform: rotate(0deg) translateY(-3px);
     box-shadow: var(--shadow-lg);
   }
@@ -56,9 +59,6 @@ const { tint = "sky", tilt = 0, class: cls } = Astro.props;
   }
   .butter {
     background: var(--butter);
-  }
-  .blush {
-    background: var(--blush);
   }
   .message {
     position: relative;

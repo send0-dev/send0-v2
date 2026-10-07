@@ -15,38 +15,51 @@ const inputId = `wl-${source}`;
       Leave this empty <input type="text" name="company" tabindex="-1" autocomplete="off" />
     </label>
   </div>
-  <div class="head mono" aria-hidden="true">
-    <span>Deliver to</span>
-    <span class="code"></span>
+  <div class="sheet">
+    <div class="head mono" aria-hidden="true">
+      <span>Deliver to</span>
+      <span class="code"></span>
+    </div>
+    <div class="row">
+      <label class="sr-only" for={inputId}>
+        Your email address
+      </label>
+      <input
+        id={inputId}
+        type="email"
+        name="email"
+        required
+        autocomplete="email"
+        inputmode="email"
+        placeholder="you@company.com"
+        maxlength="254"
+      />
+      <button class="btn btn-primary" type="submit">
+        <span class="btn-label">Join the waitlist</span>
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 8h10M9 4l4 4-4 4"></path>
+        </svg>
+      </button>
+    </div>
   </div>
-  <div class="row">
-    <label class="sr-only" for={inputId}>
-      Your email address
-    </label>
-    <input
-      id={inputId}
-      type="email"
-      name="email"
-      required
-      autocomplete="email"
-      inputmode="email"
-      placeholder="you@company.com"
-      maxlength="254"
-    />
-    <button class="btn btn-primary" type="submit">
-      <span class="btn-label">Join the waitlist</span>
-      <svg
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.7"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M3 8h10M9 4l4 4-4 4"></path>
-      </svg>
-    </button>
+  <!-- Shown after the label folds into an envelope and flies off. The words are announced by .status. -->
+  <div class="posted" aria-hidden="true">
+    <svg viewBox="0 0 30 21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1.5 2.2c9-.6 18-.6 27 .2l-.4 16.6c-9 .5-17.8.4-26.4-.2Z" fill="var(--card)"></path>
+      <path d="m1.8 2.6 13 9.4 13.4-9.4"></path>
+      <path d="M21.5 5.5h4v4.6h-4Z" fill="var(--accent-bg)" stroke="none"></path>
+    </svg>
+    <span>
+      <strong>Posted.</strong> You're on the list.
+    </span>
   </div>
   <p class="status" role="status" aria-live="polite"></p>
 </form>
@@ -188,11 +201,58 @@ const inputId = `wl-${source}`;
   .label[data-state="done"] .status {
     color: var(--ok);
   }
-  .label[data-state="done"] .btn {
-    background: var(--ok-tint);
+  /* Success: the label folds up into a letter and flies off; a small "posted" note takes its place.
+     Transform and opacity only, and the form keeps its height, so nothing below moves. */
+  .sheet {
+    transform-origin: 50% 0;
+  }
+  .posted {
+    position: absolute;
+    inset: 12px 12px 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 15.5px;
+    color: var(--ink);
+    opacity: 0;
+    transform: translateY(6px);
+    pointer-events: none;
+  }
+  .posted svg {
+    width: 34px;
+    color: var(--ink);
+  }
+  .label[data-state="done"] .sheet {
+    animation: fold-fly 0.95s cubic-bezier(0.5, 0, 0.3, 1) forwards;
+    pointer-events: none;
+  }
+  .label[data-state="done"] .posted {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.4s ease 0.8s,
+      transform 0.5s var(--ease-out) 0.8s;
+  }
+  @keyframes fold-fly {
+    0% {
+      transform: none;
+    }
+    30% {
+      transform: perspective(700px) rotateX(62deg) scale(0.9);
+      opacity: 1;
+    }
+    55% {
+      transform: perspective(700px) rotateX(0deg) scale(0.32, 0.5) rotate(-4deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(46%, -150%) scale(0.12) rotate(-22deg);
+      opacity: 0;
+    }
   }
   .label[data-state="error"] .status {
-    color: var(--postal-ink);
+    color: var(--accent);
   }
   @media (max-width: 479px) {
     .row {

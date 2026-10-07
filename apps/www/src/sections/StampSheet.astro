@@ -17,7 +17,7 @@ const stamps = [
   },
   {
     glyph: "thread",
-    tint: "blush",
+    tint: "sage",
     title: "Threads that hold",
     body: "Message-ID, In-Reply-To and References first. Then subject and people, within 14 days.",
   },
@@ -46,9 +46,11 @@ const stamps = [
   <div class="wrap">
     <div class="head">
       <div>
-        <span class="eyebrow">The essentials</span>
+        <span class="eyebrow">
+          <b>02</b> The essentials
+        </span>
         <h2 id="stamps-title" class="h2">
-          Everything an agent's inbox <em>needs.</em> Nothing it doesn't.
+          Six things every agent inbox needs.
         </h2>
       </div>
       <p class="lede">
@@ -59,8 +61,8 @@ const stamps = [
 
     <ul class="sheet">
       {stamps.map((s, i) => (
-        <li>
-          <Stamp tint={s.tint} value={String(i + 1).padStart(2, "0")} class="land">
+        <li data-reveal="stamp" style={`--d:${i * 0.09}s`}>
+          <Stamp tint={s.tint} value={String(i + 1).padStart(2, "0")}>
             <StampGlyph name={s.glyph} class="glyph" />
             <h3>{s.title}</h3>
             <p set:html={s.body} />

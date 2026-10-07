@@ -8,9 +8,7 @@ import Envelope from "../illustrations/Envelope.astro";
     <div class="wrap nf">
       <Envelope class="env" />
       <p class="code mono">550 5.1.1 · Return to sender</p>
-      <h1>
-        No such <em>address.</em>
-      </h1>
+      <h1>No such address.</h1>
       <p class="msg">This page bounced. It may have moved, or the link was mistyped.</p>
       <a class="btn btn-primary" href="/">
         Back to send0
@@ -36,15 +34,13 @@ import Envelope from "../illustrations/Envelope.astro";
   .code {
     font-size: 12.5px;
     letter-spacing: 0.06em;
-    color: var(--postal-ink);
+    color: var(--accent);
   }
   h1 {
     margin-top: 14px;
     font-size: clamp(42px, 7vw, 68px);
-    font-weight: 400;
-  }
-  h1 em {
-    color: var(--postal-ink);
+    font-weight: 700;
+    letter-spacing: -0.04em;
   }
   .msg {
     max-width: 440px;

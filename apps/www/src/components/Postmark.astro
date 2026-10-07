@@ -3,7 +3,7 @@
 interface Props {
   title: string;
   detail: string;
-  tone?: "postal" | "blue" | "ink";
+  tone?: "blue" | "ink";
 }
 const { title, detail, tone = "ink" } = Astro.props;
 ---
@@ -33,9 +33,6 @@ const { title, detail, tone = "ink" } = Astro.props;
   .postmark svg {
     flex: none;
     transform: rotate(-8deg);
-  }
-  .postal svg {
-    color: var(--postal-ink);
   }
   .blue svg {
     color: var(--airmail-blue);

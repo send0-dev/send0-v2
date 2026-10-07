@@ -12,6 +12,7 @@ const letters = [
 ---
 
 <svg
+  data-draw
   class:list={["ill", cls]}
   viewBox="0 0 210 156"
   fill="none"
@@ -23,17 +24,22 @@ const letters = [
 >
   {letters.map((l, i) => (
     <g transform={`rotate(${l.r} ${l.x + 32} ${l.y + 21})`}>
-      <path d={`M${l.x} ${l.y + 0.5}c21-1 43-1 64 .2l-.6 41.6c-21 .8-42 .6-63-.2Z`} fill={i === 1 ? "var(--card)" : "var(--card)"} />
-      <path d={`M${l.x + 0.4} ${l.y + 1}l31.8 22.4L${l.x + 63.6} ${l.y + 1}`} stroke-width="1.5" />
-      {i === 1 && <path d={`M${l.x + 44} ${l.y + 26}h12v14h-12Z`} fill="var(--postal)" stroke="none" />}
+      <path
+        pathLength="1"
+        d={`M${l.x} ${l.y + 0.5}c21-1 43-1 64 .2l-.6 41.6c-21 .8-42 .6-63-.2Z`}
+        fill={i === 1 ? "var(--card)" : "var(--card)"}
+      />
+      <path pathLength="1" d={`M${l.x + 0.4} ${l.y + 1}l31.8 22.4L${l.x + 63.6} ${l.y + 1}`} stroke-width="1.5" />
+      {i === 1 && <path d={`M${l.x + 44} ${l.y + 26}h12v14h-12Z`} fill="var(--accent-bg)" stroke="none" />}
     </g>
   ))}
   <path
+    pathLength="1"
     d="M46 22c10 26 46 34 74 22 14-6 24-20 40-32M160 12c18 30 10 64-14 80-12 8-28 8-42 6"
-    stroke="var(--airmail-red)"
+    stroke="var(--accent)"
     stroke-width="1.6"
   ></path>
-  <circle cx="46" cy="22" r="4.4" fill="var(--postal)"></circle>
-  <circle cx="160" cy="12" r="4.4" fill="var(--postal)"></circle>
-  <circle cx="104" cy="98" r="4.4" fill="var(--postal)"></circle>
+  <circle pathLength="1" cx="46" cy="22" r="4.4" fill="var(--accent-bg)"></circle>
+  <circle pathLength="1" cx="160" cy="12" r="4.4" fill="var(--accent-bg)"></circle>
+  <circle pathLength="1" cx="104" cy="98" r="4.4" fill="var(--accent-bg)"></circle>
 </svg>

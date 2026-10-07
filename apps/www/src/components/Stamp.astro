@@ -1,7 +1,7 @@
 ---
 // A postage stamp: perforated paper edge, a framed tinted face, a denomination in the corner.
 interface Props {
-  tint?: "sage" | "sky" | "butter" | "blush";
+  tint?: "sage" | "sky" | "butter";
   value?: string;
   class?: string;
   tilt?: number;
@@ -55,9 +55,6 @@ const { tint = "butter", value, class: cls, tilt = 0 } = Astro.props;
   }
   .butter {
     background: var(--butter);
-  }
-  .blush {
-    background: var(--blush);
   }
   .value {
     position: absolute;

@@ -8,9 +8,11 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
 <section class="section" id="use-cases" aria-labelledby="cando-title">
   <div class="wrap layout">
     <div class="head">
-      <span class="eyebrow">What your agent can do</span>
+      <span class="eyebrow">
+        <b>01</b> What your agent can do
+      </span>
       <h2 id="cando-title" class="h2">
-        Mail is how the world <em>asks for things.</em>
+        The world still asks by email.
       </h2>
       <p class="lede">
         Sign-ups send codes. Suppliers reply to orders. Customers answer in threads. With its own address, your agent can take part, and you
@@ -19,7 +21,7 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
     </div>
 
     <div class="cards">
-      <Postcard tint="butter" tilt={-1.2} class="reveal">
+      <Postcard tint="butter" tilt={-1.2} delay={0}>
         <RobotHand slot="picture" class="pic" />
         <h3>Sign up and verify</h3>
         <p>
@@ -31,7 +33,7 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
         </span>
       </Postcard>
 
-      <Postcard tint="sky" tilt={0.8} class="reveal shift">
+      <Postcard tint="sky" tilt={0.8} delay={0.12} class="shift">
         <StringThread slot="picture" class="pic" />
         <h3>Hold a conversation</h3>
         <p>
@@ -43,7 +45,7 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
         </span>
       </Postcard>
 
-      <Postcard tint="sage" tilt={-0.6} class="reveal">
+      <Postcard tint="sage" tilt={-0.6} delay={0.24}>
         <RubberStamp slot="picture" class="pic" />
         <h3>Keep a person in the loop</h3>
         <p>
@@ -111,6 +113,6 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
     color: var(--muted);
   }
   .s {
-    color: var(--postal-ink);
+    color: var(--accent);
   }
 </style>

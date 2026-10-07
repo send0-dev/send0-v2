@@ -189,6 +189,16 @@ const links = [
   .theme-toggle .moon {
     display: none;
   }
+  /* Each icon turns in as it appears */
+  .theme-toggle svg {
+    animation: turn-in 0.45s var(--ease-out);
+  }
+  @keyframes turn-in {
+    from {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.6);
+    }
+  }
   :global(:root[data-theme="dark"]) .theme-toggle .sun {
     display: none;
   }

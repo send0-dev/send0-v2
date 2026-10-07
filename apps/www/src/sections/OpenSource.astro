@@ -13,7 +13,7 @@ const rows: { label: string; cells: Cell[] }[] = [
   { label: "Inboxes created by API", cells: [true, true, false, "Scripts and config"] },
   { label: "Receives mail and keeps threads", cells: [true, true, "Inbound hooks only", "You build it"] },
   { label: "Codes and links extracted", cells: [true, "Varies", false, false] },
-  { label: "Webhooks without a paid plan", cells: [true, "Varies by plan", true, "You build it"] },
+  { label: "Webhooks without paying", cells: ["Yes, self-hosted", "Varies by plan", "Varies", "You build it"] },
   { label: "Open source, runs on your servers", cells: [true, false, false, true] },
 ];
 ---
@@ -22,9 +22,11 @@ const rows: { label: string; cells: Cell[] }[] = [
   <div class="wrap">
     <div class="top">
       <div class="copy">
-        <span class="eyebrow">Open source</span>
+        <span class="eyebrow">
+          <b>05</b> Open source
+        </span>
         <h2 id="oss-title" class="h2">
-          Run the whole post office <em>yourself.</em>
+          Run the whole post office yourself.
         </h2>
         <p class="lede">
           The server is AGPL-3.0, and it's the same code that runs our cloud. The SDKs and the MCP server are MIT. Keep mail on your own

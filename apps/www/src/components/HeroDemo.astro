@@ -90,7 +90,11 @@ import Envelope from "../illustrations/Envelope.astro";
     const show = (step: number) => {
       at.forEach((el) => el.classList.toggle("on", Number(el.dataset.at) <= step));
       only.forEach((el) => el.classList.toggle("on", Number(el.dataset.only) === step));
-      lines.forEach((el) => el.classList.toggle("now", el.dataset.line!.split(" ").includes(String(step))));
+      lines.forEach((el) => {
+        const steps = el.dataset.line!.split(" ").map(Number);
+        el.classList.toggle("typed", steps[0]! <= step);
+        el.classList.toggle("now", steps.includes(step));
+      });
     };
 
     const frozen = new URLSearchParams(location.search).get("demo");
@@ -269,8 +273,20 @@ import Envelope from "../illustrations/Envelope.astro";
   }
   .demo[data-anim] .ln.now {
     opacity: 1;
-    background: rgb(255 143 92 / 0.1);
+    background: rgb(141 176 255 / 0.1);
     border-left-color: var(--code-key);
+  }
+  /* Lines type themselves in when their step comes round, and clear at once when the loop restarts. */
+  .demo[data-anim] .ln[data-line]:not(.typed) {
+    clip-path: inset(0 100% 0 0);
+  }
+  .demo[data-anim] .ln[data-line].typed {
+    clip-path: inset(0 0 0 0);
+    transition:
+      clip-path 0.55s steps(28, end),
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      opacity 0.3s ease;
   }
 
   /* ---- Envelope ---- */
@@ -284,14 +300,15 @@ import Envelope from "../illustrations/Envelope.astro";
     display: grid;
     gap: 10px;
   }
-  /* the red thread that ties the conversation together */
+  /* the thread that ties the conversation together */
   .thread::before {
     content: "";
     position: absolute;
     left: 22px;
     top: 40px;
     bottom: 22px;
-    border-left: 1.5px dashed var(--airmail-red);
+    border-left: 1.5px dashed var(--accent);
+    transform-origin: top;
   }
   .letter {
     position: relative;
@@ -337,7 +354,8 @@ import Envelope from "../illustrations/Envelope.astro";
   }
   .subject {
     margin-top: 12px;
-    font: 500 17px/1.3 var(--font-display);
+    font: 650 17px/1.3 var(--font-display);
+    letter-spacing: -0.015em;
   }
   .body {
     margin-top: 4px;
@@ -349,15 +367,17 @@ import Envelope from "../illustrations/Envelope.astro";
     border-radius: 3px;
     color: var(--ink);
     font: 600 14px var(--font-mono);
-    background: linear-gradient(var(--butter), var(--butter)) no-repeat 0 0 / 100% 100%;
-    box-shadow: inset 0 -2px 0 var(--postal);
-    transition: background-size 0.5s ease;
+    background:
+      linear-gradient(var(--accent), var(--accent)) no-repeat 0 100% / 100% 2px,
+      linear-gradient(var(--accent-tint), var(--accent-tint)) no-repeat 0 0 / 100% 100%;
+    transition: background-size 0.6s var(--ease-out) 0.15s;
   }
+  /* The highlight sweeps across the code, left to right */
   .demo[data-anim] mark:not(.on) {
-    background-size: 0% 100%;
-    box-shadow: none;
-    color: inherit;
-    font-weight: 400;
+    background-size:
+      0% 2px,
+      0% 100%;
+    transition: none;
   }
   .chips {
     display: flex;
@@ -379,9 +399,9 @@ import Envelope from "../illustrations/Envelope.astro";
     border-color: transparent;
   }
   .chip.otp {
-    color: var(--ink);
-    background: var(--butter);
-    border-color: color-mix(in srgb, var(--postal) 50%, transparent);
+    color: var(--accent);
+    background: var(--accent-tint);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   }
   .slip {
     position: relative;
@@ -406,7 +426,7 @@ import Envelope from "../illustrations/Envelope.astro";
     border: 1.5px solid var(--ink);
   }
   .slip.out::before {
-    background: var(--postal);
+    background: var(--accent-bg);
   }
   .slip .who {
     font-size: 12px;
@@ -422,7 +442,7 @@ import Envelope from "../illustrations/Envelope.astro";
     white-space: nowrap;
   }
   .slip.out .tag {
-    color: var(--postal-ink);
+    color: var(--accent);
   }
 
   /* ---- Step visibility (only while the script is running) ---- */
@@ -432,11 +452,15 @@ import Envelope from "../illustrations/Envelope.astro";
       opacity 0.45s ease,
       transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+  /* The thread grows down to each new message */
   .demo[data-anim] .thread::before {
-    transition: opacity 0.4s ease;
+    transition: transform 0.6s var(--ease-out);
   }
   .demo[data-anim] .thread:not(:has(.slip.on))::before {
-    opacity: 0;
+    transform: scaleY(0);
+  }
+  .demo[data-anim] .thread:has(.slip.out.on):not(:has(.slip:not(.out).on))::before {
+    transform: scaleY(0.62);
   }
   .demo:not([data-anim]) .status {
     display: none;
@@ -446,14 +470,21 @@ import Envelope from "../illustrations/Envelope.astro";
     transform: translateY(8px);
   }
   .demo[data-anim] .letter.on {
-    transition-delay: 0.3s;
+    transition-delay: 0.55s;
+  }
+  /* The reply leaves to the right as it's sent */
+  .demo[data-anim] .slip.out:not(.on) {
+    transform: translateX(28px);
+  }
+  .demo[data-anim] .chip.otp:not(.on) {
+    transform: scale(0.85);
   }
 
   /* ---- Desktop: an arranged desk ---- */
   @container (min-width: 600px) {
     .demo {
       display: block;
-      height: 600px;
+      height: 624px;
     }
     .to {
       position: absolute;
@@ -467,7 +498,7 @@ import Envelope from "../illustrations/Envelope.astro";
     }
     .code {
       position: absolute;
-      top: 22px;
+      top: 46px;
       left: 0;
       width: 92%;
       z-index: 1;
@@ -476,24 +507,40 @@ import Envelope from "../illustrations/Envelope.astro";
       display: block;
       position: absolute;
       left: -4px;
-      top: 372px;
+      top: 396px;
       width: 172px;
       z-index: 2;
       transform: rotate(-9deg);
     }
-    .demo[data-anim] .env {
-      transition:
-        opacity 0.4s ease,
-        transform 0.8s cubic-bezier(0.2, 0.9, 0.25, 1.1);
-    }
+    /* The envelope arcs in from the top right and lands beside the inbox */
     .demo[data-anim] .env:not(.on) {
       opacity: 0;
-      transform: translate(340px, -40px) rotate(14deg);
+    }
+    .demo[data-anim] .env.on {
+      animation: fly 1.05s cubic-bezier(0.35, 0.1, 0.25, 1) both;
+    }
+    @keyframes fly {
+      0% {
+        opacity: 0;
+        transform: translate(470px, -330px) rotate(28deg) scale(0.55);
+      }
+      20% {
+        opacity: 1;
+      }
+      45% {
+        transform: translate(330px, -250px) rotate(14deg) scale(0.75);
+      }
+      78% {
+        transform: translate(70px, -50px) rotate(-16deg) scale(0.98);
+      }
+      100% {
+        transform: rotate(-9deg);
+      }
     }
     .thread {
       position: absolute;
       right: 0;
-      top: 318px;
+      top: 342px;
       width: 64%;
       z-index: 3;
     }

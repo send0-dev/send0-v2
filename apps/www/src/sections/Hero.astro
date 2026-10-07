@@ -2,6 +2,7 @@
 import AddressLabel from "../components/AddressLabel.astro";
 import Postmark from "../components/Postmark.astro";
 import HeroDemo from "../components/HeroDemo.astro";
+import Doodle from "../components/Doodle.astro";
 import { getRepoInfo } from "../lib/github";
 
 const repo = await getRepoInfo();
@@ -15,8 +16,11 @@ const repo = await getRepoInfo();
         Self-host {repo.version} is out
         <span aria-hidden="true">→</span>
       </a>
-      <h1 class="display">
-        Give your agent <em>an email address.</em>
+      <h1>
+        Give your agent{" "}
+        <span class="nb">
+          an <Doodle>email address.</Doodle>
+        </span>
       </h1>
       <p class="sub">
         One API call gives your agent a real inbox. It receives mail, replies in the same thread, and tells your code the moment something
@@ -30,10 +34,10 @@ const repo = await getRepoInfo();
       </div>
       <ul class="marks" aria-label="Licences and hosting">
         <li>
-          <Postmark title="Open source" detail="AGPL-3.0 server" tone="postal" />
+          <Postmark title="Open source" detail="AGPL-3.0 server" tone="blue" />
         </li>
         <li>
-          <Postmark title="SDKs and MCP" detail="MIT licensed" tone="blue" />
+          <Postmark title="SDKs and MCP" detail="MIT licensed" />
         </li>
         <li>
           <Postmark title="Self-host" detail="Docker or Cloudflare" />
@@ -91,19 +95,18 @@ const repo = await getRepoInfo();
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--postal);
+    background: var(--accent-bg);
   }
   h1 {
-    margin-top: 22px;
-    font-size: clamp(46px, 6.2vw, 80px);
-    font-weight: 400;
-    line-height: 0.98;
+    margin-top: 24px;
+    font-size: clamp(42px, 4.7vw, 64px);
+    font-weight: 650;
+    line-height: 1.02;
     letter-spacing: -0.022em;
+    text-wrap: initial;
   }
-  h1 em {
-    display: inline-block;
-    font-weight: 350;
-    letter-spacing: -0.025em;
+  .nb {
+    white-space: nowrap;
   }
   .sub {
     margin-top: 22px;

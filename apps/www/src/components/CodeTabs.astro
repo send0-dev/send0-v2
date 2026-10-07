@@ -17,19 +17,19 @@ interface Props {
 const { tabs, label } = Astro.props;
 
 const warm = {
-  name: "send0-warm",
+  name: "send0-night",
   type: "dark",
-  colors: { "editor.background": "#1f1b17", "editor.foreground": "#ede4d6" },
+  colors: { "editor.background": "#1a1a1c", "editor.foreground": "#ebe9e4" },
   settings: [
-    { settings: { foreground: "#ede4d6" } },
-    { scope: ["comment", "punctuation.definition.comment"], settings: { foreground: "#a39581", fontStyle: "italic" } },
-    { scope: ["keyword", "storage", "storage.type", "keyword.control", "keyword.operator.new"], settings: { foreground: "#ff8f5c" } },
+    { settings: { foreground: "#ebe9e4" } },
+    { scope: ["comment", "punctuation.definition.comment"], settings: { foreground: "#9c9a94" } },
+    { scope: ["keyword", "storage", "storage.type", "keyword.control", "keyword.operator.new"], settings: { foreground: "#8db0ff" } },
     { scope: ["string", "string.quoted", "punctuation.definition.string"], settings: { foreground: "#b9d48f" } },
-    { scope: ["entity.name.function", "support.function", "meta.function-call"], settings: { foreground: "#8fb8f0" } },
-    { scope: ["constant.numeric", "constant.language", "support.constant"], settings: { foreground: "#f2c66d" } },
-    { scope: ["variable.parameter", "support.type.property-name", "meta.object-literal.key"], settings: { foreground: "#e8c9a8" } },
-    { scope: ["entity.name.type", "entity.name.class", "support.class"], settings: { foreground: "#f2c66d" } },
-    { scope: ["variable.other.constant", "variable.other.readwrite"], settings: { foreground: "#ede4d6" } },
+    { scope: ["entity.name.function", "support.function", "meta.function-call"], settings: { foreground: "#f2d27a" } },
+    { scope: ["constant.numeric", "constant.language", "support.constant"], settings: { foreground: "#e8c9a8" } },
+    { scope: ["variable.parameter", "support.type.property-name", "meta.object-literal.key"], settings: { foreground: "#c9d6f2" } },
+    { scope: ["entity.name.type", "entity.name.class", "support.class"], settings: { foreground: "#f2d27a" } },
+    { scope: ["variable.other.constant", "variable.other.readwrite"], settings: { foreground: "#ebe9e4" } },
   ],
 };
 ---

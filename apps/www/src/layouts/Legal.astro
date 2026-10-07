@@ -54,7 +54,8 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
   }
   h1 {
     font-size: clamp(38px, 5vw, 56px);
-    font-weight: 400;
+    font-weight: 700;
+    letter-spacing: -0.04em;
   }
   .updated {
     margin-top: 14px;
@@ -66,7 +67,7 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
     padding: 20px 22px;
     background: var(--card);
     border: 1px solid var(--hairline);
-    border-left: 3px solid var(--postal);
+    border-left: 3px solid var(--accent-bg);
     border-radius: 4px 10px 10px 4px;
     box-shadow: var(--shadow-sm);
     font-size: 16px;
@@ -79,7 +80,7 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
     font-size: 11.5px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--postal-ink);
+    color: var(--accent);
   }
   .layout {
     display: grid;
@@ -119,7 +120,7 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
     background: var(--card);
     color: var(--ink);
     font-weight: 600;
-    box-shadow: inset 2px 0 0 var(--postal);
+    box-shadow: inset 2px 0 0 var(--accent-bg);
   }
   .prose {
     max-width: 700px;
@@ -129,8 +130,8 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
   }
   .prose :global(h2) {
     margin: 52px 0 14px;
-    font-size: 26px;
-    font-weight: 450;
+    font-size: 24px;
+    font-weight: 650;
     color: var(--ink);
     scroll-margin-top: 90px;
   }
@@ -156,7 +157,7 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
     margin-bottom: 8px;
   }
   .prose :global(li::marker) {
-    color: var(--postal-ink);
+    color: var(--accent);
   }
   .prose :global(strong) {
     color: var(--ink);
@@ -169,7 +170,7 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
     text-decoration-color: var(--rule);
   }
   .prose :global(a:hover) {
-    text-decoration-color: var(--postal);
+    text-decoration-color: var(--accent-bg);
   }
   .prose :global(table) {
     width: 100%;
