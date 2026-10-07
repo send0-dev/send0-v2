@@ -1,3 +1,4 @@
+import type { Mailer, SendRawInput } from "@send0/adapters/mailer";
 import type { EventEnvelope, QueueMessage } from "@send0/pipeline";
 
 /** A complete, valid set of vars and secrets. */
@@ -7,10 +8,22 @@ export const VARS = {
   ALLOW_SIGNUP: "false",
   SECRET_KEY: "k".repeat(48),
   OWNER_EMAIL: "owner@acme.dev",
-  SES_ACCESS_KEY_ID: "",
-  SES_SECRET_ACCESS_KEY: "",
+  SES_ACCESS_KEY_ID: "AKIAEXAMPLE",
+  SES_SECRET_ACCESS_KEY: "s".repeat(40),
   MAIL_FROM: "",
 } as const;
+
+/** A mailer that records what it would send through SES, for `createWorker({ createMailer })`. */
+export function fakeMailer() {
+  const sent: SendRawInput[] = [];
+  const mailer: Mailer = {
+    async sendRaw(input) {
+      sent.push(input);
+      return { providerMessageId: `fake-${sent.length}` };
+    },
+  };
+  return { sent, createMailer: () => mailer };
+}
 
 /** An R2 bucket in memory: put and get, which is all R2BlobStore uses. */
 export function fakeR2() {

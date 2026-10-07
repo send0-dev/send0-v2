@@ -10,7 +10,8 @@ OWNER_EMAIL=
 # Domains you receive mail on, comma-separated, like agents.acme.com. The first is the default for new inboxes.
 MAIL_DOMAINS=
 
-# An IAM user allowed ses:SendRawEmail for your verified SES identity. Without them, sending is off.
+# Required: an IAM user allowed ses:SendRawEmail for your verified SES identity. send0 sends the owner's
+# verification email and all outbound mail through SES. Set SES_REGION (a var) to that identity's region.
 SES_ACCESS_KEY_ID=
 SES_SECRET_ACCESS_KEY=
 

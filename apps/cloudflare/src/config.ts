@@ -21,8 +21,8 @@ export interface CloudflareConfig extends CoreConfig {
   mailFrom: string;
   /** Fixed public origin, without a trailing slash; unset means each request's own origin */
   publicUrl?: string;
-  /** Unset when the SES keys are missing: sending is disabled instead of every route breaking */
-  ses?: SesSettings;
+  /** Required: without it the owner could never verify their email, and nothing could be sent */
+  ses: SesSettings;
   /** SNS → `/internal/ses-events`, when both are set */
   sesEvents?: { token: string; topicArn: string };
 }
@@ -110,32 +110,33 @@ export function loadConfig(input: object): CloudflareConfig {
     problems.push("SES_EVENTS_TOKEN: must be at least 32 characters (generate one with `openssl rand -hex 32`)");
   }
 
-  if (problems.length || !core || !secretKey || !mailFrom) throw new ConfigError(problems);
+  if (problems.length || !core || !secretKey || !mailFrom || !ses) throw new ConfigError(problems);
   return {
     ...core,
     secretKey,
     mailFrom,
     ...(ownerEmail ? { ownerEmail } : {}),
     ...(publicUrl ? { publicUrl } : {}),
-    ...(ses ? { ses } : {}),
+    ses,
     ...(token && topicArn ? { sesEvents: { token, topicArn } } : {}),
   };
 }
 
-/** SES needs both keys or neither; with neither, sending is off. */
+/**
+ * SES is required: sign-up is verify-first, so without a mailer the owner could never verify their
+ * email (and verifying automatically would let anyone who finds the Worker claim the install).
+ */
 function sesSettings(env: Record<string, unknown>, problems: string[]): SesSettings | undefined {
   const accessKeyId = str(env, "SES_ACCESS_KEY_ID");
   const secretAccessKey = str(env, "SES_SECRET_ACCESS_KEY");
   const region = str(env, "SES_REGION");
   const configurationSet = str(env, "SES_CONFIGURATION_SET");
-  if (!accessKeyId && !secretAccessKey) return undefined;
-  if (!accessKeyId || !secretAccessKey) {
-    problems.push("SES_ACCESS_KEY_ID: set together with SES_SECRET_ACCESS_KEY (both or neither)");
-    return undefined;
-  }
-  if (!region) problems.push("SES_REGION: is required with the SES keys (the region your SES identity is in, like us-east-1)");
+  const why = "send0 sends verification email and your mail through SES";
+  if (!accessKeyId) problems.push(`SES_ACCESS_KEY_ID: is required (${why}; an IAM user allowed ses:SendRawEmail)`);
+  if (!secretAccessKey) problems.push(`SES_SECRET_ACCESS_KEY: is required (${why}; the secret of the SES_ACCESS_KEY_ID user)`);
+  if (!region) problems.push("SES_REGION: is required (the region your SES identity is in, like us-east-1)");
   else if (!AWS_REGION.test(region)) problems.push("SES_REGION: must be an AWS region, like us-east-1");
-  if (!region || !AWS_REGION.test(region)) return undefined;
+  if (!accessKeyId || !secretAccessKey || !region || !AWS_REGION.test(region)) return undefined;
   return { region, accessKeyId, secretAccessKey, ...(configurationSet ? { configurationSet } : {}) };
 }
 

@@ -22,7 +22,7 @@ describe("loadConfig", () => {
     expect(c.mailFrom).toBe("noreply@agents.acme.dev");
     expect(c.ownerEmail).toBe("owner@acme.dev");
     expect(c.publicUrl).toBeUndefined();
-    expect(c.ses).toBeUndefined();
+    expect(c.ses).toEqual({ region: "us-east-1", accessKeyId: "AKIAEXAMPLE", secretAccessKey: "s".repeat(40) });
     expect(c.sesEvents).toBeUndefined();
   });
 
@@ -33,8 +33,6 @@ describe("loadConfig", () => {
       OWNER_EMAIL: "Owner@Acme.dev",
       PUBLIC_URL: "https://mail.acme.dev/",
       TRUSTED_AUTHSERV_IDS: "mx.acme.dev",
-      SES_ACCESS_KEY_ID: "AKIAEXAMPLE",
-      SES_SECRET_ACCESS_KEY: "s".repeat(40),
       SES_CONFIGURATION_SET: "send0",
       SES_EVENTS_TOKEN: "t".repeat(32),
       SES_EVENTS_TOPIC_ARN: "arn:aws:sns:us-east-1:123456789012:send0",
@@ -66,13 +64,27 @@ describe("loadConfig", () => {
       "OWNER_EMAIL",
       "MAIL_FROM",
       "PUBLIC_URL",
-      "SES_ACCESS_KEY_ID",
+      "SES_SECRET_ACCESS_KEY",
+      "SES_REGION",
       "SES_EVENTS_TOKEN",
     ]);
   });
 
   it("requires the basics", () => {
-    expect(problemsOf({}).map((p) => p.split(":")[0])).toEqual(["MAIL_DOMAINS", "SECRET_KEY", "OWNER_EMAIL"]);
+    expect(problemsOf({}).map((p) => p.split(":")[0])).toEqual([
+      "MAIL_DOMAINS",
+      "SECRET_KEY",
+      "OWNER_EMAIL",
+      "SES_ACCESS_KEY_ID",
+      "SES_SECRET_ACCESS_KEY",
+      "SES_REGION",
+    ]);
+  });
+
+  it("requires SES, since the owner must verify their email", () => {
+    for (const name of ["SES_ACCESS_KEY_ID", "SES_SECRET_ACCESS_KEY", "SES_REGION"]) {
+      expect(problemsOf({ ...VARS, [name]: " " })).toEqual([expect.stringMatching(new RegExp(`^${name}: is required`))]);
+    }
   });
 
   it("checks the SES region and the events token's length", () => {

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { WORKER_PATHS } from "../src/http";
 import { createWorker } from "../src/worker";
-import { fakeCtx, fakeEnv } from "./support";
+import { fakeCtx, fakeEnv, fakeMailer } from "./support";
 
 const ORIGIN = "https://send0.acme.workers.dev";
 
@@ -31,7 +31,8 @@ describe("the one-Worker edition", () => {
   let db: Db;
   let close: () => Promise<void>;
   const createDb = vi.fn(() => db);
-  const worker = createWorker({ createDb });
+  const mail = fakeMailer();
+  const worker = createWorker({ createDb, createMailer: mail.createMailer });
   const fake = fakeEnv();
 
   const call = async (path: string, init?: RequestInit, origin = ORIGIN) => {
@@ -107,6 +108,8 @@ describe("the one-Worker edition", () => {
     );
     expect(sameSite.status).toBe(201);
     expect(sameSite.headers.get("set-cookie")).toMatch(/Secure/);
+    // The owner verifies through SES, from the default system address.
+    expect(mail.sent.map((m) => [m.from, m.recipients])).toEqual([["noreply@agents.acme.dev", ["owner@acme.dev"]]]);
   });
 
   it("receives mail, stores it in R2 and serves it back through a signed /v1/files link", async () => {

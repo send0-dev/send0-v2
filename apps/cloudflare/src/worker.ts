@@ -7,12 +7,14 @@ import { bootDatabase, onceUntilSuccess } from "./boot";
 import { configCache, configErrorResponse, type CloudflareConfig } from "./config";
 import { createHttpApp } from "./http";
 import { publicUrlFor } from "./public-url";
-import { requestServices, type DbFactory } from "./services";
+import { createMailer, requestServices, type DbFactory, type MailerFactory } from "./services";
 
 /** Test seams. Production uses the defaults; tests pass PGlite so no Postgres or workerd is needed. */
 export interface WorkerOptions {
   /** Builds the database client from Hyperdrive's connection string (default: postgres.js via `createDb`) */
   createDb?: DbFactory;
+  /** Builds the outbound mailer from the SES settings (default: SES over HTTPS) */
+  createMailer?: MailerFactory;
 }
 
 const logError = (event: string, err: unknown, extra: Record<string, unknown> = {}) =>
@@ -32,6 +34,7 @@ class MisconfiguredError extends Error {
  */
 export function createWorker(opts: WorkerOptions = {}) {
   const makeDb: DbFactory = opts.createDb ?? ((cs, o) => createDb(cs, o));
+  const makeMailer = opts.createMailer ?? createMailer;
   const configFor = configCache();
   const boot = onceUntilSuccess();
   const ready = (env: Env, config: CloudflareConfig) => () =>
@@ -49,7 +52,7 @@ export function createWorker(opts: WorkerOptions = {}) {
       if (!result.ok) return configErrorResponse(result.problems);
       const { config } = result;
       const db = makeDb(env.HYPERDRIVE.connectionString, { max: 5 });
-      const services = requestServices(env, ctx, config, db, publicUrlFor(config.publicUrl, request));
+      const services = requestServices(env, ctx, config, db, publicUrlFor(config.publicUrl, request), makeMailer);
       return createHttpApp(services, config, env.ASSETS, ready(env, config)).fetch(request);
     },
 
