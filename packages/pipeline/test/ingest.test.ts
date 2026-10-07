@@ -19,7 +19,14 @@ const blobs: BlobStore = { put: async (key, body, opts) => void puts.push({ key,
 
 const ingest = async (name: string, at = new Date("2026-10-05T10:00:00Z")) => {
   const id = newId("msg");
-  return ingestMessage(db, blobs, { inbox, messageId: id, rawKey: `raw/x/${id}.eml`, parsed: await parse(name), tag: null, receivedAt: at });
+  return ingestMessage(db, blobs, {
+    inbox,
+    messageId: id,
+    rawKey: `raw/x/${id}.eml`,
+    parsed: await parse(name),
+    tag: null,
+    receivedAt: at,
+  });
 };
 
 beforeAll(async () => {
@@ -35,15 +42,34 @@ describe("findInboxByAddress", () => {
   it("matches case-insensitively and ignores deleted inboxes", async () => {
     expect(inbox).toMatchObject({ id: "ibx_1", orgId: "org_1", address: "procurement-agent@send0.email", status: "active" });
     expect(await findInboxByAddress(db, "nobody", "send0.email")).toBeNull();
-    await db.insert(schema.inboxes).values({ id: "ibx_gone", orgId: "org_1", domainId: "dom_1", localPart: "gone", status: "deleted", deletedAt: new Date() });
+    await db
+      .insert(schema.inboxes)
+      .values({ id: "ibx_gone", orgId: "org_1", domainId: "dom_1", localPart: "gone", status: "deleted", deletedAt: new Date() });
     expect(await findInboxByAddress(db, "gone", "send0.email")).toBeNull();
   });
 });
 
 describe("ingestMessage", () => {
   it("threads a reply onto the outbound message it answers (In-Reply-To)", async () => {
-    await db.insert(schema.threads).values({ id: "thr_po", orgId: "org_1", inboxId: "ibx_1", subject: "PO #4471 delivery date", subjectNorm: "po #4471 delivery date", messageCount: 1, participants: ["dana@gmail.com"] });
-    await db.insert(schema.messages).values({ id: "msg_out", orgId: "org_1", inboxId: "ibx_1", threadId: "thr_po", direction: "out", status: "sent", rfcMessageId: "<msg_4Tq1aB9cD8eF7gH6@send0.email>", subject: "PO #4471 delivery date" });
+    await db.insert(schema.threads).values({
+      id: "thr_po",
+      orgId: "org_1",
+      inboxId: "ibx_1",
+      subject: "PO #4471 delivery date",
+      subjectNorm: "po #4471 delivery date",
+      messageCount: 1,
+      participants: ["dana@gmail.com"],
+    });
+    await db.insert(schema.messages).values({
+      id: "msg_out",
+      orgId: "org_1",
+      inboxId: "ibx_1",
+      threadId: "thr_po",
+      direction: "out",
+      status: "sent",
+      rfcMessageId: "<msg_4Tq1aB9cD8eF7gH6@send0.email>",
+      subject: "PO #4471 delivery date",
+    });
 
     const r = await ingest("gmail-reply.eml");
     expect(r).toMatchObject({ duplicate: false, threadId: "thr_po", threadMatchedBy: "in-reply-to" });
@@ -85,12 +111,21 @@ describe("ingestMessage", () => {
 
   it("falls back to subject + participant threading when headers are missing", async () => {
     const raw = (subject: string, id: string) =>
-      new TextEncoder().encode(`From: Lee <lee@contoso.com>\nTo: procurement-agent@send0.email\nSubject: ${subject}\nMessage-ID: <${id}@contoso.com>\nDate: Mon, 5 Oct 2026 10:00:00 +0000\n\nhello\n`);
+      new TextEncoder().encode(
+        `From: Lee <lee@contoso.com>\nTo: procurement-agent@send0.email\nSubject: ${subject}\nMessage-ID: <${id}@contoso.com>\nDate: Mon, 5 Oct 2026 10:00:00 +0000\n\nhello\n`,
+      );
     const p1 = await parseInbound(raw("Shipping schedule", "s1"), { trustedAuthservIds: [] });
     const p2 = await parseInbound(raw("RE: Shipping schedule", "s2"), { trustedAuthservIds: [] });
     const at = new Date("2026-10-05T11:00:00Z");
     const a = await ingestMessage(db, blobs, { inbox, messageId: newId("msg"), rawKey: "raw/a", parsed: p1, tag: null, receivedAt: at });
-    const b = await ingestMessage(db, blobs, { inbox, messageId: newId("msg"), rawKey: "raw/b", parsed: p2, tag: "task42", receivedAt: new Date(at.getTime() + 60_000) });
+    const b = await ingestMessage(db, blobs, {
+      inbox,
+      messageId: newId("msg"),
+      rawKey: "raw/b",
+      parsed: p2,
+      tag: "task42",
+      receivedAt: new Date(at.getTime() + 60_000),
+    });
     if (a.duplicate || b.duplicate) throw new Error("unexpected duplicate");
     expect(b).toMatchObject({ threadId: a.threadId, threadMatchedBy: "subject" });
     const [m] = await db.select().from(schema.messages).where(eq(schema.messages.id, b.messageId));

@@ -2,7 +2,12 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 
 const isTyping = (t: EventTarget | null) => {
   const el = t as HTMLElement | null;
-  return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || !!el.closest("[role=dialog],[role=menu],[role=listbox]"));
+  return (
+    !!el &&
+    (el.isContentEditable ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) ||
+      !!el.closest("[role=dialog],[role=menu],[role=listbox]"))
+  );
 };
 
 /**

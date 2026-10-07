@@ -29,7 +29,12 @@ export default function WebhooksPage() {
       <PageHeader
         actions={
           <>
-            <a className="text-xs text-muted-foreground hover:text-foreground max-sm:hidden" href="https://send0.dev/docs/realtime/webhooks" target="_blank" rel="noreferrer">
+            <a
+              className="text-xs text-muted-foreground hover:text-foreground max-sm:hidden"
+              href="https://send0.dev/docs/realtime/webhooks"
+              target="_blank"
+              rel="noreferrer"
+            >
               Verifying signatures ↗
             </a>
             {add}
@@ -41,7 +46,14 @@ export default function WebhooksPage() {
           query={hooks.state}
           skeleton={<ListSkeleton rows={3} />}
           isEmpty={(items) => items.length === 0}
-          empty={<EmptyState icon={Webhook} title="No endpoints yet" description="Get a signed POST the moment an inbox receives mail, a message is delivered or bounces, or a draft needs approval." action={add} />}
+          empty={
+            <EmptyState
+              icon={Webhook}
+              title="No endpoints yet"
+              description="Get a signed POST the moment an inbox receives mail, a message is delivered or bounces, or a draft needs approval."
+              action={add}
+            />
+          }
         >
           {(items) => (
             <>
@@ -50,7 +62,11 @@ export default function WebhooksPage() {
                 <span className="tabular ml-auto">{pluralize(items.length, "endpoint")}</span>
               </PaneBar>
               <WebhooksList webhooks={items} />
-              <LoadMore hasNextPage={hooks.hasNextPage} isFetchingNextPage={hooks.isFetchingNextPage} fetchNextPage={() => void hooks.fetchNextPage()} />
+              <LoadMore
+                hasNextPage={hooks.hasNextPage}
+                isFetchingNextPage={hooks.isFetchingNextPage}
+                fetchNextPage={() => void hooks.fetchNextPage()}
+              />
               <ListHint title="Verify every delivery">
                 <CodeBlock code={`const ok = await send0.webhooks.verify(rawBody, req.headers["send0-signature"], secret);`} />
               </ListHint>

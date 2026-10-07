@@ -5,7 +5,19 @@ import { cn } from "@/lib/utils";
  * A titled block on a settings page: heading and one line of context, then a card of rows
  * (SettingsRow) or free content (SettingsBody). `danger` marks irreversible actions.
  */
-export function SettingsSection({ title, description, children, danger, action }: { title: string; description?: ReactNode; children: ReactNode; danger?: boolean; action?: ReactNode }) {
+export function SettingsSection({
+  title,
+  description,
+  children,
+  danger,
+  action,
+}: {
+  title: string;
+  description?: ReactNode;
+  children: ReactNode;
+  danger?: boolean;
+  action?: ReactNode;
+}) {
   return (
     <section className="mb-10">
       <div className="mb-3 flex items-end justify-between gap-4">

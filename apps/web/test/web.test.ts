@@ -18,7 +18,11 @@ describe("accounts", () => {
     expect(signup.status).toBe(201);
     expect(signup.headers.get("set-cookie")).toMatch(/send0_session=.+; Path=\/; Expires=.+; HttpOnly; Secure; SameSite=Lax/);
 
-    expect((await b("GET", "/auth/me")).body).toMatchObject({ user: { email: "dana@acme.com", email_verified: false, onboarded: false }, workspace: null, workspaces: [] });
+    expect((await b("GET", "/auth/me")).body).toMatchObject({
+      user: { email: "dana@acme.com", email_verified: false, onboarded: false },
+      workspace: null,
+      workspaces: [],
+    });
     expect((await b("GET", "/api/v1/inboxes")).body.error.code).toBe("email_not_verified");
     expect((await b("POST", "/auth/workspace", { name: "Acme" })).status).toBe(403);
 
@@ -42,14 +46,20 @@ describe("accounts", () => {
   });
 
   it("refuses cross-site state changes (CSRF)", async () => {
-    const r = await h.web.request(APP + "/auth/login", { method: "POST", headers: { origin: "https://evil.example", "content-type": "application/json" }, body: "{}" });
+    const r = await h.web.request(APP + "/auth/login", {
+      method: "POST",
+      headers: { origin: "https://evil.example", "content-type": "application/json" },
+      body: "{}",
+    });
     expect(r.status).toBe(403);
     expect((await h.web.request(APP + "/auth/logout", { method: "POST" })).status).toBe(403);
   });
 
   it("logs in and out, and rejects bad passwords", async () => {
     const b = h.browser();
-    expect((await b("POST", "/auth/login", { email: "dana@acme.com", password: "wrong-password-1" })).body.error.code).toBe("invalid_credentials");
+    expect((await b("POST", "/auth/login", { email: "dana@acme.com", password: "wrong-password-1" })).body.error.code).toBe(
+      "invalid_credentials",
+    );
     expect((await b("POST", "/auth/login", { email: "dana@acme.com", password: "tangerine-orbit-42" })).status).toBe(200);
     expect((await b("GET", "/api/v1/inboxes")).body.data).toHaveLength(1);
     await b("POST", "/auth/logout");
@@ -62,7 +72,9 @@ describe("accounts", () => {
     await other("POST", "/auth/login", { email: "dana@acme.com", password: "tangerine-orbit-42" });
     const b = h.browser();
     expect((await b("POST", "/auth/forgot-password", { email: "dana@acme.com" })).status).toBe(200);
-    expect((await b("POST", "/auth/reset-password", { token: tokenOf(await h.lastLink("dana@acme.com")), password: "granite-lake-55" })).status).toBe(200);
+    expect(
+      (await b("POST", "/auth/reset-password", { token: tokenOf(await h.lastLink("dana@acme.com")), password: "granite-lake-55" })).status,
+    ).toBe(200);
     expect((await b("GET", "/auth/me")).body.user.email).toBe("dana@acme.com");
     expect((await other("GET", "/auth/me")).body.user).toBeNull();
 
@@ -77,14 +89,20 @@ describe("accounts", () => {
 describe("API proxy", () => {
   it("never forwards cookies or Authorization, strips /api, and passes the member's scopes", async () => {
     const seen: { req: Request; as: unknown }[] = [];
-    const spy = createWebApp({ auth: h.auth, appUrl: APP, gateway: async (req, as) => (seen.push({ req, as }), Response.json({ ok: true })) });
+    const spy = createWebApp({
+      auth: h.auth,
+      appUrl: APP,
+      gateway: async (req, as) => (seen.push({ req, as }), Response.json({ ok: true })),
+    });
     const login = await h.web.request(APP + "/auth/login", {
       method: "POST",
       headers: { origin: APP, "content-type": "application/json" },
       body: JSON.stringify({ email: "dana@acme.com", password: "granite-lake-55" }),
     });
     const cookie = login.headers.get("set-cookie")!.split(";")[0]!;
-    const r = await spy.request(APP + "/api/v1/inboxes?limit=5", { headers: { cookie, authorization: "Bearer s0_live_x", "x-custom": "kept" } });
+    const r = await spy.request(APP + "/api/v1/inboxes?limit=5", {
+      headers: { cookie, authorization: "Bearer s0_live_x", "x-custom": "kept" },
+    });
     expect(r.status).toBe(200);
     const { req, as } = seen[0]!;
     expect(new URL(req.url).pathname + new URL(req.url).search).toBe("/v1/inboxes?limit=5");
@@ -125,9 +143,17 @@ describe("teams", () => {
     const token = new URL(await h.lastLink("mia@team.com")).pathname.split("/").pop()!;
 
     const mia = h.browser();
-    expect((await mia("GET", `/auth/invites/token/${token}`)).body).toMatchObject({ workspace: "Team", email: "mia@team.com", role: "member", has_account: false });
+    expect((await mia("GET", `/auth/invites/token/${token}`)).body).toMatchObject({
+      workspace: "Team",
+      email: "mia@team.com",
+      role: "member",
+      has_account: false,
+    });
     expect((await mia("POST", `/auth/invites/token/${token}/signup`, { password: "lantern-cove-88", name: "Mia" })).status).toBe(201);
-    expect((await mia("GET", "/auth/me")).body).toMatchObject({ user: { email_verified: true, onboarded: true }, workspace: { name: "Team", role: "member" } });
+    expect((await mia("GET", "/auth/me")).body).toMatchObject({
+      user: { email_verified: true, onboarded: true },
+      workspace: { name: "Team", role: "member" },
+    });
 
     // Members read and send, but can't manage inboxes, keys, webhooks or people.
     await owner("POST", "/api/v1/inboxes", { name: "team-agent" });
@@ -161,7 +187,10 @@ describe("teams", () => {
     const owner = h.browser();
     await owner("POST", "/auth/login", { email: "olivia@team.com", password: "tangerine-orbit-42" });
     const members = (await owner("GET", "/auth/members")).body.data;
-    expect(members.map((m: any) => [m.email, m.role])).toEqual([["olivia@team.com", "owner"], ["mia@team.com", "member"]]);
+    expect(members.map((m: any) => [m.email, m.role])).toEqual([
+      ["olivia@team.com", "owner"],
+      ["mia@team.com", "member"],
+    ]);
     const miaId = members[1].user_id;
     expect((await owner("PATCH", `/auth/members/${miaId}`, { role: "admin" })).body.role).toBe("admin");
 

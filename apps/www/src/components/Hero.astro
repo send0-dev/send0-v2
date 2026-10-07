@@ -11,31 +11,42 @@ import { site } from "../site";
     <a class="pill" href={site.repoPublic ? site.github : "/#self-host"} rel={site.repoPublic ? "noopener" : undefined}>
       <span class="dot"></span>
       {site.repoPublic ? "Open source · Building in public" : "Open source · Beta coming soon"}
-      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg>
+      <svg
+        viewBox="0 0 16 16"
+        width="12"
+        height="12"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M6 4l4 4-4 4"></path>
+      </svg>
     </a>
 
-    <h1>Give your agent<br /> <span class="accent">an email address.</span></h1>
+    <h1>
+      Give your agent
+      <br /> <span class="accent">an email address.</span>
+    </h1>
 
     <p class="sub">
-      send0 is an open-source email API for AI agents. One API call creates a real inbox that sends, receives
-      and threads mail. Webhooks and real-time events come with every plan, and you can run the whole thing on
-      your own servers.
+      send0 is an open-source email API for AI agents. One API call creates a real inbox that sends, receives and threads mail. Webhooks and
+      real-time events come with every plan, and you can run the whole thing on your own servers.
     </p>
 
     <div class="ctas">
       <WaitlistForm source="hero" />
-      {
-        site.repoPublic ? (
-          <a class="btn btn-secondary gh" href={site.github} rel="noopener">
-            <GithubIcon />
-            Star on GitHub
-          </a>
-        ) : (
-          <a class="btn btn-secondary gh" href="#how-it-works">
-            See how it works
-          </a>
-        )
-      }
+      {site.repoPublic ? (
+        <a class="btn btn-secondary gh" href={site.github} rel="noopener">
+          <GithubIcon />
+          Star on GitHub
+        </a>
+      ) : (
+        <a class="btn btn-secondary gh" href="#how-it-works">
+          See how it works
+        </a>
+      )}
     </div>
 
     <ul class="facts mono">
@@ -64,9 +75,7 @@ import { site } from "../site";
   .grid-bg {
     position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(var(--rail) 1px, transparent 1px),
-      linear-gradient(90deg, var(--rail) 1px, transparent 1px);
+    background-image: linear-gradient(var(--rail) 1px, transparent 1px), linear-gradient(90deg, var(--rail) 1px, transparent 1px);
     background-size: 56px 56px;
     background-position: -1px -1px;
     mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 30%, transparent 75%);
@@ -81,7 +90,9 @@ import { site } from "../site";
     text-align: center;
   }
   .pill {
-    transition: border-color 0.15s ease, color 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease;
   }
   .pill:hover {
     border-color: var(--border-strong);

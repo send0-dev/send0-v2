@@ -4,16 +4,16 @@
 
 ## Tools
 
-| Tool | What it does |
-|---|---|
-| `create_inbox` | Make a new address, e.g. `signup-agent@send0.email` |
-| `list_inboxes` | Inboxes this key can use |
-| `wait_for_email` | Block until a matching email arrives; returns the one-time code and verify link already extracted |
-| `search_messages` | Full-text search, filter by sender (`*@github.com`) or direction |
-| `get_message` | Read one message (new text only by default, to save tokens) |
-| `list_threads` / `get_thread` | Read whole conversations, oldest first |
-| `send_email` | Start a new thread |
-| `reply` | Answer in the same thread |
+| Tool                          | What it does                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `create_inbox`                | Make a new address, e.g. `signup-agent@send0.email`                                               |
+| `list_inboxes`                | Inboxes this key can use                                                                          |
+| `wait_for_email`              | Block until a matching email arrives; returns the one-time code and verify link already extracted |
+| `search_messages`             | Full-text search, filter by sender (`*@github.com`) or direction                                  |
+| `get_message`                 | Read one message (new text only by default, to save tokens)                                       |
+| `list_threads` / `get_thread` | Read whole conversations, oldest first                                                            |
+| `send_email`                  | Start a new thread                                                                                |
+| `reply`                       | Answer in the same thread                                                                         |
 
 Email bodies are returned inside `<untrusted_email>` tags with a note to treat them as data, and messages flagged for prompt injection carry a visible warning. Read-only tools are annotated `readOnlyHint`, and sending tools `openWorldHint`, so clients can ask before sending.
 
@@ -43,11 +43,11 @@ claude mcp add send0 --env SEND0_API_KEY=s0_live_… -- npx -y @send0/mcp
 
 ### Options
 
-| Variable | |
-|---|---|
-| `SEND0_API_KEY` | Required |
+| Variable         |                                               |
+| ---------------- | --------------------------------------------- |
+| `SEND0_API_KEY`  | Required                                      |
 | `SEND0_INBOX_ID` | Default inbox, so tools don't need `inbox_id` |
-| `SEND0_BASE_URL` | For self-hosted send0 |
+| `SEND0_BASE_URL` | For self-hosted send0                         |
 
 ## Use it from code
 

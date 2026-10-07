@@ -50,7 +50,8 @@ export class Http {
     const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
     const envKey = env?.SEND0_API_KEY;
     const apiKey = o.apiKey === null ? null : (o.apiKey ?? envKey);
-    if (apiKey === undefined || apiKey === "") throw new Send0Error("Missing API key. Pass it to new Send0(…) or set SEND0_API_KEY.", 0, "missing_api_key");
+    if (apiKey === undefined || apiKey === "")
+      throw new Send0Error("Missing API key. Pass it to new Send0(…) or set SEND0_API_KEY.", 0, "missing_api_key");
     this.apiKey = apiKey;
     this.baseUrl = (o.baseUrl ?? "https://api.send0.dev").replace(/\/$/, "");
     this.maxRetries = o.maxRetries ?? 2;

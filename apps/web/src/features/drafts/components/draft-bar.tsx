@@ -9,7 +9,17 @@ import { Tooltip } from "@/components/ui/tooltip";
 const KIND = { new: "New message", reply: "Reply", forward: "Forward" } as const;
 
 /** The open draft's bar: back (phones), kind and age, previous/next. */
-export function DraftBar({ draft, onPrev, onNext, onBack }: { draft: Draft; onPrev?: () => void; onNext?: () => void; onBack: () => void }) {
+export function DraftBar({
+  draft,
+  onPrev,
+  onNext,
+  onBack,
+}: {
+  draft: Draft;
+  onPrev?: () => void;
+  onNext?: () => void;
+  onBack: () => void;
+}) {
   return (
     <PaneBar>
       <Button variant="ghost" size="icon-sm" className="-ml-2 md:hidden" onClick={onBack} aria-label="Back to drafts">

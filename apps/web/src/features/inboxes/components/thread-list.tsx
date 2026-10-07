@@ -13,7 +13,19 @@ function threadSender(t: Thread, inboxAddress: string, inboxName: string): { nam
 }
 
 /** Conversations in an inbox, most recent first: sender, subject, preview. Rows carry data-nav-id for J/K. */
-export function ThreadList({ threads, selectedId, onSelect, inboxAddress, inboxName }: { threads: Thread[]; selectedId: string | null; onSelect: (id: string) => void; inboxAddress: string; inboxName: string }) {
+export function ThreadList({
+  threads,
+  selectedId,
+  onSelect,
+  inboxAddress,
+  inboxName,
+}: {
+  threads: Thread[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  inboxAddress: string;
+  inboxName: string;
+}) {
   return (
     <ul aria-label="Threads" className="flex flex-col">
       {threads.map((t) => {
@@ -27,8 +39,8 @@ export function ThreadList({ threads, selectedId, onSelect, inboxAddress, inboxN
               onClick={() => onSelect(t.id)}
               aria-current={selected || undefined}
               className={cn(
-                "relative grid w-full min-w-0 cursor-pointer grid-cols-[28px_minmax(0,1fr)] gap-x-3 border-b border-border/60 px-gutter py-3 text-left outline-none transition-colors duration-75 hover:bg-hover focus-visible:bg-hover",
-                selected && "bg-selected hover:bg-selected"
+                "relative grid w-full min-w-0 cursor-pointer grid-cols-[28px_minmax(0,1fr)] gap-x-3 border-b border-border/60 px-gutter py-3 text-left transition-colors duration-75 outline-none hover:bg-hover focus-visible:bg-hover",
+                selected && "bg-selected hover:bg-selected",
               )}
             >
               {selected && <span aria-hidden className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-brand" />}

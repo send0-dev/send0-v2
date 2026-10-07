@@ -66,7 +66,12 @@ export function DeliveriesList({ webhookId, deliveries }: { webhookId: string; d
                 variant="ghost"
                 size="xs"
                 loading={retry.isPending && retry.variables === d.id}
-                onClick={() => retry.mutate(d.id, { onSuccess: () => toast.success("Queued for redelivery"), onError: (e) => toast.error(errorMessage(e)) })}
+                onClick={() =>
+                  retry.mutate(d.id, {
+                    onSuccess: () => toast.success("Queued for redelivery"),
+                    onError: (e) => toast.error(errorMessage(e)),
+                  })
+                }
               >
                 <RotateCw />
                 Replay

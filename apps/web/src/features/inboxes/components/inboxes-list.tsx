@@ -7,7 +7,12 @@ import { RelativeTime } from "@/components/relative-time";
 import { PolicyBadge } from "./policy-badge";
 
 // One width per column, shared by the headings and the cells.
-const COL = { name: "w-48 shrink-0 max-md:flex-1", address: "min-w-0 flex-1 max-md:hidden", policy: "w-32 shrink-0 max-sm:w-auto", created: "w-20 shrink-0 text-right max-sm:hidden" };
+const COL = {
+  name: "w-48 shrink-0 max-md:flex-1",
+  address: "min-w-0 flex-1 max-md:hidden",
+  policy: "w-32 shrink-0 max-sm:w-auto",
+  created: "w-20 shrink-0 text-right max-sm:hidden",
+};
 
 export function InboxesList({ inboxes, cursor }: { inboxes: Inbox[]; cursor?: string | null }) {
   const navigate = useNavigate();

@@ -16,21 +16,31 @@ const rows = [
   <div class="top">
     <div class="section-head reveal">
       <span class="eyebrow">Open source</span>
-      <h2 id="selfhost-title" class="h2">Same API. <span class="dim">Your infrastructure.</span></h2>
+      <h2 id="selfhost-title" class="h2">
+        Same API. <span class="dim">Your infrastructure.</span>
+      </h2>
       <p class="lede">
-        {site.repoPublic ? "The server is open source under AGPL-3.0" : "The server will be open source under AGPL-3.0 from the beta"},
-        and the self-hosted edition runs the same code as our cloud. Keep
-        mail and data inside your own network when compliance or data residency requires it, and switch between
-        cloud and self-hosted without rewriting a line.
+        {site.repoPublic ? "The server is open source under AGPL-3.0" : "The server will be open source under AGPL-3.0 from the beta"}, and
+        the self-hosted edition runs the same code as our cloud. Keep mail and data inside your own network when compliance or data
+        residency requires it, and switch between cloud and self-hosted without rewriting a line.
       </p>
       <div class="ctas">
-        {site.repoPublic && <a class="btn btn-primary" href={site.github} rel="noopener">View the source</a>}
-        <a class={site.repoPublic ? "btn btn-secondary" : "btn btn-primary"} href="#waitlist">Get notified at beta</a>
+        {site.repoPublic && (
+          <a class="btn btn-primary" href={site.github} rel="noopener">
+            View the source
+          </a>
+        )}
+        <a class={site.repoPublic ? "btn btn-secondary" : "btn btn-primary"} href="#waitlist">
+          Get notified at beta
+        </a>
       </div>
     </div>
 
     <div class="term card reveal" aria-label="Self-hosting commands">
-      <div class="bar mono"><span>~/send0</span><span class="soon">self-host guide ships with beta</span></div>
+      <div class="bar mono">
+        <span>~/send0</span>
+        <span class="soon">self-host guide ships with beta</span>
+      </div>
       <pre class="mono"><span class="p">$</span> git clone {site.github.replace("https://", "")}
 <span class="p">$</span> cd send0-v2/selfhost && cp .env.example .env
 <span class="p">$</span> docker compose up -d
@@ -50,15 +60,13 @@ const rows = [
         </tr>
       </thead>
       <tbody>
-        {
-          rows.map((r) => (
-            <tr>
-              <th scope="row">{r.part}</th>
-              <td>{r.cloud}</td>
-              <td>{r.self}</td>
-            </tr>
-          ))
-        }
+        {rows.map((r) => (
+          <tr>
+            <th scope="row">{r.part}</th>
+            <td>{r.cloud}</td>
+            <td>{r.self}</td>
+          </tr>
+        ))}
       </tbody>
     </table>
   </div>

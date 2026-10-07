@@ -6,15 +6,12 @@ export class AuthError extends Error {
     readonly status: AuthErrorStatus,
     readonly code: string,
     message: string,
-    readonly field?: string
+    readonly field?: string,
   ) {
     super(message);
   }
 }
 
-export const unauthorized = () =>
-  new AuthError(401, "unauthorized", "Log in to continue.");
-export const forbidden = (message = "You don't have permission to do that.") =>
-  new AuthError(403, "forbidden", message);
-export const notFound = (what: string) =>
-  new AuthError(404, "not_found", `That ${what} doesn't exist or isn't yours.`);
+export const unauthorized = () => new AuthError(401, "unauthorized", "Log in to continue.");
+export const forbidden = (message = "You don't have permission to do that.") => new AuthError(403, "forbidden", message);
+export const notFound = (what: string) => new AuthError(404, "not_found", `That ${what} doesn't exist or isn't yours.`);

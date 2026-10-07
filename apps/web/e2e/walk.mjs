@@ -43,7 +43,11 @@ async function newPage(context) {
 
 // ---------- helpers ----------
 const api = (path, body) =>
-  fetch(BASE + path, { method: body ? "POST" : "GET", headers: body ? { "content-type": "application/json" } : {}, body: body && JSON.stringify(body) }).then((r) => r.json());
+  fetch(BASE + path, {
+    method: body ? "POST" : "GET",
+    headers: body ? { "content-type": "application/json" } : {},
+    body: body && JSON.stringify(body),
+  }).then((r) => r.json());
 const lastLink = async (to) => (await api(`/__dev/email?to=${encodeURIComponent(to)}`)).link;
 const deliver = (to, fixture) => api("/__dev/deliver", { to, fixture });
 
@@ -67,9 +71,11 @@ const h = (page) => ({
   fill: async (label, value) => {
     if (await page.$("[role=dialog][data-state=open]")) await sleep(300);
     const id = await page.waitForFunction(
-      (l) => [...document.querySelectorAll("label")].find((x) => x.textContent.trim() === l && x.htmlFor && document.getElementById(x.htmlFor))?.htmlFor,
+      (l) =>
+        [...document.querySelectorAll("label")].find((x) => x.textContent.trim() === l && x.htmlFor && document.getElementById(x.htmlFor))
+          ?.htmlFor,
       { timeout: 10000 },
-      label
+      label,
     );
     const sel = `[id="${await id.jsonValue()}"]`;
     await page.$eval(sel, (el) => {
@@ -84,12 +90,14 @@ const h = (page) => ({
     const el = await page.waitForFunction(
       (t, s, fn) => {
         const label = eval(fn);
-        return [...document.querySelectorAll(`${s} button, ${s} a, ${s} [role=menuitem], ${s} [role=option], ${s} [role=tab], ${s} [cmdk-item]`)].find((b) => label(b) === t && !b.disabled);
+        return [
+          ...document.querySelectorAll(`${s} button, ${s} a, ${s} [role=menuitem], ${s} [role=option], ${s} [role=tab], ${s} [cmdk-item]`),
+        ].find((b) => label(b) === t && !b.disabled);
       },
       { timeout: 10000 },
       text,
       scope,
-      LABEL_FN
+      LABEL_FN,
     );
     await press(el);
   },
@@ -99,13 +107,17 @@ const h = (page) => ({
       (t, s) => [...document.querySelectorAll(`${s} button, ${s} [role=menuitem]`)].find((b) => b.textContent.includes(t)),
       { timeout: 10000 },
       text,
-      scope
+      scope,
     );
     await press(el);
   },
   /** Click the table row containing `text`. */
   clickRow: async (text) => {
-    const el = await page.waitForFunction((t) => [...document.querySelectorAll("[role=list] button, tbody tr")].find((r) => r.textContent.includes(t)), { timeout: 10000 }, text);
+    const el = await page.waitForFunction(
+      (t) => [...document.querySelectorAll("[role=list] button, tbody tr")].find((r) => r.textContent.includes(t)),
+      { timeout: 10000 },
+      text,
+    );
     await press(el);
   },
   /** Wait until no dialog or sheet is open (including its closing animation). */
@@ -217,7 +229,10 @@ await step("inbox: threads list and a thread with extracted code and auth badges
 await step("inbox: replying in-thread", async () => {
   await o.clickContaining("Re: PO #4471 delivery date", "ul[aria-label=Threads]");
   // The open thread (and its reply box) has switched once its heading shows the new subject.
-  await page.waitForFunction(() => document.querySelector("section[aria-label=Conversation] h2")?.textContent === "Re: PO #4471 delivery date", { timeout: 10000 });
+  await page.waitForFunction(
+    () => document.querySelector("section[aria-label=Conversation] h2")?.textContent === "Re: PO #4471 delivery date",
+    { timeout: 10000 },
+  );
   await page.type("textarea", "Thanks Dana, Thursday works.");
   await o.click("Send");
   await o.text("Reply sent");
@@ -239,7 +254,10 @@ await step("inbox settings: switch to approval; a reply becomes a draft; approve
   await o.text("Inbox saved");
   await o.dialogsClosed();
   await o.clickContaining("Re: PO #4471 delivery date", "ul[aria-label=Threads]");
-  await page.waitForFunction(() => document.querySelector("section[aria-label=Conversation] h2")?.textContent === "Re: PO #4471 delivery date", { timeout: 10000 });
+  await page.waitForFunction(
+    () => document.querySelector("section[aria-label=Conversation] h2")?.textContent === "Re: PO #4471 delivery date",
+    { timeout: 10000 },
+  );
   await o.text("Thanks Dana, Thursday works.");
   await o.text("this becomes a draft");
   await page.type("textarea", "Second reply, needs a human.");

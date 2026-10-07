@@ -49,32 +49,57 @@ export const threadRoutes = new Hono<AppEnv>()
       .where(and(eq(threads.inboxId, inbox.id), pageWhere(cursor, threads.lastMessageAt, threads.id)))
       .orderBy(...pageOrder(threads.lastMessageAt, threads.id))
       .limit(limit + 1);
-    const latest = await latestMessages(c.get("deps").db, rows.slice(0, limit).map((t) => t.id));
-    return c.json(toPage(rows, limit, (t) => ({ at: t.lastMessageAt, id: t.id }), (t) => serializeThread(t, latest.get(t.id))));
+    const latest = await latestMessages(
+      c.get("deps").db,
+      rows.slice(0, limit).map((t) => t.id),
+    );
+    return c.json(
+      toPage(
+        rows,
+        limit,
+        (t) => ({ at: t.lastMessageAt, id: t.id }),
+        (t) => serializeThread(t, latest.get(t.id)),
+      ),
+    );
   })
 
-  .get(
-    "/:threadId",
-    validate("query", threadGetQuery),
-    async (c) => {
-      requireScope(c.get("auth"), "read");
-      const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
-      const { db } = c.get("deps");
-      const [thread] = await db
-        .select()
-        .from(threads)
-        .where(and(eq(threads.id, c.req.param("threadId")), eq(threads.inboxId, inbox.id)));
-      if (!thread) throw notFound("thread", c.req.param("threadId"));
+  .get("/:threadId", validate("query", threadGetQuery), async (c) => {
+    requireScope(c.get("auth"), "read");
+    const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
+    const { db } = c.get("deps");
+    const [thread] = await db
+      .select()
+      .from(threads)
+      .where(and(eq(threads.id, c.req.param("threadId")), eq(threads.inboxId, inbox.id)));
+    if (!thread) throw notFound("thread", c.req.param("threadId"));
 
-      // Oldest first, so an agent reads the conversation in order.
-      const msgs = await db.select().from(messages).where(eq(messages.threadId, thread.id)).orderBy(asc(messages.createdAt), asc(messages.id)).limit(200);
-      const atts = msgs.length
-        ? await db.select().from(attachments).where(inArray(attachments.messageId, msgs.map((m) => m.id)))
-        : [];
-      const includeHtml = c.req.valid("query").include_html;
-      return c.json({
-        ...serializeThread(thread, toLatest(msgs.at(-1))),
-        messages: msgs.map((m) => serializeMessage(m, atts.filter((a) => a.messageId === m.id), { includeHtml })),
-      });
-    },
-  );
+    // Oldest first, so an agent reads the conversation in order.
+    const msgs = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.threadId, thread.id))
+      .orderBy(asc(messages.createdAt), asc(messages.id))
+      .limit(200);
+    const atts = msgs.length
+      ? await db
+          .select()
+          .from(attachments)
+          .where(
+            inArray(
+              attachments.messageId,
+              msgs.map((m) => m.id),
+            ),
+          )
+      : [];
+    const includeHtml = c.req.valid("query").include_html;
+    return c.json({
+      ...serializeThread(thread, toLatest(msgs.at(-1))),
+      messages: msgs.map((m) =>
+        serializeMessage(
+          m,
+          atts.filter((a) => a.messageId === m.id),
+          { includeHtml },
+        ),
+      ),
+    });
+  });

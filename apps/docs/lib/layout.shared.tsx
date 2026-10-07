@@ -1,5 +1,5 @@
-import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { appName, gitConfig, repoPublic } from './shared';
+import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import { appName, gitConfig, repoPublic } from "./shared";
 
 function Logo() {
   return (
@@ -17,10 +17,10 @@ function Logo() {
 
 export function baseOptions(): BaseLayoutProps {
   return {
-    nav: { title: <Logo />, url: '/' },
+    nav: { title: <Logo />, url: "/" },
     links: [
-      { text: 'Home', url: 'https://send0.dev', external: true },
-      { text: 'API spec', url: 'https://api.send0.dev/openapi.json', external: true },
+      { text: "Home", url: "https://send0.dev", external: true },
+      { text: "API spec", url: "https://api.send0.dev/openapi.json", external: true },
     ],
     ...(repoPublic ? { githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}` } : {}),
   };

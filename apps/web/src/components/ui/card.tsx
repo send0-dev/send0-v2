@@ -22,5 +22,11 @@ export function CardContent({ className, ...props }: ComponentProps<"div">) {
 }
 
 export function CardFooter({ className, ...props }: ComponentProps<"div">) {
-  return <div data-slot="card-footer" className={cn("flex items-center justify-between gap-3 border-t px-4 py-2.5 text-xs text-muted-foreground", className)} {...props} />;
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn("flex items-center justify-between gap-3 border-t px-4 py-2.5 text-xs text-muted-foreground", className)}
+      {...props}
+    />
+  );
 }

@@ -32,7 +32,17 @@ function Mark({ m }: { m: Message }) {
  * Every message, grouped by day. Desktop: one line per message (who, subject + preview, inbox,
  * time). Phones: two lines (who + time, then subject + preview).
  */
-export function MessagesList({ messages, selectedId, onOpen, inboxName }: { messages: Message[]; selectedId: string | null; onOpen: (m: Message) => void; inboxName: (id: string) => string | undefined }) {
+export function MessagesList({
+  messages,
+  selectedId,
+  onOpen,
+  inboxName,
+}: {
+  messages: Message[];
+  selectedId: string | null;
+  onOpen: (m: Message) => void;
+  inboxName: (id: string) => string | undefined;
+}) {
   return (
     <List>
       {groupByDay(messages, (m) => m.created_at).map((g) => (
@@ -44,7 +54,13 @@ export function MessagesList({ messages, selectedId, onOpen, inboxName }: { mess
             const at = time.format(new Date(m.created_at));
             const preview = (m.extracted_text ?? m.text ?? "").replace(/\s+/g, " ").slice(0, 160);
             return (
-              <ListRow key={m.id} data-nav-id={m.id} selected={m.id === selectedId} onClick={() => onOpen(m)} className="items-start gap-3 py-2.5 md:items-center md:py-0">
+              <ListRow
+                key={m.id}
+                data-nav-id={m.id}
+                selected={m.id === selectedId}
+                onClick={() => onOpen(m)}
+                className="items-start gap-3 py-2.5 md:items-center md:py-0"
+              >
                 <span className="mt-1 flex w-3.5 justify-center md:mt-0">
                   <Mark m={m} />
                 </span>

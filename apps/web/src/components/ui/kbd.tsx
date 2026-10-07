@@ -7,8 +7,8 @@ export function Kbd({ className, ...props }: ComponentProps<"kbd">) {
     <kbd
       data-slot="kbd"
       className={cn(
-        "pointer-events-none inline-flex h-[18px] min-w-[18px] select-none items-center justify-center gap-0.5 rounded-[4px] border border-border-strong bg-muted px-1 font-sans text-[11px] font-medium leading-none text-muted-foreground",
-        className
+        "pointer-events-none inline-flex h-[18px] min-w-[18px] items-center justify-center gap-0.5 rounded-[4px] border border-border-strong bg-muted px-1 font-sans text-[11px] leading-none font-medium text-muted-foreground select-none",
+        className,
       )}
       {...props}
     />

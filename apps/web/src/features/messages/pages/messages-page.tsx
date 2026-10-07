@@ -28,13 +28,22 @@ export default function MessagesPage() {
     return (id: string) => map.get(id);
   }, [inboxes.items]);
 
-  useListNavigation({ ids: messages.items.map((m) => m.id), current: openId, onMove: setOpenId, onEscape: () => setOpenId(null), enabled: !openId });
+  useListNavigation({
+    ids: messages.items.map((m) => m.id),
+    current: openId,
+    onMove: setOpenId,
+    onEscape: () => setOpenId(null),
+    enabled: !openId,
+  });
   useHotkeys({ "/": () => document.getElementById("message-search")?.focus() });
 
   return (
     <Page>
       <PageHeader>
-        <Tabs value={filters.direction || "all"} onValueChange={(v) => setFilter("direction", v === "all" ? "" : (v as Filters["direction"]))}>
+        <Tabs
+          value={filters.direction || "all"}
+          onValueChange={(v) => setFilter("direction", v === "all" ? "" : (v as Filters["direction"]))}
+        >
           <TabsList aria-label="Direction">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="in">Received</TabsTrigger>
@@ -52,16 +61,29 @@ export default function MessagesPage() {
           isEmpty={(items) => items.length === 0}
           empty={
             active ? (
-              <EmptyState icon={SearchX} title="No messages match" description="Try a different search or fewer filters." action={<Button onClick={clear}>Clear filters</Button>} />
+              <EmptyState
+                icon={SearchX}
+                title="No messages match"
+                description="Try a different search or fewer filters."
+                action={<Button onClick={clear}>Clear filters</Button>}
+              />
             ) : (
-              <EmptyState icon={Mail} title="No messages yet" description="Everything your inboxes send and receive shows up here, grouped by day." />
+              <EmptyState
+                icon={Mail}
+                title="No messages yet"
+                description="Everything your inboxes send and receive shows up here, grouped by day."
+              />
             )
           }
         >
           {(items) => (
             <>
               <MessagesList messages={items} selectedId={openId} onOpen={(m: Message) => setOpenId(m.id)} inboxName={nameOf} />
-              <LoadMore hasNextPage={messages.hasNextPage} isFetchingNextPage={messages.isFetchingNextPage} fetchNextPage={() => void messages.fetchNextPage()} />
+              <LoadMore
+                hasNextPage={messages.hasNextPage}
+                isFetchingNextPage={messages.isFetchingNextPage}
+                fetchNextPage={() => void messages.fetchNextPage()}
+              />
             </>
           )}
         </QueryState>

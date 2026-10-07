@@ -7,14 +7,19 @@ export function RadioGroup({ className, ...props }: ComponentProps<typeof RadioG
 }
 
 /** A selectable card: title, description, and the radio dot. */
-export function RadioCard({ className, title, description, ...props }: ComponentProps<typeof RadioGroupPrimitive.Item> & { title: string; description?: string }) {
+export function RadioCard({
+  className,
+  title,
+  description,
+  ...props
+}: ComponentProps<typeof RadioGroupPrimitive.Item> & { title: string; description?: string }) {
   return (
     <RadioGroupPrimitive.Item
       data-slot="radio-card"
       className={cn(
-        "flex w-full cursor-pointer items-start gap-3 rounded-lg border bg-transparent p-3 text-left outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/40",
+        "flex w-full cursor-pointer items-start gap-3 rounded-lg border bg-transparent p-3 text-left transition-colors outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/40",
         "data-[state=checked]:border-brand/50 data-[state=checked]:bg-brand-soft/60",
-        className
+        className,
       )}
       {...props}
     >

@@ -17,7 +17,11 @@ const lastLink = async (to: string) => {
   return { subject: p.subject, link: p.text.match(/https:\/\/app\.test\/\S+/)?.[0] ?? null, from: p.from };
 };
 const tokenOf = (link: string | null) => new URL(link!).searchParams.get("token")!;
-const err = (p: Promise<unknown>) => p.then(() => null, (e: unknown) => e as AuthError);
+const err = (p: Promise<unknown>) =>
+  p.then(
+    () => null,
+    (e: unknown) => e as AuthError,
+  );
 
 beforeAll(async () => {
   ({ db, close } = await createTestDb());
@@ -61,7 +65,12 @@ describe("passwords", () => {
 
 describe("sign up → verify → onboard", () => {
   it("signs up, emails a verification link from noreply@send0.dev, and verifies", async () => {
-    const { user, session } = await auth.accounts.signUp({ email: "Dana@Acme.com", password: "tangerine-orbit-42", name: "Dana Rivera", ip: "1.1.1.1" });
+    const { user, session } = await auth.accounts.signUp({
+      email: "Dana@Acme.com",
+      password: "tangerine-orbit-42",
+      name: "Dana Rivera",
+      ip: "1.1.1.1",
+    });
     expect(user.email).toBe("dana@acme.com");
     expect(user.emailVerifiedAt).toBeNull();
     expect(session.token.length).toBeGreaterThan(40);
@@ -126,7 +135,8 @@ describe("log in / sessions", () => {
 
   it("rate-limits repeated failures per email", async () => {
     const attempts = [];
-    for (let i = 0; i < 11; i++) attempts.push((await err(auth.accounts.logIn({ email: "victim@acme.com", password: "guess-number-" + i })))?.code);
+    for (let i = 0; i < 11; i++)
+      attempts.push((await err(auth.accounts.logIn({ email: "victim@acme.com", password: "guess-number-" + i })))?.code);
     expect(attempts.slice(0, 10).every((c) => c === "invalid_credentials")).toBe(true);
     expect(attempts[10]).toBe("rate_limited");
   });
@@ -170,7 +180,10 @@ describe("forgot / reset password", () => {
     const { user } = await auth.accounts.signUp({ email: "never-verified@acme.com", password: "tangerine-orbit-42" });
     expect(user.emailVerifiedAt).toBeNull();
     await auth.accounts.requestPasswordReset({ email: "never-verified@acme.com" });
-    const { user: after } = await auth.accounts.resetPassword({ token: tokenOf((await lastLink("never-verified@acme.com")).link), password: "maple-river-31" });
+    const { user: after } = await auth.accounts.resetPassword({
+      token: tokenOf((await lastLink("never-verified@acme.com")).link),
+      password: "maple-river-31",
+    });
     expect(after.emailVerifiedAt).toBeInstanceOf(Date);
   });
 });
@@ -180,7 +193,13 @@ describe("change password", () => {
     const a = await auth.accounts.logIn({ email: "dana@acme.com", password: "violet-harbor-77" });
     const b = await auth.accounts.logIn({ email: "dana@acme.com", password: "violet-harbor-77" });
     const info = (await auth.sessions.resolve(a.session.token))!;
-    expect((await err(auth.accounts.changePassword(info.user, { current: "nope-nope-nope", next: "granite-lake-55", keepSessionId: info.sessionId })))?.field).toBe("current");
+    expect(
+      (
+        await err(
+          auth.accounts.changePassword(info.user, { current: "nope-nope-nope", next: "granite-lake-55", keepSessionId: info.sessionId }),
+        )
+      )?.field,
+    ).toBe("current");
     await auth.accounts.changePassword(info.user, { current: "violet-harbor-77", next: "granite-lake-55", keepSessionId: info.sessionId });
     expect(await auth.sessions.resolve(a.session.token)).not.toBeNull();
     expect(await auth.sessions.resolve(b.session.token)).toBeNull();

@@ -5,7 +5,13 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 
 /** Copies `value` to the clipboard and confirms with a check mark. */
-export function CopyButton({ value, label = "Copy", size = "icon-sm", variant = "ghost", ...props }: { value: string; label?: string } & Omit<ButtonProps, "onClick">) {
+export function CopyButton({
+  value,
+  label = "Copy",
+  size = "icon-sm",
+  variant = "ghost",
+  ...props
+}: { value: string; label?: string } & Omit<ButtonProps, "onClick">) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {

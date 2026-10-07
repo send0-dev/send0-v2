@@ -6,10 +6,7 @@ import { createSend0Server, type ServerOptions } from "./server";
  * responses, no session. Works anywhere with web-standard Request/Response (Workers, Deno, Bun,
  * Node 18+). The caller authenticates the request and passes a client acting as that caller.
  */
-export async function handleMcpHttp(
-  request: Request,
-  options: ServerOptions
-): Promise<Response> {
+export async function handleMcpHttp(request: Request, options: ServerOptions): Promise<Response> {
   const server = createSend0Server(options);
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,

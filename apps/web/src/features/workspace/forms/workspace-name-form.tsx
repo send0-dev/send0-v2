@@ -25,7 +25,11 @@ export function WorkspaceNameForm({
   disabled?: boolean;
   autoFocus?: boolean;
 }) {
-  const form = useForm<Values>({ resolver: zodResolver(workspaceNameSchema), defaultValues: { name: defaultName }, values: { name: defaultName } });
+  const form = useForm<Values>({
+    resolver: zodResolver(workspaceNameSchema),
+    defaultValues: { name: defaultName },
+    values: { name: defaultName },
+  });
   const submit = form.handleSubmit((v) => onSubmit(v.name, (e) => applyServerError(form, e)));
   return (
     <Form {...form}>

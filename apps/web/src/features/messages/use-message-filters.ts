@@ -18,7 +18,9 @@ export function useMessageFilters() {
   const filters: MessageFilters = {
     q: params.get("q") ?? "",
     direction: (["in", "out"].includes(params.get("direction") ?? "") ? params.get("direction") : "") as MessageFilters["direction"],
-    status: ((MESSAGE_STATUSES as readonly string[]).includes(params.get("status") ?? "") ? params.get("status") : "") as MessageFilters["status"],
+    status: ((MESSAGE_STATUSES as readonly string[]).includes(params.get("status") ?? "")
+      ? params.get("status")
+      : "") as MessageFilters["status"],
     inbox: params.get("inbox") ?? "",
   };
 
@@ -32,9 +34,9 @@ export function useMessageFilters() {
           next.delete("message");
           return next;
         },
-        { replace: true }
+        { replace: true },
       ),
-    [setParams]
+    [setParams],
   );
 
   const clear = useCallback(() => setParams({}, { replace: true }), [setParams]);
@@ -51,7 +53,7 @@ export function useApiFilters({ q, direction, status, inbox }: MessageFilters): 
       ...(status ? { status } : {}),
       ...(inbox ? { inbox_id: inbox } : {}),
     }),
-    [q, direction, status, inbox]
+    [q, direction, status, inbox],
   );
 }
 
@@ -67,7 +69,7 @@ export function useOpenMessage() {
         else next.delete("message");
         return next;
       }),
-    [setParams]
+    [setParams],
   );
   return [open, setOpen] as const;
 }

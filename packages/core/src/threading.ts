@@ -32,9 +32,7 @@ export interface ThreadInput {
   date: Date;
 }
 
-export type ThreadMatch =
-  | { threadId: string; matchedBy: "in-reply-to" | "references" | "subject" }
-  | { threadId: null; matchedBy: null };
+export type ThreadMatch = { threadId: string; matchedBy: "in-reply-to" | "references" | "subject" } | { threadId: null; matchedBy: null };
 
 /**
  * Which existing thread a message belongs to:

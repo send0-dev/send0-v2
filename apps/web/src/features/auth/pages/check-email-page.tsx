@@ -29,7 +29,8 @@ export default function CheckEmailPage() {
         title="Confirm your email"
         description={
           <>
-            We sent a link to <span className="font-medium text-foreground">{me.data?.user?.email}</span>. Open it to finish setting up. It works for 24 hours.
+            We sent a link to <span className="font-medium text-foreground">{me.data?.user?.email}</span>. Open it to finish setting up. It
+            works for 24 hours.
           </>
         }
       />

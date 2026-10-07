@@ -27,8 +27,8 @@ export function DropdownMenuContent({
         onCloseAutoFocus={opensDialogs ? (e) => e.preventDefault() : onCloseAutoFocus}
         className={cn(
           "z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-48 overflow-y-auto rounded-lg bg-elevated p-1 text-popover-foreground shadow-elevated",
-          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.98] data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
-          className
+          "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.98]",
+          className,
         )}
         {...props}
       />
@@ -36,15 +36,19 @@ export function DropdownMenuContent({
   );
 }
 
-export function DropdownMenuItem({ className, variant = "default", ...props }: ComponentProps<typeof DropdownMenuPrimitive.Item> & { variant?: "default" | "destructive" }) {
+export function DropdownMenuItem({
+  className,
+  variant = "default",
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.Item> & { variant?: "default" | "destructive" }) {
   return (
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
       data-variant={variant}
       className={cn(
-        "relative flex h-8 cursor-default select-none items-center gap-2 rounded-md px-2 text-[13px] outline-none focus:bg-selected data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex h-8 cursor-default items-center gap-2 rounded-md px-2 text-[13px] outline-none select-none focus:bg-selected data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive-soft [&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-muted-foreground data-[variant=destructive]:[&_svg]:text-destructive",
-        className
+        className,
       )}
       {...props}
     />
@@ -54,7 +58,10 @@ export function DropdownMenuItem({ className, variant = "default", ...props }: C
 export function DropdownMenuRadioItem({ className, children, ...props }: ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
   return (
     <DropdownMenuPrimitive.RadioItem
-      className={cn("relative flex h-8 cursor-default select-none items-center gap-2 rounded-md pr-8 pl-2 text-[13px] outline-none focus:bg-selected", className)}
+      className={cn(
+        "relative flex h-8 cursor-default items-center gap-2 rounded-md pr-8 pl-2 text-[13px] outline-none select-none focus:bg-selected",
+        className,
+      )}
       {...props}
     >
       {children}

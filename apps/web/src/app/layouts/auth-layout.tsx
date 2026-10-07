@@ -7,7 +7,10 @@ export function AuthLayout() {
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden bg-canvas">
       <div aria-hidden className="glow pointer-events-none absolute inset-x-0 top-0 h-[520px]" />
-      <div aria-hidden className="dots pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_top,black,transparent_60%)]" />
+      <div
+        aria-hidden
+        className="dots pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black,transparent_60%)] opacity-40"
+      />
       <main className="relative mx-auto flex w-full max-w-[380px] flex-1 flex-col justify-center px-6 py-16">
         <Link to="/" className="mb-8 w-fit" aria-label="send0">
           <LogoMark className="size-9 drop-shadow-[0_8px_24px_rgb(242_101_34/0.35)]" />
@@ -15,10 +18,18 @@ export function AuthLayout() {
         <Outlet />
       </main>
       <footer className="relative flex justify-center gap-5 pb-6 text-xs text-faint">
-        <a href="https://send0.dev" className="hover:text-muted-foreground">send0.dev</a>
-        <a href="https://send0.dev/terms" className="hover:text-muted-foreground">Terms</a>
-        <a href="https://send0.dev/privacy" className="hover:text-muted-foreground">Privacy</a>
-        <a href="https://send0.dev/docs" className="hover:text-muted-foreground">Docs</a>
+        <a href="https://send0.dev" className="hover:text-muted-foreground">
+          send0.dev
+        </a>
+        <a href="https://send0.dev/terms" className="hover:text-muted-foreground">
+          Terms
+        </a>
+        <a href="https://send0.dev/privacy" className="hover:text-muted-foreground">
+          Privacy
+        </a>
+        <a href="https://send0.dev/docs" className="hover:text-muted-foreground">
+          Docs
+        </a>
       </footer>
     </div>
   );

@@ -70,7 +70,8 @@ else console.log("Sent", reply.id, "in thread", reply.thread_id);
 The reply gets the right `In-Reply-To`, `References` and `Re:` subject, so it lands in the same conversation for the recipient.
 
 <Callout type="info">
-  Free accounts are **reply-only**: they can send to people who emailed the inbox first. That's exactly what a reply does. See [Sending](/concepts/sending).
+  Free accounts are **reply-only**: they can send to people who emailed the inbox first. That's
+  exactly what a reply does. See [Sending](/concepts/sending).
 </Callout>
 
 </Step>
@@ -89,6 +90,14 @@ for (const m of thread.messages) console.log(m.direction, m.from?.email, m.extra
 ## Next
 
 <Cards>
-  <Card title="Webhooks" href="/realtime/webhooks" description="React to new mail without keeping a connection open." />
-  <Card title="SDK reference" href="/reference/typescript-sdk" description="Every method, retries, errors and pagination." />
+  <Card
+    title="Webhooks"
+    href="/realtime/webhooks"
+    description="React to new mail without keeping a connection open."
+  />
+  <Card
+    title="SDK reference"
+    href="/reference/typescript-sdk"
+    description="Every method, retries, errors and pagination."
+  />
 </Cards>

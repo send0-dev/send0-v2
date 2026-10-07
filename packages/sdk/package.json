@@ -5,19 +5,38 @@
   "license": "MIT",
   "type": "module",
   "homepage": "https://send0.dev",
-  "keywords": ["email", "inbox", "ai", "agents", "api", "send0"],
+  "keywords": [
+    "email",
+    "inbox",
+    "ai",
+    "agents",
+    "api",
+    "send0"
+  ],
   "sideEffects": false,
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "generate": "openapi-typescript openapi.json -o src/generated/openapi.ts",
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",

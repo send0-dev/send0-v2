@@ -69,15 +69,15 @@ export async function handleEmail(
   now = new Date(),
 ): Promise<IngestResult | null> {
   const check = checkRecipient(message.to, cfg);
-  if (!check.ok) return reject(message, check.reason, check.smtp), null;
+  if (!check.ok) return (reject(message, check.reason, check.smtp), null);
   if (message.rawSize > MAX_MESSAGE_BYTES) {
-    return reject(message, "too_large", "5.3.4 Message too big", { size: message.rawSize }), null;
+    return (reject(message, "too_large", "5.3.4 Message too big", { size: message.rawSize }), null);
   }
 
   const { recipient } = check;
   const inbox = await findInboxByAddress(deps.db, recipient.localPart, recipient.domain);
-  if (!inbox) return reject(message, "unknown", "5.1.1 Mailbox does not exist"), null;
-  if (inbox.status !== "active") return reject(message, "suspended", "5.2.1 Mailbox disabled", { inbox_id: inbox.id }), null;
+  if (!inbox) return (reject(message, "unknown", "5.1.1 Mailbox does not exist"), null);
+  if (inbox.status !== "active") return (reject(message, "suspended", "5.2.1 Mailbox disabled", { inbox_id: inbox.id }), null);
 
   const id = newId("msg");
   const key = rawKey(inbox.orgId, id, now);
@@ -91,7 +91,9 @@ export async function handleEmail(
   let parsed: ParsedMessage;
   try {
     parsed = await parseInbound(raw, {
-      trustedAuthservIds: cfg.TRUSTED_AUTHSERV_IDS.split(",").map((s) => s.trim()).filter(Boolean),
+      trustedAuthservIds: cfg.TRUSTED_AUTHSERV_IDS.split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
     });
   } catch (err) {
     // Accepted and stored; a parser bug must never bounce mail. It can be re-ingested from raw_key.

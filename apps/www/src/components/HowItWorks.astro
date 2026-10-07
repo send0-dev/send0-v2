@@ -58,41 +58,41 @@ const lanes = [
 <section class="section" id="how-it-works" aria-labelledby="how-title">
   <div class="section-head reveal">
     <span class="eyebrow">How it works</span>
-    <h2 id="how-title" class="h2">The plumbing, done properly. <span class="dim">So you never have to.</span></h2>
+    <h2 id="how-title" class="h2">
+      The plumbing, done properly. <span class="dim">So you never have to.</span>
+    </h2>
     <p class="lede">
-      Email has fifty years of edge cases. send0 handles MIME, threading, authentication and deliverability, so
-      your agent gets clean, structured messages and your replies land where they should.
+      Email has fifty years of edge cases. send0 handles MIME, threading, authentication and deliverability, so your agent gets clean,
+      structured messages and your replies land where they should.
     </p>
   </div>
 
   <div class="lanes">
-    {
-      lanes.map((lane) => (
-        <div class="lane reveal">
-          <div class="lane-head">
-            <h3>{lane.name}</h3>
-            <span class="mono">{lane.caption}</span>
-          </div>
-          <ol>
-            {lane.steps.map((s, i) => (
-              <li>
-                <span class="step mono">{String(i + 1).padStart(2, "0")}</span>
-                <h4>{s.title}</h4>
-                <p>{s.body}</p>
-              </li>
-            ))}
-          </ol>
+    {lanes.map((lane) => (
+      <div class="lane reveal">
+        <div class="lane-head">
+          <h3>{lane.name}</h3>
+          <span class="mono">{lane.caption}</span>
         </div>
-      ))
-    }
+        <ol>
+          {lane.steps.map((s, i) => (
+            <li>
+              <span class="step mono">{String(i + 1).padStart(2, "0")}</span>
+              <h4>{s.title}</h4>
+              <p>{s.body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    ))}
   </div>
 
   <div class="callout reveal">
     <div>
       <h3>Every outbound message gets an ID that points home.</h3>
       <p>
-        send0 sets <code>Message-ID: &lt;msg_…@send0.email&gt;</code> on everything it sends. When someone replies, the
-        reply maps straight back to the right inbox and thread, even if they change the subject line or add people.
+        send0 sets <code>Message-ID: &lt;msg_…@send0.email&gt;</code> on everything it sends. When someone replies, the reply maps straight
+        back to the right inbox and thread, even if they change the subject line or add people.
       </p>
     </div>
     <pre class="headers mono" aria-label="Example threading headers"><span class="h">Message-ID:</span> &lt;msg_9Kd2@send0.email&gt;

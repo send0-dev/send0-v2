@@ -49,12 +49,17 @@ function scoreCandidate(text: string, index: number, raw: string, subjectHasKeyw
 
   // Things that look like codes but aren't.
   if (/^(?:19|20)\d{2}$/.test(value)) score -= 4; // years
-  if (/(?:order|invoice|ticket|case|ref(?:erence)?|account|acct|id|no\.?|number|#|zip|postal)\s*(?::|is|was)?\s*$/i.test(before)) score -= 5;
+  if (/(?:order|invoice|ticket|case|ref(?:erence)?|account|acct|id|no\.?|number|#|zip|postal)\s*(?::|is|was)?\s*$/i.test(before))
+    score -= 5;
   if (/^\s*(?:am|pm|usd|eur|inr|gb|mb|kb|px|ms|%|°)/i.test(after)) score -= 4;
   if (/(?:\+|tel:?|phone:?|call)\s*[\d\s()-]*$/i.test(before)) score -= 5;
   if (/^0+$/.test(value) || /^(\d)\1+$/.test(value)) score -= 3;
   // Discount codes are codes, just not the kind an agent needs to sign in.
-  if (/\b(?:promo|coupon|discount|voucher|gift|referral|sale)\b[^\n]{0,30}$/i.test(before) || /^[^\n]{0,25}\b(?:off|discount)\b/i.test(after)) score -= 6;
+  if (
+    /\b(?:promo|coupon|discount|voucher|gift|referral|sale)\b[^\n]{0,30}$/i.test(before) ||
+    /^[^\n]{0,25}\b(?:off|discount)\b/i.test(after)
+  )
+    score -= 6;
 
   return score;
 }
@@ -66,7 +71,11 @@ export function extractOtp(text: string, subject = ""): string | null {
 
   const candidates: Candidate[] = [];
   for (const m of body.matchAll(NUMERIC)) {
-    candidates.push({ value: m[1]!.replace(/[ -]/g, ""), index: m.index!, score: scoreCandidate(body, m.index!, m[1]!, subjectHasKeyword) });
+    candidates.push({
+      value: m[1]!.replace(/[ -]/g, ""),
+      index: m.index!,
+      score: scoreCandidate(body, m.index!, m[1]!, subjectHasKeyword),
+    });
   }
   for (const m of body.matchAll(ALNUM)) {
     candidates.push({ value: m[1]!, index: m.index!, score: scoreCandidate(body, m.index!, m[1]!, subjectHasKeyword) - 1 });
@@ -81,7 +90,8 @@ export function extractOtp(text: string, subject = ""): string | null {
   return best && best.score >= 5 ? best.value : null;
 }
 
-const ACTION = /verif|confirm|activat|magic|log-?in|sign-?in|signin|auth|token|reset|password|invite|accept|approve|validate|one-?time|otp/i;
+const ACTION =
+  /verif|confirm|activat|magic|log-?in|sign-?in|signin|auth|token|reset|password|invite|accept|approve|validate|one-?time|otp/i;
 const DROP = /unsubscribe|optout|opt-out|email-preferences|manage[-_]?preferences|\/track\/|\/open\?|pixel|beacon/i;
 const DROP_HOSTS = /(?:^|\.)(?:list-manage\.com|sendgrid\.net\/wf\/open|mandrillapp\.com\/track)/i;
 

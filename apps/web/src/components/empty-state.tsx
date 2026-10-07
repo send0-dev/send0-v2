@@ -3,7 +3,19 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** What a view shows when it has nothing yet: a glyph on a soft glow, what this is, and the next step. */
-export function EmptyState({ icon: Icon, title, description, action, className }: { icon?: LucideIcon; title: string; description?: ReactNode; action?: ReactNode; className?: string }) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  className,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  description?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+}) {
   return (
     <div className={cn("flex animate-enter flex-col items-center justify-center px-6 py-16 text-center", className)}>
       {Icon && (

@@ -19,26 +19,29 @@ export function TransferOwnershipSection({ workspace }: { workspace: WorkspaceRe
   const chosen = admins.find((a) => a.user_id === target);
   return (
     <SettingsSection title="Ownership">
-      <SettingsRow label="Transfer ownership" description={admins.length ? "Make an admin the owner. You'll stay on as an admin." : "Make someone an admin in Members first."}>
-      {admins.length > 0 && (
-        <>
-          <Select value={target} onValueChange={setTarget}>
-            <SelectTrigger className="w-44 max-sm:flex-1" aria-label="New owner">
-              <SelectValue placeholder="Choose an admin" />
-            </SelectTrigger>
-            <SelectContent>
-              {admins.map((a) => (
-                <SelectItem key={a.user_id} value={a.user_id}>
-                  {a.name ?? a.email}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button disabled={!chosen} onClick={() => setConfirming(true)}>
-            Transfer
-          </Button>
-        </>
-      )}
+      <SettingsRow
+        label="Transfer ownership"
+        description={admins.length ? "Make an admin the owner. You'll stay on as an admin." : "Make someone an admin in Members first."}
+      >
+        {admins.length > 0 && (
+          <>
+            <Select value={target} onValueChange={setTarget}>
+              <SelectTrigger className="w-44 max-sm:flex-1" aria-label="New owner">
+                <SelectValue placeholder="Choose an admin" />
+              </SelectTrigger>
+              <SelectContent>
+                {admins.map((a) => (
+                  <SelectItem key={a.user_id} value={a.user_id}>
+                    {a.name ?? a.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button disabled={!chosen} onClick={() => setConfirming(true)}>
+              Transfer
+            </Button>
+          </>
+        )}
       </SettingsRow>
       <ConfirmDialog
         open={confirming}

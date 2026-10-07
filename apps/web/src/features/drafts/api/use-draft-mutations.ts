@@ -26,7 +26,10 @@ function useDecision<R>(decide: (id: string) => Promise<R>, callbacks: DecisionC
     onSuccess: (_r, draft) => callbacks.onSuccess?.(draft),
     onMutate: async (draft) => {
       await qc.cancelQueries({ queryKey: draftKeys.list("pending") });
-      qc.setQueryData<Cache>(draftKeys.list("pending"), (d) => d && { ...d, pages: d.pages.map((p) => ({ ...p, data: p.data.filter((x) => x.id !== draft.id) })) });
+      qc.setQueryData<Cache>(
+        draftKeys.list("pending"),
+        (d) => d && { ...d, pages: d.pages.map((p) => ({ ...p, data: p.data.filter((x) => x.id !== draft.id) })) },
+      );
     },
     // On failure the settle below refetches the queue, which brings the draft back. (Restoring a
     // snapshot instead would also undo other decisions made in the meantime.)

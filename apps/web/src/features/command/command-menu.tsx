@@ -6,7 +6,15 @@ import { useTheme } from "@/app/theme";
 import { InboxDot } from "@/components/avatar";
 import { MAIN_NAV, WORKSPACE_NAV, type NavItem } from "@/app/layouts/nav-items";
 import { Kbd } from "@/components/ui/kbd";
-import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
 import { CreateApiKeyDialog } from "@/features/api-keys/components/create-api-key-dialog";
 import { CreateInboxDialog } from "@/features/inboxes/components/create-inbox-dialog";
 import { useInboxes } from "@/features/inboxes/api/use-inboxes";
@@ -64,7 +72,11 @@ export function CommandMenu() {
           {inboxes.items.length > 0 && (
             <CommandGroup heading="Inboxes">
               {inboxes.items.map((i) => (
-                <CommandItem key={i.id} value={`inbox ${i.address} ${i.display_name ?? ""}`} onSelect={() => run(() => void navigate(`/inboxes/${i.id}`))}>
+                <CommandItem
+                  key={i.id}
+                  value={`inbox ${i.address} ${i.display_name ?? ""}`}
+                  onSelect={() => run(() => void navigate(`/inboxes/${i.id}`))}
+                >
                   <InboxDot id={i.id} className="size-2.5" />
                   {i.display_name || i.local_part}
                   <span className="ml-auto font-mono text-xs text-faint">{i.address}</span>

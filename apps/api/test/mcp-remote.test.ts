@@ -6,26 +6,19 @@ import { deliver, fixture, setup, type TestEnv } from "./helpers";
 let t: TestEnv;
 const BASE = "https://api.test";
 // The MCP client speaks HTTP; route its requests into the app in-process.
-const appFetch = ((input: RequestInfo | URL, init?: RequestInit) =>
-  t.app.fetch(new Request(input, init))) as typeof fetch;
+const appFetch = ((input: RequestInfo | URL, init?: RequestInit) => t.app.fetch(new Request(input, init))) as typeof fetch;
 
 async function connect(key: string | null, query = "") {
   const client = new Client({ name: "remote-agent", version: "1.0.0" });
-  const transport = new StreamableHTTPClientTransport(
-    new URL(`${BASE}/mcp${query}`),
-    {
-      fetch: appFetch,
-      requestInit: key
-        ? { headers: { authorization: `Bearer ${key}` } }
-        : undefined,
-    }
-  );
+  const transport = new StreamableHTTPClientTransport(new URL(`${BASE}/mcp${query}`), {
+    fetch: appFetch,
+    requestInit: key ? { headers: { authorization: `Bearer ${key}` } } : undefined,
+  });
   await client.connect(transport);
   return client;
 }
 
-const textOf = (r: unknown) =>
-  (r as { content: { text: string }[] }).content.map((c) => c.text).join("\n");
+const textOf = (r: unknown) => (r as { content: { text: string }[] }).content.map((c) => c.text).join("\n");
 
 beforeAll(async () => {
   t = await setup({
@@ -53,14 +46,11 @@ describe("remote MCP server (/mcp)", () => {
       headers: {
         origin: "https://inspector.example",
         "access-control-request-method": "POST",
-        "access-control-request-headers":
-          "authorization,content-type,mcp-protocol-version",
+        "access-control-request-headers": "authorization,content-type,mcp-protocol-version",
       },
     });
     expect(r.status).toBe(204);
-    expect(r.headers.get("access-control-allow-headers")).toMatch(
-      /authorization/
-    );
+    expect(r.headers.get("access-control-allow-headers")).toMatch(/authorization/);
   });
 
   it("lists the same tools as the local server and runs them as the key", async () => {
@@ -73,20 +63,16 @@ describe("remote MCP server (/mcp)", () => {
       await mcp.callTool({
         name: "create_inbox",
         arguments: { name: "remote-agent" },
-      })
+      }),
     );
     expect(created).toMatch(/Created inbox remote-agent@send0\.email/);
-    await deliver(
-      t.db,
-      "remote-agent@send0.email",
-      fixture("otp-html-only.eml")
-    );
+    await deliver(t.db, "remote-agent@send0.email", fixture("otp-html-only.eml"));
     const inboxId = created.match(/id: (ibx_\w+)/)![1]!;
     const waited = textOf(
       await mcp.callTool({
         name: "wait_for_email",
         arguments: { inbox_id: inboxId, timeout: 1 },
-      })
+      }),
     );
     expect(waited).toMatch(/482913/);
     await mcp.close();
@@ -94,18 +80,12 @@ describe("remote MCP server (/mcp)", () => {
 
   it("keeps an inbox-scoped key to its inbox, and honours ?inbox_id as the default", async () => {
     const list = await t.call("GET", "/v1/inboxes");
-    const inbox = list.body.data.find(
-      (i: { local_part: string }) => i.local_part === "remote-agent"
-    );
-    const other = (
-      await t.call("POST", "/v1/inboxes", { body: { name: "other-remote" } })
-    ).body;
+    const inbox = list.body.data.find((i: { local_part: string }) => i.local_part === "remote-agent");
+    const other = (await t.call("POST", "/v1/inboxes", { body: { name: "other-remote" } })).body;
     const scoped = await t.makeKey({ scopes: ["read"], inboxIds: [inbox.id] });
 
     const mcp = await connect(scoped, `?inbox_id=${inbox.id}`);
-    const threads = textOf(
-      await mcp.callTool({ name: "list_threads", arguments: {} })
-    );
+    const threads = textOf(await mcp.callTool({ name: "list_threads", arguments: {} }));
     expect(threads).toMatch(/482913|code/i);
     const denied = await mcp.callTool({
       name: "list_threads",

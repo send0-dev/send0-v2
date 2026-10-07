@@ -11,17 +11,17 @@ Authorization: Bearer s0_live_7FqK…
 
 ## Live and test keys
 
-| Prefix | What it does |
-|---|---|
-| `s0_live_` | Real sending and receiving |
+| Prefix     | What it does                                                                                                                                   |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `s0_live_` | Real sending and receiving                                                                                                                     |
 | `s0_test_` | Goes through every check (policy, suppression, limits) and records the message as `sent`, but **never delivers it**. Use it in CI and staging. |
 
 ## Scopes
 
-| Scope | Allows |
-|---|---|
-| `read` | List and read inboxes, threads, messages, attachments; `wait`; the event stream |
-| `send` | Create inboxes; send, reply, forward; update inboxes |
+| Scope   | Allows                                                                                   |
+| ------- | ---------------------------------------------------------------------------------------- |
+| `read`  | List and read inboxes, threads, messages, attachments; `wait`; the event stream          |
+| `send`  | Create inboxes; send, reply, forward; update inboxes                                     |
 | `admin` | Everything, plus API keys, webhooks, deleting inboxes, and approving or rejecting drafts |
 
 New keys default to `["read", "send"]`.
@@ -40,6 +40,7 @@ console.log(key.key); // shown once
 ```
 
 An inbox-limited key:
+
 - sees only its inboxes. Every other inbox, thread or message returns `404`, so IDs can't be probed.
 - can't create inboxes or manage webhooks.
 - can't create a key with more reach than it has.

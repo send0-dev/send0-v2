@@ -56,7 +56,6 @@ const jsonLd = {
     <meta name="twitter:image" content={ogImage} />
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-
     <script is:inline>
       (function () {
         var d = document.documentElement;
@@ -68,13 +67,14 @@ const jsonLd = {
     </script>
   </head>
   <body>
-    <a class="skip" href="#main">Skip to content</a>
+    <a class="skip" href="#main">
+      Skip to content
+    </a>
     <Nav />
     <main id="main">
       <slot />
     </main>
     <Footer />
-
 
     <style>
       .skip {

@@ -40,34 +40,35 @@ const inbound = [
 <section class="section" id="safety" aria-labelledby="safety-title">
   <div class="section-head reveal">
     <span class="eyebrow">Trust and safety</span>
-    <h2 id="safety-title" class="h2">Built so good mail keeps landing. <span class="dim">For everyone.</span></h2>
+    <h2 id="safety-title" class="h2">
+      Built so good mail keeps landing. <span class="dim">For everyone.</span>
+    </h2>
     <p class="lede">
-      A shared sending domain only works if no one abuses it. These controls are on from the first day, on every
-      account, and they're written into our <a href="/acceptable-use">acceptable use policy</a>.
+      A shared sending domain only works if no one abuses it. These controls are on from the first day, on every account, and they're
+      written into our <a href="/acceptable-use">acceptable use policy</a>.
     </p>
   </div>
 
   <div class="layout">
     <div class="grid">
-      {
-        outbound.map((o) => (
-          <article class="item reveal">
-            <h3>{o.title}</h3>
-            <p>{o.body}</p>
-          </article>
-        ))
-      }
+      {outbound.map((o) => (
+        <article class="item reveal">
+          <h3>{o.title}</h3>
+          <p>{o.body}</p>
+        </article>
+      ))}
     </div>
 
     <aside class="panel reveal">
       <span class="mono label">Protecting your agent</span>
       <h3>Inbound mail is untrusted input. send0 treats it that way.</h3>
       <ul>
-        {inbound.map((t) => <li>{t}</li>)}
+        {inbound.map((t) => (
+          <li>{t}</li>
+        ))}
       </ul>
       <p class="report">
-        See something wrong? Write to <a href={`mailto:${site.email.abuse}`}>{site.email.abuse}</a>. A person reads every
-        report.
+        See something wrong? Write to <a href={`mailto:${site.email.abuse}`}>{site.email.abuse}</a>. A person reads every report.
       </p>
     </aside>
   </div>

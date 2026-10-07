@@ -21,17 +21,17 @@ GET /v1/inboxes/{inbox_id}/messages/wait?from=*@github.com&subject=verify&timeou
 
 It returns the **first** message (oldest first) that matches all the filters and arrived **at or after `since`**:
 
-| Parameter | Default | |
-|---|---|---|
-| `from` | any | Exact address or wildcard: `*@github.com`, `noreply@*`. Case-insensitive. |
-| `subject` | any | Case-insensitive substring. |
-| `direction` | `in` | Set `out` to wait for your own sent messages. |
-| `since` | one minute before the call | ISO timestamp. Messages before it are ignored. |
-| `timeout` | `30` | Seconds, 1–120 per HTTP request. |
+| Parameter   | Default                    |                                                                           |
+| ----------- | -------------------------- | ------------------------------------------------------------------------- |
+| `from`      | any                        | Exact address or wildcard: `*@github.com`, `noreply@*`. Case-insensitive. |
+| `subject`   | any                        | Case-insensitive substring.                                               |
+| `direction` | `in`                       | Set `out` to wait for your own sent messages.                             |
+| `since`     | one minute before the call | ISO timestamp. Messages before it are ignored.                            |
+| `timeout`   | `30`                       | Seconds, 1–120 per HTTP request.                                          |
 
 The default `since` means a message that arrived **just before** you called `wait` is still returned. Trigger the email, then wait, with no race.
 
-To wait for the *next* email after one you've already handled, pass `since` as that message's `created_at`, or the time you triggered the new one.
+To wait for the _next_ email after one you've already handled, pass `since` as that message's `created_at`, or the time you triggered the new one.
 
 ## Timeouts
 

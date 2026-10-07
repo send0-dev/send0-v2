@@ -29,8 +29,7 @@ export interface SendPayload {
 }
 
 export type SendResult =
-  | { kind: "message"; message: ReturnType<typeof serializeMessage> }
-  | { kind: "draft"; draft: ReturnType<typeof serializeDraft> };
+  { kind: "message"; message: ReturnType<typeof serializeMessage> } | { kind: "draft"; draft: ReturnType<typeof serializeDraft> };
 
 export const serializeDraft = (d: typeof drafts.$inferSelect) => ({
   object: "draft" as const,
@@ -52,14 +51,7 @@ export const serializeDraft = (d: typeof drafts.$inferSelect) => ({
 
 const lower = (list: MailboxJson[]) => list.map((m) => m.email.toLowerCase());
 
-async function recordEvent(
-  deps: AppDeps,
-  orgId: string,
-  inboxId: string | null,
-  type: string,
-  data: Record<string, unknown>,
-  at: Date
-) {
+async function recordEvent(deps: AppDeps, orgId: string, inboxId: string | null, type: string, data: Record<string, unknown>, at: Date) {
   const row = {
     id: newId("evt"),
     orgId,
@@ -71,8 +63,7 @@ async function recordEvent(
   await deps.db.insert(events).values(row);
   const envelope = toEnvelope(row);
   const publishing = deps.publish?.(orgId, envelope);
-  if (publishing)
-    deps.waitUntil ? deps.waitUntil(publishing) : await publishing;
+  if (publishing) deps.waitUntil ? deps.waitUntil(publishing) : await publishing;
   return envelope;
 }
 
@@ -86,20 +77,14 @@ export async function send(
   inbox: InboxRow,
   domain: string,
   payload: SendPayload,
-  opts: { approved?: boolean } = {}
+  opts: { approved?: boolean } = {},
 ): Promise<SendResult> {
   const { db } = deps;
   const now = deps.now?.() ?? new Date();
   const [org] = await db.select().from(orgs).where(eq(orgs.id, auth.orgId));
   if (!org) throw new ApiError(404, "not_found", "Organization not found.");
 
-  const recipients = [
-    ...new Set([
-      ...lower(payload.to),
-      ...lower(payload.cc),
-      ...lower(payload.bcc),
-    ]),
-  ];
+  const recipients = [...new Set([...lower(payload.to), ...lower(payload.cc), ...lower(payload.bcc)])];
   await checkSendPolicy(db, { org, inbox, recipients, now });
 
   if (inbox.sendPolicy === "approval" && !opts.approved) {
@@ -186,12 +171,7 @@ export async function send(
   // 2. Hand it to SES. Test keys never send: the message is marked sent without leaving.
   let providerMessageId: string | null = null;
   if (auth.mode === "live") {
-    if (!deps.mailer)
-      throw new ApiError(
-        503,
-        "sending_unavailable",
-        "Sending isn't configured on this server."
-      );
+    if (!deps.mailer) throw new ApiError(503, "sending_unavailable", "Sending isn't configured on this server.");
     try {
       ({ providerMessageId } = await deps.mailer.sendRaw({
         from: address,
@@ -206,22 +186,14 @@ export async function send(
         .set({ status: "failed", error: message.slice(0, 500) })
         .where(eq(messages.id, id));
       if (err instanceof MailerError) {
-        throw new ApiError(
-          err.retryable ? 503 : 502,
-          err.retryable ? "send_temporarily_failed" : "send_failed",
-          message
-        );
+        throw new ApiError(err.retryable ? 503 : 502, err.retryable ? "send_temporarily_failed" : "send_failed", message);
       }
       throw err;
     }
   }
 
   // 3. Sent: record it, count it, tell listeners.
-  const [sent] = await db
-    .update(messages)
-    .set({ status: "sent", providerMessageId, sentAt: now })
-    .where(eq(messages.id, id))
-    .returning();
+  const [sent] = await db.update(messages).set({ status: "sent", providerMessageId, sentAt: now }).where(eq(messages.id, id)).returning();
   await db
     .insert(usage)
     .values({ orgId: org.id, period: now.toISOString().slice(0, 7), sent: 1 })

@@ -16,12 +16,26 @@ const inbox = await send0.inboxes.create({
 
 <TypeTable
   type={{
-    name: { description: 'Local part: a-z, 0-9, dot, dash, underscore. Random if omitted.', type: 'string' },
-    domain: { description: 'send0.email by default, or a verified custom domain (coming soon).', type: 'string' },
-    display_name: { description: 'Sender name. If unset, one is derived from the name: procurement-agent → "Procurement Agent".', type: 'string | null' },
-    send_policy: { description: 'Who this inbox may email.', type: '"open" | "reply_only" | "approval"', default: '"reply_only"' },
-    metadata: { description: 'Up to 20 string/number/boolean values.', type: 'object' },
-    expires_at: { description: 'Optional ISO timestamp.', type: 'string' },
+    name: {
+      description: "Local part: a-z, 0-9, dot, dash, underscore. Random if omitted.",
+      type: "string",
+    },
+    domain: {
+      description: "send0.email by default, or a verified custom domain (coming soon).",
+      type: "string",
+    },
+    display_name: {
+      description:
+        'Sender name. If unset, one is derived from the name: procurement-agent → "Procurement Agent".',
+      type: "string | null",
+    },
+    send_policy: {
+      description: "Who this inbox may email.",
+      type: '"open" | "reply_only" | "approval"',
+      default: '"reply_only"',
+    },
+    metadata: { description: "Up to 20 string/number/boolean values.", type: "object" },
+    expires_at: { description: "Optional ISO timestamp.", type: "string" },
   }}
 />
 
@@ -34,11 +48,11 @@ const inbox = await send0.inboxes.create({
 
 ## Send policies
 
-| Policy | Behaviour |
-|---|---|
+| Policy       | Behaviour                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------- |
 | `reply_only` | Can only send to addresses that have already emailed this inbox. **Free accounts are always reply-only.** |
-| `open` | Can send to anyone (paid plans, subject to limits and the acceptable use policy). |
-| `approval` | Every outgoing message becomes a [draft](/concepts/drafts) that a person approves. |
+| `open`       | Can send to anyone (paid plans, subject to limits and the acceptable use policy).                         |
+| `approval`   | Every outgoing message becomes a [draft](/concepts/drafts) that a person approves.                        |
 
 Change it any time:
 

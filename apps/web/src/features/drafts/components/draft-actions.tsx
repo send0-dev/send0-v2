@@ -4,7 +4,17 @@ import { useCan } from "@/lib/permissions";
 import { useHotkeys } from "@/lib/use-hotkeys";
 
 /** The decision, pinned under the draft: edit, reject, approve, with E / X / A shortcuts. */
-export function DraftActions({ onApprove, onReject, onEdit, deciding }: { onApprove: () => void; onReject: () => void; onEdit: () => void; deciding: "approve" | "reject" | null }) {
+export function DraftActions({
+  onApprove,
+  onReject,
+  onEdit,
+  deciding,
+}: {
+  onApprove: () => void;
+  onReject: () => void;
+  onEdit: () => void;
+  deciding: "approve" | "reject" | null;
+}) {
   const canDecide = useCan("draft.decide");
   const canEdit = useCan("draft.edit");
   const live = canDecide && !deciding;

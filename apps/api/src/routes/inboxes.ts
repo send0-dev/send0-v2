@@ -64,11 +64,7 @@ function randomLocalPart(): string {
 
 /** Visible inboxes for this key: same org, not deleted, and inside the key's inbox scope. */
 function visible(auth: AuthContext): SQL {
-  return and(
-    eq(inboxes.orgId, auth.orgId),
-    isNull(inboxes.deletedAt),
-    auth.inboxIds ? inArray(inboxes.id, auth.inboxIds) : undefined,
-  )!;
+  return and(eq(inboxes.orgId, auth.orgId), isNull(inboxes.deletedAt), auth.inboxIds ? inArray(inboxes.id, auth.inboxIds) : undefined)!;
 }
 
 async function loadInbox(c: { get: (k: "deps") => AppEnv["Variables"]["deps"] }, auth: AuthContext, id: string) {
@@ -151,7 +147,12 @@ export const inboxRoutes = new Hono<AppEnv>()
       .orderBy(...pageOrder(inboxes.createdAt, inboxes.id))
       .limit(limit + 1);
     return c.json(
-      toPage(rows, limit, (r) => ({ at: r.inbox.createdAt, id: r.inbox.id }), (r) => serializeInbox(r.inbox, r.domain)),
+      toPage(
+        rows,
+        limit,
+        (r) => ({ at: r.inbox.createdAt, id: r.inbox.id }),
+        (r) => serializeInbox(r.inbox, r.domain),
+      ),
     );
   })
 
@@ -187,10 +188,6 @@ export const inboxRoutes = new Hono<AppEnv>()
     const { inbox, domain } = await loadInbox(c, auth, c.req.param("id"));
     const { db, now = () => new Date() } = c.get("deps");
     // Soft delete: the address is never handed to anyone else, and mail to it is refused from now on.
-    const [row] = await db
-      .update(inboxes)
-      .set({ status: "deleted", deletedAt: now() })
-      .where(eq(inboxes.id, inbox.id))
-      .returning();
+    const [row] = await db.update(inboxes).set({ status: "deleted", deletedAt: now() }).where(eq(inboxes.id, inbox.id)).returning();
     return c.json({ ...serializeInbox(row!, domain), deleted: true });
   });

@@ -49,25 +49,24 @@ const faqs = [
   <div class="layout">
     <div class="section-head reveal">
       <span class="eyebrow">FAQ</span>
-      <h2 id="faq-title" class="h2">Questions, <span class="dim">answered.</span></h2>
+      <h2 id="faq-title" class="h2">
+        Questions, <span class="dim">answered.</span>
+      </h2>
       <p class="lede">
-        Something missing? Email <a href={`mailto:${site.email.hello}`}>{site.email.hello}</a> and you'll get a reply
-        from a person.
+        Something missing? Email <a href={`mailto:${site.email.hello}`}>{site.email.hello}</a> and you'll get a reply from a person.
       </p>
     </div>
 
     <div class="list reveal">
-      {
-        faqs.map((f, i) => (
-          <details name="faq" open={i === 0}>
-            <summary>
-              <span>{f.q}</span>
-              <span class="plus" aria-hidden="true" />
-            </summary>
-            <div class="answer" set:html={f.a} />
-          </details>
-        ))
-      }
+      {faqs.map((f, i) => (
+        <details name="faq" open={i === 0}>
+          <summary>
+            <span>{f.q}</span>
+            <span class="plus" aria-hidden="true" />
+          </summary>
+          <div class="answer" set:html={f.a} />
+        </details>
+      ))}
     </div>
   </div>
 </section>

@@ -18,14 +18,20 @@ export function TableBody({ className, ...props }: ComponentProps<"tbody">) {
 }
 
 export function TableRow({ className, ...props }: ComponentProps<"tr">) {
-  return <tr data-slot="table-row" className={cn("border-b border-border/60 transition-colors data-[state=selected]:bg-selected", className)} {...props} />;
+  return (
+    <tr
+      data-slot="table-row"
+      className={cn("border-b border-border/60 transition-colors data-[state=selected]:bg-selected", className)}
+      {...props}
+    />
+  );
 }
 
 export function TableHead({ className, ...props }: ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
-      className={cn("h-9 whitespace-nowrap px-3 text-left align-middle text-[11px] font-medium text-faint first:pl-5 last:pr-5", className)}
+      className={cn("h-9 px-3 text-left align-middle text-[11px] font-medium whitespace-nowrap text-faint first:pl-5 last:pr-5", className)}
       {...props}
     />
   );

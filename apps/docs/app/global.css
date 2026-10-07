@@ -1,6 +1,6 @@
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
 /* send0 brand: monochrome with the orange signal accent from send0.dev */
 @theme {
@@ -29,7 +29,7 @@
 }
 
 /* Active sidebar item: a thin accent marker. */
-#nd-sidebar a[data-active='true'] {
+#nd-sidebar a[data-active="true"] {
   box-shadow: inset 2px 0 0 var(--color-send0-accent);
 }
 

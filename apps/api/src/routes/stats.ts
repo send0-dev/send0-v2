@@ -53,10 +53,23 @@ export const statsRoutes = new Hono<AppEnv>().get("/", validate("query", statsQu
   const series = Array.from({ length: days }, (_, i) => {
     const date = new Date(from.getTime() + i * DAY_MS).toISOString().slice(0, 10);
     const r = byDay.get(date);
-    return { date, received: r?.received ?? 0, sent: r?.sent ?? 0, delivered: r?.delivered ?? 0, bounced: r?.bounced ?? 0, failed: r?.failed ?? 0 };
+    return {
+      date,
+      received: r?.received ?? 0,
+      sent: r?.sent ?? 0,
+      delivered: r?.delivered ?? 0,
+      bounced: r?.bounced ?? 0,
+      failed: r?.failed ?? 0,
+    };
   });
   const totals = series.reduce(
-    (t, d) => ({ received: t.received + d.received, sent: t.sent + d.sent, delivered: t.delivered + d.delivered, bounced: t.bounced + d.bounced, failed: t.failed + d.failed }),
+    (t, d) => ({
+      received: t.received + d.received,
+      sent: t.sent + d.sent,
+      delivered: t.delivered + d.delivered,
+      bounced: t.bounced + d.bounced,
+      failed: t.failed + d.failed,
+    }),
     { received: 0, sent: 0, delivered: 0, bounced: 0, failed: 0 },
   );
   return c.json({ object: "stats" as const, from: from.toISOString(), days: series, totals });

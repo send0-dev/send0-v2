@@ -39,7 +39,13 @@ export function InlineTextForm({
           render={({ field }) => (
             <FormItem className="w-60 max-sm:w-full">
               <FormControl>
-                <Input {...field} aria-label={label} placeholder={placeholder} disabled={disabled} onKeyDown={(e) => e.key === "Escape" && form.reset()} />
+                <Input
+                  {...field}
+                  aria-label={label}
+                  placeholder={placeholder}
+                  disabled={disabled}
+                  onKeyDown={(e) => e.key === "Escape" && form.reset()}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

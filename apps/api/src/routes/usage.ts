@@ -16,11 +16,21 @@ export const usageRoutes = new Hono<AppEnv>().get("/", async (c) => {
   const at = now();
   const [[org], [inboxCount], [sent]] = await Promise.all([
     db.select().from(orgs).where(eq(orgs.id, auth.orgId)),
-    db.select({ n: count() }).from(inboxes).where(and(eq(inboxes.orgId, auth.orgId), isNull(inboxes.deletedAt))),
+    db
+      .select({ n: count() })
+      .from(inboxes)
+      .where(and(eq(inboxes.orgId, auth.orgId), isNull(inboxes.deletedAt))),
     db
       .select({ n: count() })
       .from(messages)
-      .where(and(eq(messages.orgId, auth.orgId), eq(messages.direction, "out"), ne(messages.status, "failed"), gte(messages.createdAt, startOfUtcDay(at)))),
+      .where(
+        and(
+          eq(messages.orgId, auth.orgId),
+          eq(messages.direction, "out"),
+          ne(messages.status, "failed"),
+          gte(messages.createdAt, startOfUtcDay(at)),
+        ),
+      ),
   ]);
   const resetsAt = new Date(startOfUtcDay(at).getTime() + 86_400_000);
   return c.json({

@@ -41,7 +41,11 @@ export function SidebarInboxes({ onNavigate }: { onNavigate?: () => void }) {
         </SidebarLink>
       ))}
       {inboxes.items.length > SHOWN && (
-        <button type="button" onClick={() => setAll((a) => !a)} className="h-7 cursor-pointer rounded-md px-2 text-left text-xs text-faint hover:bg-hover hover:text-foreground">
+        <button
+          type="button"
+          onClick={() => setAll((a) => !a)}
+          className="h-7 cursor-pointer rounded-md px-2 text-left text-xs text-faint hover:bg-hover hover:text-foreground"
+        >
           {all ? "Show less" : `${inboxes.items.length - SHOWN} more`}
         </button>
       )}

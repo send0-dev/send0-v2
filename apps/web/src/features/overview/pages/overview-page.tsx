@@ -42,7 +42,10 @@ export default function OverviewPage() {
       <PageHeader actions={<RangePicker value={range} onChange={setRange} />} />
       <PageBody>
         <PageContent className="grid grid-cols-[minmax(0,1fr)] gap-6">
-          <PageTitle title={`${greeting()}${user.name ? `, ${user.name.split(" ")[0]}` : ""}`} description={`Here's what's happening in ${workspace.name} over the last ${range} days.`} />
+          <PageTitle
+            title={`${greeting()}${user.name ? `, ${user.name.split(" ")[0]}` : ""}`}
+            description={`Here's what's happening in ${workspace.name} over the last ${range} days.`}
+          />
 
           {usage.data?.sending.paused && <SendingPausedAlert sending={usage.data.sending} />}
           <PendingDraftsBanner />

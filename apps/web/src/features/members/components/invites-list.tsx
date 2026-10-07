@@ -46,8 +46,17 @@ export function InvitesList({ invites }: { invites: InviteRow[] }) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => resend.mutate(i.id, { onSuccess: () => toast.success(`Sent a new invitation to ${i.email}`), onError: fail })}>Resend invitation</DropdownMenuItem>
-                  <DropdownMenuItem variant="destructive" onSelect={() => revoke.mutate(i.id, { onSuccess: () => toast("Invitation revoked"), onError: fail })}>
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      resend.mutate(i.id, { onSuccess: () => toast.success(`Sent a new invitation to ${i.email}`), onError: fail })
+                    }
+                  >
+                    Resend invitation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => revoke.mutate(i.id, { onSuccess: () => toast("Invitation revoked"), onError: fail })}
+                  >
                     Revoke
                   </DropdownMenuItem>
                 </DropdownMenuContent>

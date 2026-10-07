@@ -27,12 +27,17 @@ export async function checkSendPolicy(db: Db, ctx: SendContext): Promise<void> {
   const { org, inbox, recipients, now } = ctx;
 
   if (org.sendingPausedAt) {
-    throw new ApiError(403, "sending_paused", `Sending is paused for this account: ${org.sendingPausedReason ?? "contact support@send0.dev"}. Receiving still works.`);
+    throw new ApiError(
+      403,
+      "sending_paused",
+      `Sending is paused for this account: ${org.sendingPausedReason ?? "contact support@send0.dev"}. Receiving still works.`,
+    );
   }
   if (inbox.status !== "active") throw forbidden(`This inbox is ${inbox.status} and can't send.`);
   if (inbox.mode === "sandbox") throw forbidden("Sandbox inboxes only receive.");
   if (recipients.length === 0) throw new ApiError(400, "invalid_request", "Add at least one recipient.", "to");
-  if (recipients.length > MAX_RECIPIENTS) throw new ApiError(400, "invalid_request", `At most ${MAX_RECIPIENTS} recipients per message.`, "to");
+  if (recipients.length > MAX_RECIPIENTS)
+    throw new ApiError(400, "invalid_request", `At most ${MAX_RECIPIENTS} recipients per message.`, "to");
   const reserved = recipients.find((r) => r.endsWith("@send0.email") && isReservedLocalPart(r.split("@")[0]!));
   if (reserved) throw new ApiError(400, "invalid_request", `${reserved} can't receive mail.`, "to");
 
@@ -42,11 +47,7 @@ export async function checkSendPolicy(db: Db, ctx: SendContext): Promise<void> {
       .selectDistinct({ email: sql<string>`lower(${messages.from}->>'email')` })
       .from(messages)
       .where(
-        and(
-          eq(messages.inboxId, inbox.id),
-          eq(messages.direction, "in"),
-          inArray(sql`lower(${messages.from}->>'email')`, recipients),
-        ),
+        and(eq(messages.inboxId, inbox.id), eq(messages.direction, "in"), inArray(sql`lower(${messages.from}->>'email')`, recipients)),
       );
     const allowed = new Set(known.map((k) => k.email));
     const blocked = recipients.filter((r) => !allowed.has(r));
@@ -76,8 +77,19 @@ export async function checkSendPolicy(db: Db, ctx: SendContext): Promise<void> {
   const [{ sentToday }] = (await db
     .select({ sentToday: count() })
     .from(messages)
-    .where(and(eq(messages.orgId, org.id), eq(messages.direction, "out"), ne(messages.status, "failed"), gte(messages.createdAt, startOfUtcDay(now))))) as [{ sentToday: number }];
+    .where(
+      and(
+        eq(messages.orgId, org.id),
+        eq(messages.direction, "out"),
+        ne(messages.status, "failed"),
+        gte(messages.createdAt, startOfUtcDay(now)),
+      ),
+    )) as [{ sentToday: number }];
   if (sentToday >= org.dailySendLimit) {
-    throw new ApiError(429, "daily_limit_reached", `This account can send ${org.dailySendLimit} messages per day (UTC). The limit rises as your sending record builds.`);
+    throw new ApiError(
+      429,
+      "daily_limit_reached",
+      `This account can send ${org.dailySendLimit} messages per day (UTC). The limit rises as your sending record builds.`,
+    );
   }
 }

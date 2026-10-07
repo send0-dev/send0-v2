@@ -15,7 +15,10 @@ export function RoleSelect({ member }: { member: MemberRow }) {
       onValueChange={(role) =>
         change.mutate(
           { userId: member.user_id, role: role as "admin" | "member" },
-          { onSuccess: () => toast.success(`${member.name ?? member.email} is now ${ROLE_INFO[role as "admin"].label.toLowerCase()}`), onError: (e) => toast.error(errorMessage(e)) }
+          {
+            onSuccess: () => toast.success(`${member.name ?? member.email} is now ${ROLE_INFO[role as "admin"].label.toLowerCase()}`),
+            onError: (e) => toast.error(errorMessage(e)),
+          },
         )
       }
     >

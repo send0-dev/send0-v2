@@ -19,7 +19,9 @@ const page = (load: () => Promise<{ default: ComponentType }>) => async () => ({
 
 /** Every page gets its own error boundary, so a crash in one page leaves the shell and navigation working. */
 const withErrorBoundaries = (routes: RouteObject[]): RouteObject[] =>
-  routes.map((r) => ({ ...r, errorElement: <RouteError />, ...(r.children ? { children: withErrorBoundaries(r.children) } : {}) }) as RouteObject);
+  routes.map(
+    (r) => ({ ...r, errorElement: <RouteError />, ...(r.children ? { children: withErrorBoundaries(r.children) } : {}) }) as RouteObject,
+  );
 
 const appRoutes: RouteObject[] = withErrorBoundaries([
   { index: true, handle: { crumb: "Overview" }, lazy: page(() => import("@/features/overview/pages/overview-page")) },

@@ -6,18 +6,16 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
-  "routes": [
-    { "pattern": "send0.dev", "custom_domain": true }
-  ],
+  "routes": [{ "pattern": "send0.dev", "custom_domain": true }],
   "d1_databases": [
     {
       "binding": "WAITLIST_DB",
       "database_name": "send0-waitlist",
       "database_id": "45eadab8-324d-496a-b339-7d7920dc6803",
-      "migrations_dir": "migrations"
-    }
+      "migrations_dir": "migrations",
+    },
   ],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
 }

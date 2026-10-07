@@ -41,7 +41,15 @@ export function filterConditions(f: z.infer<typeof messageFilters>): (SQL | unde
 
 export async function withAttachments(db: AppEnv["Variables"]["deps"]["db"], rows: (typeof messages.$inferSelect)[]) {
   if (!rows.length) return new Map<string, (typeof attachments.$inferSelect)[]>();
-  const atts = await db.select().from(attachments).where(inArray(attachments.messageId, rows.map((m) => m.id)));
+  const atts = await db
+    .select()
+    .from(attachments)
+    .where(
+      inArray(
+        attachments.messageId,
+        rows.map((m) => m.id),
+      ),
+    );
   const map = new Map<string, (typeof attachments.$inferSelect)[]>();
   for (const a of atts) map.set(a.messageId, [...(map.get(a.messageId) ?? []), a]);
   return map;
@@ -93,24 +101,34 @@ export const inboxMessageRoutes = new Hono<AppEnv>()
     // 2. Block on the inbox's hub until a match arrives or the timeout passes.
     const event = await hub.wait(inbox.id, filter, since.getTime(), q.timeout * 1000);
     if (!event) return respond(undefined);
-    const [arrived] = await db.select().from(messages).where(and(eq(messages.id, String(event.data.id)), eq(messages.inboxId, inbox.id)));
+    const [arrived] = await db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.id, String(event.data.id)), eq(messages.inboxId, inbox.id)));
     return respond(arrived);
   })
 
   .get("/", validate("query", messageListQuery), async (c) => {
-  requireScope(c.get("auth"), "read");
-  const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
-  const { limit, cursor, ...filters } = c.req.valid("query");
-  const { db } = c.get("deps");
-  const rows = await db
-    .select()
-    .from(messages)
-    .where(and(eq(messages.inboxId, inbox.id), ...filterConditions(filters), pageWhere(cursor, messages.createdAt, messages.id)))
-    .orderBy(...pageOrder(messages.createdAt, messages.id))
-    .limit(limit + 1);
-  const atts = await withAttachments(db, rows);
-  return c.json(toPage(rows, limit, (m) => ({ at: m.createdAt, id: m.id }), (m) => serializeMessage(m, atts.get(m.id) ?? [])));
-});
+    requireScope(c.get("auth"), "read");
+    const { inbox } = await loadInbox(c, c.req.param("inboxId")!);
+    const { limit, cursor, ...filters } = c.req.valid("query");
+    const { db } = c.get("deps");
+    const rows = await db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.inboxId, inbox.id), ...filterConditions(filters), pageWhere(cursor, messages.createdAt, messages.id)))
+      .orderBy(...pageOrder(messages.createdAt, messages.id))
+      .limit(limit + 1);
+    const atts = await withAttachments(db, rows);
+    return c.json(
+      toPage(
+        rows,
+        limit,
+        (m) => ({ at: m.createdAt, id: m.id }),
+        (m) => serializeMessage(m, atts.get(m.id) ?? []),
+      ),
+    );
+  });
 
 export const MESSAGE_STATUSES = ["received", "queued", "sent", "delivered", "bounced", "complained", "failed"] as const;
 
@@ -147,7 +165,14 @@ export const messageRoutes = new Hono<AppEnv>()
       .limit(limit + 1)
       .then((r) => r.map((x) => x.message));
     const atts = await withAttachments(db, rows);
-    return c.json(toPage(rows, limit, (m) => ({ at: m.createdAt, id: m.id }), (m) => serializeMessage(m, atts.get(m.id) ?? [])));
+    return c.json(
+      toPage(
+        rows,
+        limit,
+        (m) => ({ at: m.createdAt, id: m.id }),
+        (m) => serializeMessage(m, atts.get(m.id) ?? []),
+      ),
+    );
   })
 
   .get("/:id", async (c) => {
@@ -185,5 +210,11 @@ export const messageRoutes = new Hono<AppEnv>()
       filename: att.filename,
       contentType: att.contentType,
     });
-    return c.json({ object: "attachment", ...serializeAttachment(att), message_id: message.id, download_url: url, expires_at: expiresAt.toISOString() });
+    return c.json({
+      object: "attachment",
+      ...serializeAttachment(att),
+      message_id: message.id,
+      download_url: url,
+      expires_at: expiresAt.toISOString(),
+    });
   });

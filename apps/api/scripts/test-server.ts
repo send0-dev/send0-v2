@@ -27,7 +27,9 @@ const orgId = newId("org");
 await db.insert(schema.orgs).values({ id: orgId, name: "SDK e2e", plan: "scale", dailySendLimit: 10_000 });
 await db.insert(schema.domains).values({ id: newId("dom"), name: "send0.email", kind: "shared", status: "verified" });
 const key = await newApiKey("live");
-await db.insert(schema.apiKeys).values({ id: newId("key"), orgId, name: "e2e", prefix: key.prefix, hash: key.hash, mode: "live", scopes: ["admin"] });
+await db
+  .insert(schema.apiKeys)
+  .values({ id: newId("key"), orgId, name: "e2e", prefix: key.prefix, hash: key.hash, mode: "live", scopes: ["admin"] });
 
 const hubs = new Map<string, HubState>();
 const hub = (n: string) => hubs.get(n) ?? hubs.set(n, new HubState()).get(n)!;

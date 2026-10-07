@@ -35,7 +35,10 @@ describe("inboxes", () => {
 
   it("refuses taken, reserved and invalid names", async () => {
     expect((await t.call("POST", "/v1/inboxes", { body: { name: "RESEARCH-agent" } })).body.error.code).toBe("address_taken");
-    expect((await t.call("POST", "/v1/inboxes", { body: { name: "postmaster" } })).body.error).toMatchObject({ code: "invalid_request", param: "name" });
+    expect((await t.call("POST", "/v1/inboxes", { body: { name: "postmaster" } })).body.error).toMatchObject({
+      code: "invalid_request",
+      param: "name",
+    });
     expect((await t.call("POST", "/v1/inboxes", { body: { name: "bad name!" } })).status).toBe(400);
     expect((await t.call("POST", "/v1/inboxes", { body: { name: "x", domain: "gmail.com" } })).body.error.param).toBe("domain");
   });

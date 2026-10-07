@@ -35,15 +35,14 @@ export interface InvitePreview {
   hasAccount: boolean;
 }
 
-const invalidInvite = () =>
-  new AuthError(410, "invite_invalid", "This invitation is no longer valid. Ask for a new one.");
+const invalidInvite = () => new AuthError(410, "invite_invalid", "This invitation is no longer valid. Ask for a new one.");
 
 /** Inviting people to a workspace and accepting invitations. */
 export class InviteService {
   constructor(
     private readonly ctx: AuthContext,
     private readonly sessions: SessionService,
-    private readonly accounts: AccountService
+    private readonly accounts: AccountService,
   ) {}
 
   /** Open invitations. Only people who can manage members may see who's been invited. */
@@ -97,7 +96,11 @@ export class InviteService {
       await this.sendInvite(ws.name, inviter, email, input.role, token);
     } catch (err) {
       if (err instanceof AuthError && err.code === "email_failed") {
-        throw new AuthError(502, "email_failed", `The invitation was saved, but the email to ${email} didn't send. Use “Resend invitation” to try again.`);
+        throw new AuthError(
+          502,
+          "email_failed",
+          `The invitation was saved, but the email to ${email} didn't send. Use “Resend invitation” to try again.`,
+        );
       }
       throw err;
     }
@@ -176,8 +179,8 @@ export class InviteService {
           isNull(invites.acceptedAt),
           isNull(invites.revokedAt),
           gt(invites.expiresAt, this.ctx.now()),
-          isNull(orgs.deletedAt)
-        )
+          isNull(orgs.deletedAt),
+        ),
       );
     if (!row) throw invalidInvite();
     return { invite: row.invite, workspace: row.workspace, inviter: row.inviter ?? row.inviterEmail };
@@ -203,7 +206,7 @@ export class InviteService {
   private async sendInvite(workspace: string, inviter: User, email: string, role: InviteRole, token: string) {
     await this.ctx.sendEmail(
       email,
-      inviteEmail({ inviter: inviter.name ?? inviter.email, workspace, role, link: this.ctx.link(`/invite/${token}`) })
+      inviteEmail({ inviter: inviter.name ?? inviter.email, workspace, role, link: this.ctx.link(`/invite/${token}`) }),
     );
   }
 }

@@ -18,7 +18,9 @@ export function InboxEmpty({ inbox }: { inbox: Inbox }) {
       </div>
       <CopyField value={inbox.address} label="Copy address" />
       <p className="text-xs text-muted-foreground">Or wait for it from code:</p>
-      <CodeBlock code={`curl "https://api.send0.dev/v1/inboxes/${inbox.id}/messages/wait?timeout=60" \\\n  -H "Authorization: Bearer $SEND0_API_KEY"`} />
+      <CodeBlock
+        code={`curl "https://api.send0.dev/v1/inboxes/${inbox.id}/messages/wait?timeout=60" \\\n  -H "Authorization: Bearer $SEND0_API_KEY"`}
+      />
     </div>
   );
 }

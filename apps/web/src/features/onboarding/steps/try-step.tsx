@@ -15,7 +15,10 @@ export function TryStep({ inbox, apiKey }: { inbox: Inbox; apiKey: string | null
   const message = first.data ?? null;
   return (
     <>
-      <StepHeader title="Send it an email" description={<>From your own mailbox, email {inbox.address}. It shows up here the moment it arrives.</>} />
+      <StepHeader
+        title="Send it an email"
+        description={<>From your own mailbox, email {inbox.address}. It shows up here the moment it arrives.</>}
+      />
       <div className="grid gap-3">
         <CopyField value={inbox.address} label="Copy address" />
         {message ? (
@@ -24,7 +27,8 @@ export function TryStep({ inbox, apiKey }: { inbox: Inbox; apiKey: string | null
               <Check className="size-4" /> It arrived
             </p>
             <p className="text-[13px]">
-              <span className="text-muted-foreground">From</span> {mailboxShort(message.from)} · <span className="text-muted-foreground">Subject</span> {message.subject || "(no subject)"}
+              <span className="text-muted-foreground">From</span> {mailboxShort(message.from)} ·{" "}
+              <span className="text-muted-foreground">Subject</span> {message.subject || "(no subject)"}
             </p>
             <ExtractedDetails extracted={message.extracted} />
           </div>
@@ -33,7 +37,10 @@ export function TryStep({ inbox, apiKey }: { inbox: Inbox; apiKey: string | null
             The live preview stopped. Your email still arrives: you'll find it in the inbox on the dashboard.
           </p>
         ) : (
-          <div className="flex items-center gap-2.5 rounded-lg border border-dashed p-3.5 text-[13px] text-muted-foreground" aria-live="polite">
+          <div
+            className="flex items-center gap-2.5 rounded-lg border border-dashed p-3.5 text-[13px] text-muted-foreground"
+            aria-live="polite"
+          >
             <span className="relative flex size-2">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
               <span className="relative inline-flex size-2 rounded-full bg-brand" />

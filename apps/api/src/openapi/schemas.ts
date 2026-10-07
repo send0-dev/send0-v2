@@ -220,7 +220,11 @@ export const Event = reg(
   z.strictObject({
     id: z.string(),
     object: z.literal("event"),
-    type: z.string().describe("message.received, message.sent, message.delivered, message.bounced, message.complained, draft.created, inbox.suspended, webhook.test"),
+    type: z
+      .string()
+      .describe(
+        "message.received, message.sent, message.delivered, message.bounced, message.complained, draft.created, inbox.suspended, webhook.test",
+      ),
     created_at: ts,
     inbox_id: z.string().nullable(),
     data: z.record(z.string(), z.unknown()),

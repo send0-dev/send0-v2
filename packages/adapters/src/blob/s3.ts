@@ -42,7 +42,10 @@ export class S3BlobStore implements BlobStore, SignedUrlStore {
     url.searchParams.set("X-Amz-Expires", String(Math.min(Math.max(1, Math.floor(opts.expiresIn)), 604800)));
     if (opts.filename) {
       const safe = opts.filename.replace(/["\\\r\n]/g, "_");
-      url.searchParams.set("response-content-disposition", `attachment; filename="${safe}"; filename*=UTF-8''${encodeURIComponent(opts.filename)}`);
+      url.searchParams.set(
+        "response-content-disposition",
+        `attachment; filename="${safe}"; filename*=UTF-8''${encodeURIComponent(opts.filename)}`,
+      );
     }
     if (opts.contentType) url.searchParams.set("response-content-type", opts.contentType);
     const signed = await this.client.sign(url.toString(), { method: "GET", aws: { signQuery: true } });

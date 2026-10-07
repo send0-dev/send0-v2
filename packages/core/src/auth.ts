@@ -45,8 +45,7 @@ export function parseAuthResults(headers: HeaderLike[], trustedAuthservIds: stri
     return null;
   };
 
-  const found =
-    pick("authentication-results") ?? pick("arc-authentication-results", /^\s*i\s*=\s*1\s*;\s*/i);
+  const found = pick("authentication-results") ?? pick("arc-authentication-results", /^\s*i\s*=\s*1\s*;\s*/i);
   if (!found) return { spf: "none", dkim: "none", dmarc: "none", source: null };
   return {
     spf: verdict(found.body, "spf"),

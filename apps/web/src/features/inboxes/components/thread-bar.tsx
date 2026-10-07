@@ -5,7 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 
 /** The open thread's bar: back (phones), position in the list, previous/next, copy id. */
-export function ThreadBar({ threadId, index, total, onPrev, onNext, onBack }: { threadId: string; index: number; total: number; onPrev?: () => void; onNext?: () => void; onBack: () => void }) {
+export function ThreadBar({
+  threadId,
+  index,
+  total,
+  onPrev,
+  onNext,
+  onBack,
+}: {
+  threadId: string;
+  index: number;
+  total: number;
+  onPrev?: () => void;
+  onNext?: () => void;
+  onBack: () => void;
+}) {
   return (
     <PaneBar>
       <Button variant="ghost" size="icon-sm" className="-ml-2 md:hidden" onClick={onBack} aria-label="Back to threads">

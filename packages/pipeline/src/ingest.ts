@@ -33,10 +33,14 @@ class Duplicate extends Error {}
 
 /** A Postgres text[] literal. Drizzle would otherwise expand a JS array into a comma list. */
 const textArray = (values: string[]) =>
-  values.length ? sql`ARRAY[${sql.join(values.map((v) => sql`${v}`), sql`, `)}]::text[]` : sql`'{}'::text[]`;
+  values.length
+    ? sql`ARRAY[${sql.join(
+        values.map((v) => sql`${v}`),
+        sql`, `,
+      )}]::text[]`
+    : sql`'{}'::text[]`;
 
-export const attachmentKey = (orgId: string, messageId: string, attachmentId: string) =>
-  `att/${orgId}/${messageId}/${attachmentId}`;
+export const attachmentKey = (orgId: string, messageId: string, attachmentId: string) => `att/${orgId}/${messageId}/${attachmentId}`;
 
 function participantsOf(p: ParsedMessage, inboxAddress: string): string[] {
   const all = [p.from, ...p.to, ...p.cc, ...p.replyTo].filter(Boolean).map((m) => m!.email.toLowerCase());

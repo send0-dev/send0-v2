@@ -1,6 +1,14 @@
 import { Slot } from "radix-ui";
 import { createContext, useContext, useEffect, useId, useState, type ComponentProps } from "react";
-import { Controller, FormProvider, useFormContext, useFormState, type ControllerProps, type FieldPath, type FieldValues } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useFormContext,
+  useFormState,
+  type ControllerProps,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +23,7 @@ interface ItemContextValue {
 const ItemContext = createContext<ItemContextValue | null>(null);
 
 export function FormField<TValues extends FieldValues = FieldValues, TName extends FieldPath<TValues> = FieldPath<TValues>>(
-  props: ControllerProps<TValues, TName>
+  props: ControllerProps<TValues, TName>,
 ) {
   return (
     <FieldNameContext.Provider value={{ name: props.name }}>
@@ -63,14 +71,7 @@ export function FormControl(props: ComponentProps<typeof Slot.Root>) {
   const { error, controlId, descriptionId, messageId, hasDescription } = useFormField();
   // Only reference the hint and the error when they're actually on the page.
   const describedBy = [hasDescription && descriptionId, error && messageId].filter(Boolean).join(" ") || undefined;
-  return (
-    <Slot.Root
-      id={controlId}
-      aria-describedby={describedBy}
-      aria-invalid={!!error}
-      {...props}
-    />
-  );
+  return <Slot.Root id={controlId} aria-describedby={describedBy} aria-invalid={!!error} {...props} />;
 }
 
 export function FormDescription({ className, ...props }: ComponentProps<"p">) {
@@ -99,7 +100,10 @@ export function FormRootError({ className }: { className?: string }) {
   const message = errors.root?.server?.message;
   if (!message) return null;
   return (
-    <p role="alert" className={cn("rounded-md border border-destructive/20 bg-destructive-soft px-3 py-2 text-xs text-destructive", className)}>
+    <p
+      role="alert"
+      className={cn("rounded-md border border-destructive/20 bg-destructive-soft px-3 py-2 text-xs text-destructive", className)}
+    >
       {message}
     </p>
   );

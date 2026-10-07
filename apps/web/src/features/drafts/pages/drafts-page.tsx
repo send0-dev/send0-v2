@@ -55,7 +55,7 @@ export default function DraftsPage() {
         else next.delete("draft");
         return next;
       },
-      { replace: true }
+      { replace: true },
     );
   // After a decision, move on to the next draft in the queue.
   const advance = (id: string) => select(ids[ids.indexOf(id) + 1] ?? ids[ids.indexOf(id) - 1] ?? null);
@@ -84,7 +84,11 @@ export default function DraftsPage() {
           <EmptyState
             icon={FileCheck}
             title={status === "pending" ? "You're all caught up" : `No ${tab.noun} drafts`}
-            description={status === "pending" ? "When an inbox set to “Needs approval” tries to send, the draft waits here, and a draft.created webhook fires." : undefined}
+            description={
+              status === "pending"
+                ? "When an inbox set to “Needs approval” tries to send, the draft waits here, and a draft.created webhook fires."
+                : undefined
+            }
           />
         }
       >
@@ -92,7 +96,11 @@ export default function DraftsPage() {
           <SplitView detailOpen={!!explicit}>
             <ListPane label="Queue" bar={<PaneBar className="tabular">{pluralize(items.length, `${tab.noun} draft`)}</PaneBar>}>
               <DraftList drafts={items} selectedId={selectedId} onSelect={select} inboxName={nameOf} />
-              <LoadMore hasNextPage={drafts.hasNextPage} isFetchingNextPage={drafts.isFetchingNextPage} fetchNextPage={() => void drafts.fetchNextPage()} />
+              <LoadMore
+                hasNextPage={drafts.hasNextPage}
+                isFetchingNextPage={drafts.isFetchingNextPage}
+                fetchNextPage={() => void drafts.fetchNextPage()}
+              />
             </ListPane>
             <DetailPane
               label="Review"

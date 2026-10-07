@@ -3,7 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HtmlPreview } from "@/features/messages/components/html-preview";
 
 const Text = ({ text }: { text: string | null }) => (
-  <pre className="max-h-56 overflow-y-auto rounded-md bg-muted/60 p-3 font-sans text-[13px] leading-relaxed whitespace-pre-wrap">{text ?? "(no text version)"}</pre>
+  <pre className="max-h-56 overflow-y-auto rounded-md bg-muted/60 p-3 font-sans text-[13px] leading-relaxed whitespace-pre-wrap">
+    {text ?? "(no text version)"}
+  </pre>
 );
 
 /**

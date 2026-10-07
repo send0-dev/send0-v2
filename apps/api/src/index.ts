@@ -11,8 +11,7 @@ import { processQueueMessage, sweep } from "./webhooks/dispatch";
 
 export { Hub } from "./realtime/hub-do";
 
-const db = (env: Env, max = 5) =>
-  createDb(env.HYPERDRIVE.connectionString, { max });
+const db = (env: Env, max = 5) => createDb(env.HYPERDRIVE.connectionString, { max });
 
 function makeDeps(env: Env, ctx: ExecutionContext): AppDeps {
   return {
@@ -36,11 +35,8 @@ function makeDeps(env: Env, ctx: ExecutionContext): AppDeps {
             secretAccessKey: env.SES_SECRET_ACCESS_KEY,
           })
         : undefined,
-    publish: (orgId, envelope) =>
-      publish({ hub: env.HUB as never, queue: env.EVENTS }, orgId, envelope),
-    sesEvents: env.SES_EVENTS_TOKEN
-      ? { token: env.SES_EVENTS_TOKEN, topicArn: env.SES_EVENTS_TOPIC_ARN }
-      : undefined,
+    publish: (orgId, envelope) => publish({ hub: env.HUB as never, queue: env.EVENTS }, orgId, envelope),
+    sesEvents: env.SES_EVENTS_TOKEN ? { token: env.SES_EVENTS_TOKEN, topicArn: env.SES_EVENTS_TOPIC_ARN } : undefined,
     waitUntil: (p) => ctx.waitUntil(p),
   };
 }
@@ -76,25 +72,20 @@ export default {
             event: "queue.error",
             body: msg.body,
             error: String(err),
-          })
+          }),
         );
         msg.retry({ delaySeconds: 30 });
       }
     }
     // The database is awake anyway: catch anything the outbox missed.
-    await sweep(conn, env.EVENTS, new Date()).catch((err) =>
-      console.error(
-        JSON.stringify({ event: "sweep.error", error: String(err) })
-      )
-    );
+    await sweep(conn, env.EVENTS, new Date()).catch((err) => console.error(JSON.stringify({ event: "sweep.error", error: String(err) })));
   },
 
   // Hourly safety net for the outbox. Kept infrequent so Neon can scale to zero between runs.
   async scheduled(_controller, env) {
     const now = new Date();
     const swept = await sweep(db(env, 1), env.EVENTS, now);
-    if (swept.events || swept.deliveries)
-      console.log(JSON.stringify({ event: "sweep", ...swept }));
+    if (swept.events || swept.deliveries) console.log(JSON.stringify({ event: "sweep", ...swept }));
     const purged = await purgeDeletedOrgs(db(env, 1), now);
     if (purged) console.log(JSON.stringify({ event: "orgs_purged", count: purged }));
   },

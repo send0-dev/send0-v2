@@ -42,11 +42,7 @@ import { verifyWebhook } from "./webhooks";
 type ListBody<T> = { data: T[]; next_cursor: string | null };
 const MAX_WAIT_PER_REQUEST = 120;
 
-function pager<T, P extends { cursor?: string }>(
-  http: Http,
-  path: string,
-  params: P | undefined
-) {
+function pager<T, P extends { cursor?: string }>(http: Http, path: string, params: P | undefined) {
   const load = async (cursor?: string): Promise<Page<T>> => {
     const body = await http.request<ListBody<T>>("GET", path, {
       query: { ...(params as object), ...(cursor ? { cursor } : {}) },
@@ -94,28 +90,17 @@ class Inboxes {
    *
    *   const msg = await send0.inboxes.wait(inbox.id, { from: "*@github.com", timeout: 60 });
    */
-  async wait(
-    inboxId: string,
-    params: WaitParams = {},
-    opts: { signal?: AbortSignal } = {}
-  ): Promise<Message | null> {
+  async wait(inboxId: string, params: WaitParams = {}, opts: { signal?: AbortSignal } = {}): Promise<Message | null> {
     let remaining = params.timeout ?? 30;
     // Keep the original look-back across split requests so nothing between them is missed.
     const since = params.since ?? new Date(Date.now() - 60_000).toISOString();
     for (;;) {
-      const timeout = Math.max(
-        1,
-        Math.min(MAX_WAIT_PER_REQUEST, Math.ceil(remaining))
-      );
-      const r = await this.http.request<WaitResult>(
-        "GET",
-        `/v1/inboxes/${enc(inboxId)}/messages/wait`,
-        {
-          query: { ...params, since, timeout },
-          timeout: (timeout + 15) * 1000,
-          signal: opts.signal,
-        }
-      );
+      const timeout = Math.max(1, Math.min(MAX_WAIT_PER_REQUEST, Math.ceil(remaining)));
+      const r = await this.http.request<WaitResult>("GET", `/v1/inboxes/${enc(inboxId)}/messages/wait`, {
+        query: { ...params, since, timeout },
+        timeout: (timeout + 15) * 1000,
+        signal: opts.signal,
+      });
       if (!r.timed_out) return r.message;
       // The server waited the full timeout before giving up; count that, not the wall clock (which can jump).
       remaining -= timeout;
@@ -160,30 +145,16 @@ class Messages {
   }
   /** A short-lived URL to download the original .eml. */
   async rawUrl(messageId: string): Promise<string> {
-    const res = await this.http.request<Response>(
-      "GET",
-      `/v1/messages/${enc(messageId)}/raw`,
-      { raw: true, redirect: "manual" }
-    );
+    const res = await this.http.request<Response>("GET", `/v1/messages/${enc(messageId)}/raw`, { raw: true, redirect: "manual" });
     const location = res.headers.get("location");
     if (location) return location;
     // Some runtimes follow redirects regardless; the final URL is then the download link.
     if (res.url && !res.url.startsWith(this.http.baseUrl)) return res.url;
-    throw new Send0Error(
-      "No download link returned.",
-      res.status,
-      "no_download_url"
-    );
+    throw new Send0Error("No download link returned.", res.status, "no_download_url");
   }
   /** Attachment metadata with a short-lived `download_url`. */
-  attachment(
-    messageId: string,
-    attachmentId: string
-  ): Promise<AttachmentDownload> {
-    return this.http.request(
-      "GET",
-      `/v1/messages/${enc(messageId)}/attachments/${enc(attachmentId)}`
-    );
+  attachment(messageId: string, attachmentId: string): Promise<AttachmentDownload> {
+    return this.http.request("GET", `/v1/messages/${enc(messageId)}/attachments/${enc(attachmentId)}`);
   }
 }
 
@@ -194,16 +165,8 @@ class Threads {
     return pager(this.http, `/v1/inboxes/${enc(inboxId)}/threads`, params);
   }
   /** The thread with its messages, oldest first. */
-  get(
-    inboxId: string,
-    threadId: string,
-    params: { include_html?: boolean } = {}
-  ): Promise<ThreadWithMessages> {
-    return this.http.request(
-      "GET",
-      `/v1/inboxes/${enc(inboxId)}/threads/${enc(threadId)}`,
-      { query: params }
-    );
+  get(inboxId: string, threadId: string, params: { include_html?: boolean } = {}): Promise<ThreadWithMessages> {
+    return this.http.request("GET", `/v1/inboxes/${enc(inboxId)}/threads/${enc(threadId)}`, { query: params });
   }
 }
 
@@ -255,14 +218,9 @@ class Webhooks {
     return this.http.request("DELETE", `/v1/webhooks/${enc(webhookId)}`);
   }
   rotateSecret(webhookId: string): Promise<WebhookWithSecret> {
-    return this.http.request(
-      "POST",
-      `/v1/webhooks/${enc(webhookId)}/rotate-secret`
-    );
+    return this.http.request("POST", `/v1/webhooks/${enc(webhookId)}/rotate-secret`);
   }
-  test(
-    webhookId: string
-  ): Promise<{
+  test(webhookId: string): Promise<{
     object: "event";
     id: string;
     type: "webhook.test";
@@ -270,29 +228,15 @@ class Webhooks {
   }> {
     return this.http.request("POST", `/v1/webhooks/${enc(webhookId)}/test`);
   }
-  deliveries(
-    webhookId: string,
-    params?: ListDeliveriesParams
-  ): Promise<Page<Delivery>> {
-    return pager(
-      this.http,
-      `/v1/webhooks/${enc(webhookId)}/deliveries`,
-      params
-    );
+  deliveries(webhookId: string, params?: ListDeliveriesParams): Promise<Page<Delivery>> {
+    return pager(this.http, `/v1/webhooks/${enc(webhookId)}/deliveries`, params);
   }
   retryDelivery(webhookId: string, deliveryId: string): Promise<Delivery> {
-    return this.http.request(
-      "POST",
-      `/v1/webhooks/${enc(webhookId)}/deliveries/${enc(deliveryId)}/retry`
-    );
+    return this.http.request("POST", `/v1/webhooks/${enc(webhookId)}/deliveries/${enc(deliveryId)}/retry`);
   }
 
   /** Verifies a delivery's `send0-signature` header against the raw body. */
-  verify(
-    rawBody: string,
-    signatureHeader: string | null | undefined,
-    secret: string
-  ): Promise<boolean> {
+  verify(rawBody: string, signatureHeader: string | null | undefined, secret: string): Promise<boolean> {
     return verifyWebhook(rawBody, signatureHeader, secret);
   }
 }
@@ -362,7 +306,6 @@ class Events {
     }
   }
 }
-
 
 /**
  * The send0 client.

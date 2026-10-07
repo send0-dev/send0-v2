@@ -18,13 +18,17 @@ import { SafetyAlert } from "./safety-alert";
 export function MessageItem({ message: m, inboxName, defaultOpen }: { message: Message; inboxName: string; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(!!defaultOpen);
   const outgoing = m.direction === "out";
-  const who = outgoing ? (inboxName || "You") : mailboxShort(m.from);
+  const who = outgoing ? inboxName || "You" : mailboxShort(m.from);
   const body = m.extracted_text ?? m.text;
   const when = m.received_at ?? m.sent_at ?? m.created_at;
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-hover">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-hover"
+      >
         <Avatar name={who} size="md" />
         <span className="w-36 shrink-0 truncate text-[13px] font-medium">{who}</span>
         <span className="min-w-0 flex-1 truncate text-[13px] text-faint">{body?.replace(/\s+/g, " ").slice(0, 200) || "(no text)"}</span>
@@ -50,7 +54,12 @@ export function MessageItem({ message: m, inboxName, defaultOpen }: { message: M
         <div className="flex shrink-0 items-center gap-3">
           {m.status !== "received" && <StatusBadge status={m.status} />}
           <RelativeTime iso={when} className="text-xs text-faint" />
-          <button type="button" onClick={() => setOpen(false)} className="cursor-pointer rounded p-0.5 text-faint hover:bg-hover hover:text-foreground" aria-label="Collapse">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="cursor-pointer rounded p-0.5 text-faint hover:bg-hover hover:text-foreground"
+            aria-label="Collapse"
+          >
             <ChevronDown className="size-3.5" />
           </button>
         </div>
@@ -63,7 +72,9 @@ export function MessageItem({ message: m, inboxName, defaultOpen }: { message: M
             <AuthBadges auth={m.auth} />
           </div>
         )}
-        <div className="text-[13.5px] leading-[1.65] break-words whitespace-pre-wrap text-foreground/90">{body ?? <span className="text-faint italic">No text body</span>}</div>
+        <div className="text-[13.5px] leading-[1.65] break-words whitespace-pre-wrap text-foreground/90">
+          {body ?? <span className="text-faint italic">No text body</span>}
+        </div>
         <AttachmentList messageId={m.id} attachments={m.attachments} />
       </div>
     </article>

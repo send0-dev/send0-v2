@@ -19,7 +19,10 @@ type Values = z.infer<typeof schema>;
 
 export function InboxSettingsForm({ inbox, onSaved }: { inbox: Inbox; onSaved: () => void }) {
   const update = useUpdateInbox(inbox.id);
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { displayName: inbox.display_name ?? "", sendPolicy: inbox.send_policy } });
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { displayName: inbox.display_name ?? "", sendPolicy: inbox.send_policy },
+  });
 
   const onSubmit = form.handleSubmit((v) =>
     update.mutate(
@@ -30,8 +33,8 @@ export function InboxSettingsForm({ inbox, onSaved }: { inbox: Inbox; onSaved: (
           onSaved();
         },
         onError: (e) => applyServerError(form, e),
-      }
-    )
+      },
+    ),
   );
 
   return (

@@ -19,12 +19,12 @@ function app(session: Me, route: string) {
       { element: <RequireStage allow={["onboarding"]} />, children: [{ path: "/onboarding", element: <p>onboarding page</p> }] },
       { element: <RequireStage allow={["ready"]} />, children: [{ path: "/*", element: <p>app page</p> }] },
     ],
-    { initialEntries: [route] }
+    { initialEntries: [route] },
   );
   render(
     <QueryClientProvider client={qc}>
       <RouterProvider router={router} />
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
   return router;
 }

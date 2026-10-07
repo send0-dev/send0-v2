@@ -15,7 +15,17 @@ const schema = z.object({ text: z.string().trim().min(1, "Write a reply first.")
 type Values = z.infer<typeof schema>;
 
 /** Reply to the latest message in a thread. On approval inboxes it becomes a draft. */
-export function ReplyForm({ inboxId, threadId, replyTo, needsApproval }: { inboxId: string; threadId: string; replyTo: Message; needsApproval: boolean }) {
+export function ReplyForm({
+  inboxId,
+  threadId,
+  replyTo,
+  needsApproval,
+}: {
+  inboxId: string;
+  threadId: string;
+  replyTo: Message;
+  needsApproval: boolean;
+}) {
   const reply = useReply(inboxId, threadId);
   const idempotency = useIdempotencyKey();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { text: "" } });
@@ -33,7 +43,7 @@ export function ReplyForm({ inboxId, threadId, replyTo, needsApproval }: { inbox
         },
         // The key is kept, so trying again can't send the same reply twice.
         onError: (e) => applyServerError(form, e),
-      }
+      },
     );
   });
 
@@ -67,7 +77,9 @@ export function ReplyForm({ inboxId, threadId, replyTo, needsApproval }: { inbox
         />
         <FormRootError className="mx-3 mb-2" />
         <div className="flex items-center justify-between gap-3 px-3 pb-2.5">
-          <p className="text-xs text-faint">{needsApproval ? "Needs approval: this becomes a draft." : "Replies in this thread, from this inbox"}</p>
+          <p className="text-xs text-faint">
+            {needsApproval ? "Needs approval: this becomes a draft." : "Replies in this thread, from this inbox"}
+          </p>
           <Button variant="primary" type="submit" size="sm" loading={reply.isPending} shortcut="⌘↵">
             {needsApproval ? "Save draft" : "Send"}
           </Button>

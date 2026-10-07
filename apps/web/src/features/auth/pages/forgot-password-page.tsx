@@ -15,7 +15,8 @@ export default function ForgotPasswordPage() {
             title="Check your email"
             description={
               <>
-                If an account exists for <span className="font-medium text-foreground">{sentTo}</span>, we've sent a link to reset its password. It works for one hour.
+                If an account exists for <span className="font-medium text-foreground">{sentTo}</span>, we've sent a link to reset its
+                password. It works for one hour.
               </>
             }
           />

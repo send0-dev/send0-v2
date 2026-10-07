@@ -24,7 +24,10 @@ export function ListPane({ bar, className, children, label }: { bar?: ReactNode;
   return (
     <section
       aria-label={label}
-      className={cn("flex w-full min-w-0 flex-col border-r md:w-[360px] md:shrink-0 group-data-[detail-open]/split:max-md:hidden", className)}
+      className={cn(
+        "flex w-full min-w-0 flex-col border-r group-data-[detail-open]/split:max-md:hidden md:w-[360px] md:shrink-0",
+        className,
+      )}
     >
       {bar}
       <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
@@ -32,9 +35,24 @@ export function ListPane({ bar, className, children, label }: { bar?: ReactNode;
   );
 }
 
-export function DetailPane({ bar, footer, className, children, label }: { bar?: ReactNode; footer?: ReactNode; className?: string; children: ReactNode; label: string }) {
+export function DetailPane({
+  bar,
+  footer,
+  className,
+  children,
+  label,
+}: {
+  bar?: ReactNode;
+  footer?: ReactNode;
+  className?: string;
+  children: ReactNode;
+  label: string;
+}) {
   return (
-    <section aria-label={label} className={cn("flex min-w-0 flex-1 flex-col max-md:hidden group-data-[detail-open]/split:max-md:flex", className)}>
+    <section
+      aria-label={label}
+      className={cn("flex min-w-0 flex-1 flex-col max-md:hidden group-data-[detail-open]/split:max-md:flex", className)}
+    >
       {bar}
       <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       {footer}

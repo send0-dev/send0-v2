@@ -18,8 +18,11 @@ describe("SignupForm", () => {
   it("puts the server's email error under the email field", async () => {
     server.use(
       http.post("*/auth/signup", () =>
-        HttpResponse.json({ error: { code: "disposable_email", message: "Temporary email addresses aren't accepted.", field: "email" } }, { status: 400 })
-      )
+        HttpResponse.json(
+          { error: { code: "disposable_email", message: "Temporary email addresses aren't accepted.", field: "email" } },
+          { status: 400 },
+        ),
+      ),
     );
     const { user } = renderApp(<SignupForm />);
     await user.type(screen.getByLabelText("Your name"), "Dana");

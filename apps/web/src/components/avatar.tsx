@@ -17,7 +17,11 @@ export function Avatar({ name, size = "md", className }: { name: string; size?: 
   return (
     <span
       aria-hidden
-      className={cn("inline-flex shrink-0 select-none items-center justify-center rounded-full font-semibold text-white", SIZES[size], className)}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white select-none",
+        SIZES[size],
+        className,
+      )}
       style={{ background: `linear-gradient(135deg, oklch(0.66 0.13 ${hue}), oklch(0.52 0.14 ${(hue + 40) % 360}))` }}
     >
       {letters}
@@ -27,5 +31,11 @@ export function Avatar({ name, size = "md", className }: { name: string; size?: 
 
 /** A small coloured square for an inbox. */
 export function InboxDot({ id, className }: { id: string; className?: string }) {
-  return <span aria-hidden className={cn("inline-block size-2 shrink-0 rounded-[3px]", className)} style={{ background: `oklch(0.68 0.14 ${hueOf(id)})` }} />;
+  return (
+    <span
+      aria-hidden
+      className={cn("inline-block size-2 shrink-0 rounded-[3px]", className)}
+      style={{ background: `oklch(0.68 0.14 ${hueOf(id)})` }}
+    />
+  );
 }

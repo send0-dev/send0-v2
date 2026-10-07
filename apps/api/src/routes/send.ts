@@ -15,7 +15,9 @@ const { drafts, inboxes, domains } = schema;
 
 const address = z.union([
   z.email().transform((email) => ({ name: null, email: email.toLowerCase() })),
-  z.object({ email: z.email().transform((e) => e.toLowerCase()), name: z.string().trim().max(100).nullable().optional() }).transform((a) => ({ name: a.name ?? null, email: a.email })),
+  z
+    .object({ email: z.email().transform((e) => e.toLowerCase()), name: z.string().trim().max(100).nullable().optional() })
+    .transform((a) => ({ name: a.name ?? null, email: a.email })),
 ]);
 const addressList = z.union([address.transform((a) => [a]), z.array(address).max(50)]);
 
@@ -159,7 +161,9 @@ export const inboxDraftRoutes = new Hono<AppEnv>().get("/", validate("query", dr
     .get("deps")
     .db.select()
     .from(drafts)
-    .where(and(eq(drafts.inboxId, inbox.id), status ? eq(drafts.status, status) : undefined, pageWhere(cursor, drafts.createdAt, drafts.id)))
+    .where(
+      and(eq(drafts.inboxId, inbox.id), status ? eq(drafts.status, status) : undefined, pageWhere(cursor, drafts.createdAt, drafts.id)),
+    )
     .orderBy(...pageOrder(drafts.createdAt, drafts.id))
     .limit(limit + 1);
   return c.json(toPage(rows, limit, (d) => ({ at: d.createdAt, id: d.id }), serializeDraft));
@@ -167,7 +171,11 @@ export const inboxDraftRoutes = new Hono<AppEnv>().get("/", validate("query", dr
 
 async function loadDraft(c: Context<AppEnv>, id: string) {
   const auth = c.get("auth");
-  const [row] = await c.get("deps").db.select().from(drafts).where(and(eq(drafts.id, id), eq(drafts.orgId, auth.orgId)));
+  const [row] = await c
+    .get("deps")
+    .db.select()
+    .from(drafts)
+    .where(and(eq(drafts.id, id), eq(drafts.orgId, auth.orgId)));
   if (!row) throw notFound("draft", id);
   await loadInbox(c, row.inboxId); // enforces key inbox scope
   return row;
@@ -274,4 +282,3 @@ export const draftRoutes = new Hono<AppEnv>()
     if (!row) throw conflict("draft_decided", `This draft is already ${(await loadDraft(c, draft.id)).status}.`);
     return c.json(serializeDraft(row));
   });
-

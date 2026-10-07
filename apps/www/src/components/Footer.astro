@@ -52,27 +52,29 @@ const groups = [
       <div class="about">
         <Logo />
         <p>Email inboxes for AI agents. Open source, self-hostable, webhooks on every plan.</p>
-        <span class="pill"><span class="dot"></span>In development · beta soon</span>
+        <span class="pill">
+          <span class="dot"></span>In development · beta soon
+        </span>
       </div>
       <div class="groups">
-        {
-          groups.map((g) => (
-            <div>
-              <h3>{g.title}</h3>
-              <ul>
-                {g.links.map((l) => (
-                  <li>
-                    <a href={l.href}>{l.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
+        {groups.map((g) => (
+          <div>
+            <h3>{g.title}</h3>
+            <ul>
+              {g.links.map((l) => (
+                <li>
+                  <a href={l.href}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
     <div class="bottom">
-      <span>© {year} {site.operator}. send0 {site.repoPublic ? "is" : "will be"} open source under AGPL-3.0.</span>
+      <span>
+        © {year} {site.operator}. send0 {site.repoPublic ? "is" : "will be"} open source under AGPL-3.0.
+      </span>
       <span class="mono">Made in {site.country}</span>
     </div>
   </div>

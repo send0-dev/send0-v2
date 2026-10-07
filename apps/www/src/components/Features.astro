@@ -7,7 +7,8 @@ const icons: Record<string, string> = {
   key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/>',
   shield: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/>',
   check: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9h17"/><path d="m9 14 2 2 4-4"/>',
-  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/>',
+  globe:
+    '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/>',
   flask: '<path d="M9 3h6M10 3v6l-5.5 9.2A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.8L14 9V3"/><path d="M7.5 15h9"/>',
 };
 
@@ -72,26 +73,33 @@ const features = [
 <section class="section" id="features" aria-labelledby="features-title">
   <div class="section-head reveal">
     <span class="eyebrow">Features</span>
-    <h2 id="features-title" class="h2">Everything an agent needs from email. <span class="dim">Nothing it doesn't.</span></h2>
+    <h2 id="features-title" class="h2">
+      Everything an agent needs from email. <span class="dim">Nothing it doesn't.</span>
+    </h2>
     <p class="lede">
-      send0 treats the inbox as the main object, not an add-on to a sending API. Receiving, threading and
-      real-time events work on day one.
+      send0 treats the inbox as the main object, not an add-on to a sending API. Receiving, threading and real-time events work on day one.
     </p>
   </div>
 
   <div class="grid">
-    {
-      features.map((f) => (
-        <article class="feature reveal">
-          <span class="icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" set:html={icons[f.icon]} />
-          </span>
-          <h3>{f.title}</h3>
-          <p>{f.body}</p>
-          <code class="api">{f.api}</code>
-        </article>
-      ))
-    }
+    {features.map((f) => (
+      <article class="feature reveal">
+        <span class="icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            set:html={icons[f.icon]}
+          />
+        </span>
+        <h3>{f.title}</h3>
+        <p>{f.body}</p>
+        <code class="api">{f.api}</code>
+      </article>
+    ))}
   </div>
 </section>
 

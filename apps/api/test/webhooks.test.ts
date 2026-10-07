@@ -36,20 +36,34 @@ describe("webhook management", () => {
   it("creates a webhook and shows the secret once", async () => {
     const r = await t.call("POST", "/v1/webhooks", { body: { url: "https://example.com/hooks" } });
     expect(r.status).toBe(201);
-    expect(r.body).toMatchObject({ object: "webhook", url: "https://example.com/hooks", events: ["*"], status: "enabled", inbox_ids: null });
+    expect(r.body).toMatchObject({
+      object: "webhook",
+      url: "https://example.com/hooks",
+      events: ["*"],
+      status: "enabled",
+      inbox_ids: null,
+    });
     expect(r.body.secret).toMatch(/^whsec_[0-9a-f]{64}$/);
     expect((await t.call("GET", `/v1/webhooks/${r.body.id}`)).body.secret).toBeUndefined();
     await t.call("DELETE", `/v1/webhooks/${r.body.id}`);
   });
 
-  it.each(["http://example.com/x", "https://localhost/x", "https://10.0.0.5/x", "https://169.254.169.254/latest", "https://user:pw@example.com", "nope"])(
-    "rejects unsafe url %s",
-    async (url) => expect((await t.call("POST", "/v1/webhooks", { body: { url } })).body.error).toMatchObject({ param: "url" }),
+  it.each([
+    "http://example.com/x",
+    "https://localhost/x",
+    "https://10.0.0.5/x",
+    "https://169.254.169.254/latest",
+    "https://user:pw@example.com",
+    "nope",
+  ])("rejects unsafe url %s", async (url) =>
+    expect((await t.call("POST", "/v1/webhooks", { body: { url } })).body.error).toMatchObject({ param: "url" }),
   );
 
   it("validates event types and inbox ids, updates and rotates", async () => {
     expect((await t.call("POST", "/v1/webhooks", { body: { url: "https://e.com", events: ["message.exploded"] } })).status).toBe(400);
-    expect((await t.call("POST", "/v1/webhooks", { body: { url: "https://e.com", inbox_ids: ["ibx_nope"] } })).body.error.param).toBe("inbox_ids");
+    expect((await t.call("POST", "/v1/webhooks", { body: { url: "https://e.com", inbox_ids: ["ibx_nope"] } })).body.error.param).toBe(
+      "inbox_ids",
+    );
     const { body: w } = await t.call("POST", "/v1/webhooks", { body: { url: "https://e.com/a", events: ["message.received"] } });
     const u = await t.call("PATCH", `/v1/webhooks/${w.id}`, { body: { status: "disabled", inbox_ids: [inboxA] } });
     expect(u.body).toMatchObject({ status: "disabled", inbox_ids: [inboxA] });
@@ -72,7 +86,9 @@ describe("delivery", () => {
 
   beforeAll(async () => {
     all = (await t.call("POST", "/v1/webhooks", { body: { url: "https://all.example.com/h" } })).body;
-    onlyA = (await t.call("POST", "/v1/webhooks", { body: { url: "https://a.example.com/h", events: ["message.received"], inbox_ids: [inboxA] } })).body;
+    onlyA = (
+      await t.call("POST", "/v1/webhooks", { body: { url: "https://a.example.com/h", events: ["message.received"], inbox_ids: [inboxA] } })
+    ).body;
     await t.call("POST", "/v1/webhooks", { body: { url: "https://sent.example.com/h", events: ["message.sent"] } });
   });
 
@@ -113,7 +129,10 @@ describe("delivery", () => {
   it("retries on failure with backoff, then succeeds", async () => {
     const d = await deliver(t.db, "hooks-b@send0.email", fixture("forwarded.eml"));
     if (d.duplicate) throw new Error("dup");
-    const rx = receiver(() => all.secret, (n) => (n === 1 ? new Response("boom", { status: 503 }) : new Response("ok")));
+    const rx = receiver(
+      () => all.secret,
+      (n) => (n === 1 ? new Response("boom", { status: 503 }) : new Response("ok")),
+    );
     await processQueueMessage(t.db, queue, { kind: "fanout", eventId: d.envelope.id }, { fetch: rx.fetchImpl });
     expect(sent).toEqual([{ msg: { kind: "deliver", deliveryId: expect.stringMatching(/^dlv_/) }, delay: RETRY_SCHEDULE_S[0] }]);
     const [row] = await t.db.select().from(schema.deliveries).where(eq(schema.deliveries.eventId, d.envelope.id));
@@ -140,7 +159,12 @@ describe("delivery", () => {
 
   it("lists deliveries and replays one", async () => {
     const list = await t.call("GET", `/v1/webhooks/${all.id}/deliveries?status=failed`);
-    expect(list.body.data[0]).toMatchObject({ object: "delivery", status: "failed", event_type: "message.received", attempts: RETRY_SCHEDULE_S.length + 1 });
+    expect(list.body.data[0]).toMatchObject({
+      object: "delivery",
+      status: "failed",
+      event_type: "message.received",
+      attempts: RETRY_SCHEDULE_S.length + 1,
+    });
     const replay = await t.call("POST", `/v1/webhooks/${all.id}/deliveries/${list.body.data[0].id}/retry`);
     expect(replay.status).toBe(202);
     expect(replay.body).toMatchObject({ status: "pending", attempts: 0 });

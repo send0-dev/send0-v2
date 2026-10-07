@@ -38,7 +38,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             end={item.end}
             icon={item.icon}
             onNavigate={onNavigate}
-            trailing={item.to === "/drafts" && !!pending && <span className="tabular rounded-full bg-brand-soft px-1.5 text-[11px] font-medium text-brand">{pending}</span>}
+            trailing={
+              item.to === "/drafts" &&
+              !!pending && <span className="tabular rounded-full bg-brand-soft px-1.5 text-[11px] font-medium text-brand">{pending}</span>
+            }
           >
             {item.label}
           </SidebarLink>

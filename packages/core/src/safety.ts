@@ -18,15 +18,31 @@ const SIGNALS: { reason: string; weight: number; re: RegExp }[] = [
     // Not plain "you are now": that's every "you are now subscribed" email.
     re: /\b(?:you are now (?:a|an|the|in)\b[^.\n]{0,30}\b(?:assistant|ai|agent|bot|model|mode|persona)|from now on,? you (?:are|will|must)|pretend (?:to be|you are)|roleplay as)\b/i,
   },
-  { reason: "system_prompt_probe", weight: 2, re: /\b(?:system prompt|developer message|your (?:hidden |secret )?instructions|reveal (?:your|the) (?:prompt|instructions))\b/i },
-  { reason: "fake_role_tags", weight: 3, re: /<\/?(?:system|assistant|user|im_start|im_end)>|\[\/?INST\]|<<\/?SYS>>|^\s*(?:system|assistant)\s*:/im },
+  {
+    reason: "system_prompt_probe",
+    weight: 2,
+    re: /\b(?:system prompt|developer message|your (?:hidden |secret )?instructions|reveal (?:your|the) (?:prompt|instructions))\b/i,
+  },
+  {
+    reason: "fake_role_tags",
+    weight: 3,
+    re: /<\/?(?:system|assistant|user|im_start|im_end)>|\[\/?INST\]|<<\/?SYS>>|^\s*(?:system|assistant)\s*:/im,
+  },
   {
     reason: "exfiltration_request",
     weight: 2,
     re: /\b(?:send|forward|email|post|upload|share)\b[^.\n]{0,60}\b(?:api[_ ]?keys?|passwords?|credentials|secrets?|tokens?|private keys?|all (?:emails|messages|files|contacts))\b/i,
   },
-  { reason: "tool_invocation", weight: 2, re: /\b(?:call|invoke|run|execute|use) (?:the )?(?:tool|function)\b|"(?:tool_call|function_call)"\s*:/i },
-  { reason: "urgent_agent_address", weight: 1, re: /\b(?:AI|LLM|assistant|agent|chatbot|language model)\b[^.\n]{0,30}\b(?:must|should|need to|are required to|immediately)\b/i },
+  {
+    reason: "tool_invocation",
+    weight: 2,
+    re: /\b(?:call|invoke|run|execute|use) (?:the )?(?:tool|function)\b|"(?:tool_call|function_call)"\s*:/i,
+  },
+  {
+    reason: "urgent_agent_address",
+    weight: 1,
+    re: /\b(?:AI|LLM|assistant|agent|chatbot|language model)\b[^.\n]{0,30}\b(?:must|should|need to|are required to|immediately)\b/i,
+  },
 ];
 
 /**

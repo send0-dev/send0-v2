@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildMime, displayNameFromLocalPart, encodeHeaderValue, encodeQuotedPrintable, forwardSubject, parseInbound, replyReferences, replySubject } from "../src";
+import {
+  buildMime,
+  displayNameFromLocalPart,
+  encodeHeaderValue,
+  encodeQuotedPrintable,
+  forwardSubject,
+  parseInbound,
+  replyReferences,
+  replySubject,
+} from "../src";
 
 const opts = { trustedAuthservIds: [] };
 const base = {

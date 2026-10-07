@@ -1,12 +1,7 @@
 ---
 type Cell = true | false | string;
 
-const cols = [
-  "send0",
-  "Hosted inbox APIs",
-  "Transactional email APIs",
-  "Running your own mail server",
-];
+const cols = ["send0", "Hosted inbox APIs", "Transactional email APIs", "Running your own mail server"];
 
 const rows: { label: string; cells: Cell[] }[] = [
   {
@@ -43,62 +38,57 @@ const rows: { label: string; cells: Cell[] }[] = [
       Inbox-first. <span class="dim">Not sending with inbound bolted on.</span>
     </h2>
     <p class="lede">
-      Transactional email APIs are built to send receipts. Your own mail server
-      is built for people. send0 is built for software that needs to hold a
-      conversation.
+      Transactional email APIs are built to send receipts. Your own mail server is built for people. send0 is built for software that needs
+      to hold a conversation.
     </p>
   </div>
 
   <div class="wrap reveal">
     <table>
-      <caption class="sr-only"
-        >send0 compared with other ways to give agents email</caption
-      >
+      <caption class="sr-only">send0 compared with other ways to give agents email</caption>
       <thead>
         <tr>
-          <th scope="col"><span class="sr-only">Capability</span></th>
-          {
-            cols.map((c, i) => (
-              <th scope="col" class={i === 0 ? "us" : ""}>
-                {c}
-              </th>
-            ))
-          }
+          <th scope="col">
+            <span class="sr-only">Capability</span>
+          </th>
+          {cols.map((c, i) => (
+            <th scope="col" class={i === 0 ? "us" : ""}>
+              {c}
+            </th>
+          ))}
         </tr>
       </thead>
       <tbody>
-        {
-          rows.map((r) => (
-            <tr>
-              <th scope="row">{r.label}</th>
-              {r.cells.map((c, i) => (
-                <td class={i === 0 ? "us" : ""}>
-                  {c === true ? (
-                    <span class="yes" aria-label="Yes">
-                      <svg
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m3.5 8.5 3 3 6-7" />
-                      </svg>
-                    </span>
-                  ) : c === false ? (
-                    <span class="no" aria-label="No">
-                      —
-                    </span>
-                  ) : (
-                    <span class="txt">{c}</span>
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))
-        }
+        {rows.map((r) => (
+          <tr>
+            <th scope="row">{r.label}</th>
+            {r.cells.map((c, i) => (
+              <td class={i === 0 ? "us" : ""}>
+                {c === true ? (
+                  <span class="yes" aria-label="Yes">
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m3.5 8.5 3 3 6-7" />
+                    </svg>
+                  </span>
+                ) : c === false ? (
+                  <span class="no" aria-label="No">
+                    —
+                  </span>
+                ) : (
+                  <span class="txt">{c}</span>
+                )}
+              </td>
+            ))}
+          </tr>
+        ))}
       </tbody>
     </table>
   </div>

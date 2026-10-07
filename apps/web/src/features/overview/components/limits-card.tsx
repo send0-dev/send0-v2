@@ -34,7 +34,12 @@ export function LimitsCard({ usage, className }: { usage: Usage; className?: str
         <Badge variant="outline">{PLAN[usage.plan]}</Badge>
       </CardHeader>
       <CardContent className="grid gap-5">
-        <Meter label="Sent today" used={usage.sends_today.used} limit={usage.sends_today.limit} hint={`Resets ${relativeTime(usage.sends_today.resets_at)}`} />
+        <Meter
+          label="Sent today"
+          used={usage.sends_today.used}
+          limit={usage.sends_today.limit}
+          hint={`Resets ${relativeTime(usage.sends_today.resets_at)}`}
+        />
         <Meter label="Inboxes" used={usage.inboxes.used} limit={usage.inboxes.limit} />
       </CardContent>
     </Card>

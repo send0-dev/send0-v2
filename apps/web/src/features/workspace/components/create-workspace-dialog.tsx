@@ -10,7 +10,9 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: { open: boolean; o
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create a workspace</DialogTitle>
-          <DialogDescription>Separate inboxes, keys and teammates, e.g. for another product or client. You'll be its owner.</DialogDescription>
+          <DialogDescription>
+            Separate inboxes, keys and teammates, e.g. for another product or client. You'll be its owner.
+          </DialogDescription>
         </DialogHeader>
         <WorkspaceNameForm
           autoFocus

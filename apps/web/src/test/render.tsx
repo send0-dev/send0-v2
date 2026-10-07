@@ -25,7 +25,7 @@ export function renderApp(ui: ReactElement, { route = "/", path = "*", me }: { r
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
   return { ...result, user: userEvent.setup(), router, queryClient };
 }

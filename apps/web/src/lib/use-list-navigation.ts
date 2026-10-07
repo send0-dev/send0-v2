@@ -35,6 +35,6 @@ export function useListNavigation({
       Enter: () => current && (onOpen ?? onMove)(current),
       Escape: () => onEscape?.(),
     },
-    enabled
+    enabled,
   );
 }

@@ -12,10 +12,23 @@ export interface TestEnv {
   close: () => Promise<void>;
   /** Make an API key for the org with the given scopes/inboxes. */
   makeKey: (opts?: { scopes?: string[]; inboxIds?: string[] | null; orgId?: string; mode?: "live" | "test" }) => Promise<string>;
-  call: (method: string, path: string, opts?: { key?: string | null; body?: unknown; headers?: Record<string, string> }) => Promise<{ status: number; body: any; headers: Headers }>;
+  call: (
+    method: string,
+    path: string,
+    opts?: { key?: string | null; body?: unknown; headers?: Record<string, string> },
+  ) => Promise<{ status: number; body: any; headers: Headers }>;
 }
 
-export async function setup(opts: { now?: () => Date; hub?: AppDeps["hub"]; queue?: AppDeps["queue"]; mailer?: AppDeps["mailer"]; publish?: AppDeps["publish"]; sesEvents?: AppDeps["sesEvents"] } = {}): Promise<TestEnv> {
+export async function setup(
+  opts: {
+    now?: () => Date;
+    hub?: AppDeps["hub"];
+    queue?: AppDeps["queue"];
+    mailer?: AppDeps["mailer"];
+    publish?: AppDeps["publish"];
+    sesEvents?: AppDeps["sesEvents"];
+  } = {},
+): Promise<TestEnv> {
   const { db, close } = await createTestDb();
   const orgId = newId("org");
   await db.insert(schema.orgs).values({ id: orgId, name: "Test org" });
@@ -23,7 +36,9 @@ export async function setup(opts: { now?: () => Date; hub?: AppDeps["hub"]; queu
 
   const makeKey: TestEnv["makeKey"] = async ({ scopes = ["admin"], inboxIds = null, orgId: org = orgId, mode = "live" } = {}) => {
     const k = await newApiKey(mode);
-    await db.insert(schema.apiKeys).values({ id: newId("key"), orgId: org, name: "test", prefix: k.prefix, hash: k.hash, mode, scopes, inboxIds });
+    await db
+      .insert(schema.apiKeys)
+      .values({ id: newId("key"), orgId: org, name: "test", prefix: k.prefix, hash: k.hash, mode, scopes, inboxIds });
     return k.key;
   };
   const adminKey = await makeKey();
@@ -35,7 +50,9 @@ export async function setup(opts: { now?: () => Date; hub?: AppDeps["hub"]; queu
     mailer: opts.mailer,
     publish: opts.publish,
     sesEvents: opts.sesEvents,
-    files: { signedGetUrl: async (key, o) => `https://files.test/${key}?expires=${o.expiresIn}&name=${encodeURIComponent(o.filename ?? "")}` },
+    files: {
+      signedGetUrl: async (key, o) => `https://files.test/${key}?expires=${o.expiresIn}&name=${encodeURIComponent(o.filename ?? "")}`,
+    },
   });
 
   const call: TestEnv["call"] = async (method, path, { key = adminKey, body, headers = {} } = {}) => {
@@ -60,8 +77,7 @@ import { findInboxByAddress, ingestMessage } from "@send0/pipeline";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-export const fixture = (n: string) =>
-  readFileSync(fileURLToPath(new URL(`../../../fixtures/emails/${n}`, import.meta.url).href));
+export const fixture = (n: string) => readFileSync(fileURLToPath(new URL(`../../../fixtures/emails/${n}`, import.meta.url).href));
 
 /** Runs a fixture .eml through the real inbound pipeline into the given inbox. */
 export async function deliver(db: Db, address: string, raw: Uint8Array, at = new Date()) {
@@ -69,12 +85,16 @@ export async function deliver(db: Db, address: string, raw: Uint8Array, at = new
   const inbox = await findInboxByAddress(db, local, domain);
   if (!inbox) throw new Error(`no inbox ${address}`);
   const id = _newId("msg");
-  return ingestMessage(db, { put: async () => {} }, {
-    inbox,
-    messageId: id,
-    rawKey: `raw/${inbox.orgId}/${id}.eml`,
-    parsed: await parseInbound(raw, { trustedAuthservIds: ["mx.cloudflare.net"] }),
-    tag: null,
-    receivedAt: at,
-  });
+  return ingestMessage(
+    db,
+    { put: async () => {} },
+    {
+      inbox,
+      messageId: id,
+      rawKey: `raw/${inbox.orgId}/${id}.eml`,
+      parsed: await parseInbound(raw, { trustedAuthservIds: ["mx.cloudflare.net"] }),
+      tag: null,
+      receivedAt: at,
+    },
+  );
 }

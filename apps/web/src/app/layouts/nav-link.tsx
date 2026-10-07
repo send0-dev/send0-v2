@@ -4,7 +4,21 @@ import { NavLink } from "react-router";
 import { cn } from "@/lib/utils";
 
 /** One sidebar row: icon, label, optional trailing count. */
-export function SidebarLink({ to, end, icon: Icon, children, trailing, onNavigate }: { to: string; end?: boolean; icon?: LucideIcon; children: ReactNode; trailing?: ReactNode; onNavigate?: () => void }) {
+export function SidebarLink({
+  to,
+  end,
+  icon: Icon,
+  children,
+  trailing,
+  onNavigate,
+}: {
+  to: string;
+  end?: boolean;
+  icon?: LucideIcon;
+  children: ReactNode;
+  trailing?: ReactNode;
+  onNavigate?: () => void;
+}) {
   return (
     <NavLink
       to={to}
@@ -13,7 +27,7 @@ export function SidebarLink({ to, end, icon: Icon, children, trailing, onNavigat
       className={({ isActive }) =>
         cn(
           "group flex h-7 items-center gap-2 rounded-md px-2 text-[13px] text-muted-foreground transition-colors duration-75 hover:bg-hover hover:text-foreground",
-          isActive && "bg-selected text-foreground"
+          isActive && "bg-selected text-foreground",
         )
       }
     >

@@ -11,7 +11,17 @@ import type { MessageFilters as Filters } from "../use-message-filters";
 const ANY = "any";
 
 /** Search and the status / inbox pickers above the messages list. Direction lives in the header. */
-export function MessageFilters({ filters, onChange, onClear, active }: { filters: Filters; onChange: <K extends keyof Filters>(key: K, value: Filters[K]) => void; onClear: () => void; active: boolean }) {
+export function MessageFilters({
+  filters,
+  onChange,
+  onClear,
+  active,
+}: {
+  filters: Filters;
+  onChange: <K extends keyof Filters>(key: K, value: Filters[K]) => void;
+  onClear: () => void;
+  active: boolean;
+}) {
   const inboxes = useInboxes();
   const [q, setQ] = useState(filters.q);
   // Follow the URL when it changes from outside (Clear filters, back/forward).

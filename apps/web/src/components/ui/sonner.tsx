@@ -10,7 +10,12 @@ export function Toaster(props: ToasterProps) {
       position="bottom-left"
       offset={{ bottom: 56, left: 12 }}
       mobileOffset={{ bottom: 12 }}
-      toastOptions={{ classNames: { toast: "!rounded-lg !border-0 !bg-elevated !text-foreground !shadow-elevated !text-[13px] !font-sans", description: "!text-muted-foreground" } }}
+      toastOptions={{
+        classNames: {
+          toast: "!rounded-lg !border-0 !bg-elevated !text-foreground !shadow-elevated !text-[13px] !font-sans",
+          description: "!text-muted-foreground",
+        },
+      }}
       {...props}
     />
   );

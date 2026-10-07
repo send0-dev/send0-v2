@@ -13,7 +13,11 @@ export const PAUSE_RULES = { windowDays: 30, minSent: 20, maxComplaintRate: 0.00
 export interface SesEvent {
   eventType: "Send" | "Delivery" | "Bounce" | "Complaint" | "Reject" | "RenderingFailure" | "DeliveryDelay" | "Subscription" | string;
   mail: { messageId: string; tags?: Record<string, string[]> };
-  bounce?: { bounceType: "Permanent" | "Transient" | "Undetermined"; bounceSubType?: string; bouncedRecipients: { emailAddress: string; diagnosticCode?: string }[] };
+  bounce?: {
+    bounceType: "Permanent" | "Transient" | "Undetermined";
+    bounceSubType?: string;
+    bouncedRecipients: { emailAddress: string; diagnosticCode?: string }[];
+  };
   complaint?: { complainedRecipients: { emailAddress: string }[]; complaintFeedbackType?: string };
   delivery?: { recipients: string[]; smtpResponse?: string };
   reject?: { reason?: string };
@@ -90,7 +94,14 @@ export async function handleSesEvent(deps: AppDeps, evt: SesEvent): Promise<{ ha
   }
 
   if (type) {
-    const row = { id: newId("evt"), orgId: msg.orgId, inboxId: msg.inboxId, type, payload: { data: { ...serializeMessage(current, []), ...detail } }, createdAt: now };
+    const row = {
+      id: newId("evt"),
+      orgId: msg.orgId,
+      inboxId: msg.inboxId,
+      type,
+      payload: { data: { ...serializeMessage(current, []), ...detail } },
+      createdAt: now,
+    };
     await db.insert(events).values(row);
     await deps.publish?.(msg.orgId, toEnvelope(row));
   }
@@ -106,7 +117,14 @@ export async function maybePauseSending(deps: AppDeps, orgId: string, inboxId: s
   const rows = await db
     .select({ status: messages.status, n: count() })
     .from(messages)
-    .where(and(eq(messages.orgId, orgId), eq(messages.direction, "out"), gte(messages.createdAt, since), inArray(messages.status, ["sent", "delivered", "bounced", "complained"])))
+    .where(
+      and(
+        eq(messages.orgId, orgId),
+        eq(messages.direction, "out"),
+        gte(messages.createdAt, since),
+        inArray(messages.status, ["sent", "delivered", "bounced", "complained"]),
+      ),
+    )
     .groupBy(messages.status);
   const by = Object.fromEntries(rows.map((r) => [r.status, Number(r.n)]));
   const sent = Object.values(by).reduce((a, b) => a + b, 0);
@@ -115,8 +133,10 @@ export async function maybePauseSending(deps: AppDeps, orgId: string, inboxId: s
   const bounceRate = (by.bounced ?? 0) / sent;
 
   let reason: string | null = null;
-  if (complaintRate > PAUSE_RULES.maxComplaintRate) reason = `complaint rate ${(complaintRate * 100).toFixed(2)}% is over ${PAUSE_RULES.maxComplaintRate * 100}%`;
-  else if (bounceRate > PAUSE_RULES.maxBounceRate) reason = `hard-bounce rate ${(bounceRate * 100).toFixed(1)}% is over ${PAUSE_RULES.maxBounceRate * 100}%`;
+  if (complaintRate > PAUSE_RULES.maxComplaintRate)
+    reason = `complaint rate ${(complaintRate * 100).toFixed(2)}% is over ${PAUSE_RULES.maxComplaintRate * 100}%`;
+  else if (bounceRate > PAUSE_RULES.maxBounceRate)
+    reason = `hard-bounce rate ${(bounceRate * 100).toFixed(1)}% is over ${PAUSE_RULES.maxBounceRate * 100}%`;
   if (!reason) return false;
 
   const paused = await db
@@ -139,4 +159,3 @@ export async function maybePauseSending(deps: AppDeps, orgId: string, inboxId: s
   console.log(JSON.stringify({ event: "sending.paused", org_id: orgId, reason }));
   return true;
 }
-

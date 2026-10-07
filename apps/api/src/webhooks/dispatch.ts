@@ -50,7 +50,10 @@ export async function fanOut(db: Db, eventId: string, now: Date): Promise<string
         .where(and(eq(deliveries.eventId, event.id), eq(deliveries.status, "pending")))
     ).map((d) => d.id);
   }
-  await db.update(events).set({ dispatchedAt: now }).where(and(eq(events.id, event.id), isNull(events.dispatchedAt)));
+  await db
+    .update(events)
+    .set({ dispatchedAt: now })
+    .where(and(eq(events.id, event.id), isNull(events.dispatchedAt)));
   return ids;
 }
 
@@ -100,7 +103,10 @@ export async function attemptDelivery(
     statusCode = res.status;
     if (!res.ok) error = `HTTP ${res.status}: ${(await res.text().catch(() => "")).slice(0, MAX_ERROR_LENGTH)}`;
   } catch (err) {
-    error = (err instanceof Error && err.name === "TimeoutError" ? `Timed out after ${DELIVERY_TIMEOUT_MS / 1000}s` : String(err)).slice(0, MAX_ERROR_LENGTH);
+    error = (err instanceof Error && err.name === "TimeoutError" ? `Timed out after ${DELIVERY_TIMEOUT_MS / 1000}s` : String(err)).slice(
+      0,
+      MAX_ERROR_LENGTH,
+    );
   }
 
   const attempts = delivery.attempts + 1;
@@ -108,12 +114,18 @@ export async function attemptDelivery(
   const base = { attempts, lastStatusCode: statusCode, lastError: error, lastDurationMs: durationMs };
 
   if (!error) {
-    await db.update(deliveries).set({ ...base, status: "succeeded", nextAttemptAt: null }).where(eq(deliveries.id, delivery.id));
+    await db
+      .update(deliveries)
+      .set({ ...base, status: "succeeded", nextAttemptAt: null })
+      .where(eq(deliveries.id, delivery.id));
     return { status: "succeeded" };
   }
   const delay = RETRY_SCHEDULE_S[attempts - 1];
   if (delay === undefined) {
-    await db.update(deliveries).set({ ...base, status: "failed", nextAttemptAt: null }).where(eq(deliveries.id, delivery.id));
+    await db
+      .update(deliveries)
+      .set({ ...base, status: "failed", nextAttemptAt: null })
+      .where(eq(deliveries.id, delivery.id));
     return { status: "failed", reason: error };
   }
   await db
@@ -158,7 +170,10 @@ export async function sweep(db: Db, queue: QueueLike, now: Date): Promise<{ even
   for (const e of undispatched) await queue.send({ kind: "fanout", eventId: e.id });
   for (const d of overdue) {
     // Push the due time forward so the next sweep doesn't enqueue it again while it's in flight.
-    await db.update(deliveries).set({ nextAttemptAt: sql`now()` }).where(eq(deliveries.id, d.id));
+    await db
+      .update(deliveries)
+      .set({ nextAttemptAt: sql`now()` })
+      .where(eq(deliveries.id, d.id));
     await queue.send({ kind: "deliver", deliveryId: d.id });
   }
   return { events: undispatched.length, deliveries: overdue.length };

@@ -35,7 +35,10 @@ export default defineConfig(
     },
     linterOptions: { reportUnusedDisableDirectives: "error" },
     rules: {
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrors: "none", ignoreRestSiblings: true }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrors: "none", ignoreRestSiblings: true },
+      ],
       "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "inline-type-imports", disallowTypeAnnotations: false }],
       "@typescript-eslint/no-unused-expressions": ["error", { allowTernary: true, allowShortCircuit: true }],
       "@typescript-eslint/no-this-alias": "off",
@@ -82,7 +85,10 @@ export default defineConfig(
     plugins: { "react-refresh": reactRefresh },
     rules: {
       // A provider with its hook, or a component with its variants, may share a file.
-      "react-refresh/only-export-components": ["error", { allowConstantExport: true, allowExportNames: ["useTheme", "useCommandMenu", "useFormField", "buttonVariants"] }],
+      "react-refresh/only-export-components": [
+        "error",
+        { allowConstantExport: true, allowExportNames: ["useTheme", "useCommandMenu", "useFormField", "buttonVariants"] },
+      ],
     },
   },
   {
@@ -100,5 +106,5 @@ export default defineConfig(
     },
   },
 
-  prettier
+  prettier,
 );

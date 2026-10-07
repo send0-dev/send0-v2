@@ -22,7 +22,10 @@ const GROUPS = (workspace: string) => [
 ];
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  cn("flex h-7 shrink-0 items-center gap-2 rounded-md px-2 text-[13px] text-muted-foreground transition-colors hover:bg-hover hover:text-foreground", isActive && "bg-selected text-foreground");
+  cn(
+    "flex h-7 shrink-0 items-center gap-2 rounded-md px-2 text-[13px] text-muted-foreground transition-colors hover:bg-hover hover:text-foreground",
+    isActive && "bg-selected text-foreground",
+  );
 
 /**
  * Settings, Linear-style: its own navigation on the left (tabs across the top on phones), one
@@ -35,11 +38,13 @@ export function SettingsLayout() {
     <Page>
       <PageHeader />
       <nav aria-label="Settings sections" className="flex gap-1 overflow-x-auto border-b px-gutter py-2 md:hidden">
-        {groups.flatMap((g) => g.items).map((i) => (
-          <NavLink key={i.to} to={i.to} className={linkClass}>
-            {i.label}
-          </NavLink>
-        ))}
+        {groups
+          .flatMap((g) => g.items)
+          .map((i) => (
+            <NavLink key={i.to} to={i.to} className={linkClass}>
+              {i.label}
+            </NavLink>
+          ))}
       </nav>
       <div className="flex min-h-0 flex-1">
         <nav aria-label="Settings" className="hidden w-52 shrink-0 overflow-y-auto border-r px-3 py-4 md:block">

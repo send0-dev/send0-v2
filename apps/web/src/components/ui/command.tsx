@@ -5,10 +5,24 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { cn } from "@/lib/utils";
 
 export function Command({ className, ...props }: ComponentProps<typeof CommandPrimitive>) {
-  return <CommandPrimitive data-slot="command" className={cn("flex h-full w-full flex-col overflow-hidden rounded-xl bg-elevated text-popover-foreground", className)} {...props} />;
+  return (
+    <CommandPrimitive
+      data-slot="command"
+      className={cn("flex h-full w-full flex-col overflow-hidden rounded-xl bg-elevated text-popover-foreground", className)}
+      {...props}
+    />
+  );
 }
 
-export function CommandDialog({ children, open, onOpenChange }: { children: React.ReactNode; open: boolean; onOpenChange: (open: boolean) => void }) {
+export function CommandDialog({
+  children,
+  open,
+  onOpenChange,
+}: {
+  children: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="top-[14vh] overflow-hidden p-0 sm:max-w-[600px]" showClose={false}>
@@ -26,13 +40,23 @@ export function CommandInput({ className, ...props }: ComponentProps<typeof Comm
   return (
     <div className="flex h-12 items-center gap-2.5 border-b px-4">
       <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
-      <CommandPrimitive.Input data-slot="command-input" className={cn("flex h-11 w-full bg-transparent text-[14px] outline-none placeholder:text-faint", className)} {...props} />
+      <CommandPrimitive.Input
+        data-slot="command-input"
+        className={cn("flex h-11 w-full bg-transparent text-[14px] outline-none placeholder:text-faint", className)}
+        {...props}
+      />
     </div>
   );
 }
 
 export function CommandList({ className, ...props }: ComponentProps<typeof CommandPrimitive.List>) {
-  return <CommandPrimitive.List data-slot="command-list" className={cn("max-h-[380px] scroll-py-2 overflow-x-hidden overflow-y-auto p-2", className)} {...props} />;
+  return (
+    <CommandPrimitive.List
+      data-slot="command-list"
+      className={cn("max-h-[380px] scroll-py-2 overflow-x-hidden overflow-y-auto p-2", className)}
+      {...props}
+    />
+  );
 }
 
 export function CommandEmpty(props: ComponentProps<typeof CommandPrimitive.Empty>) {
@@ -48,8 +72,8 @@ export function CommandItem({ className, ...props }: ComponentProps<typeof Comma
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "relative flex h-9 cursor-default select-none items-center gap-2.5 rounded-md px-2.5 text-[13px] outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-selected data-[disabled=true]:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
-        className
+        "relative flex h-9 cursor-default items-center gap-2.5 rounded-md px-2.5 text-[13px] outline-none select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected=true]:bg-selected [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
+        className,
       )}
       {...props}
     />

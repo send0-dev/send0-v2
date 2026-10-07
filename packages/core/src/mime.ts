@@ -82,7 +82,10 @@ export function encodeQuotedPrintable(text: string): string {
       let encoded = "";
       for (const byte of enc.encode(line)) {
         const ch = String.fromCharCode(byte);
-        encoded += (byte >= 33 && byte <= 126 && ch !== "=") || byte === 32 || byte === 9 ? ch : `=${byte.toString(16).toUpperCase().padStart(2, "0")}`;
+        encoded +=
+          (byte >= 33 && byte <= 126 && ch !== "=") || byte === 32 || byte === 9
+            ? ch
+            : `=${byte.toString(16).toUpperCase().padStart(2, "0")}`;
       }
       // Trailing whitespace must be encoded or it may be stripped in transit.
       encoded = encoded.replace(/[ \t]$/, (ws) => `=${ws.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`);
@@ -128,7 +131,8 @@ export function rfc5322Date(d: Date): string {
   return `${days[d.getUTCDay()]}, ${p(d.getUTCDate())} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} +0000`;
 }
 
-const FORBIDDEN_EXTRA = /^(from|to|cc|bcc|subject|date|message-id|in-reply-to|references|mime-version|content-type|content-transfer-encoding|reply-to|sender|return-path)$/i;
+const FORBIDDEN_EXTRA =
+  /^(from|to|cc|bcc|subject|date|message-id|in-reply-to|references|mime-version|content-type|content-transfer-encoding|reply-to|sender|return-path)$/i;
 
 /**
  * Builds a complete RFC 5322 message. Bcc is never written to headers: pass it to the

@@ -23,9 +23,7 @@ describe("auth", () => {
     const key = await t.makeKey();
     const created = await t.call("GET", "/v1/api-keys", { key });
     expect(created.status).toBe(200);
-    const id = created.body.data.find(
-      (k: any) => key.startsWith(k.prefix) && k.prefix === key.slice(0, 12)
-    )?.id;
+    const id = created.body.data.find((k: any) => key.startsWith(k.prefix) && k.prefix === key.slice(0, 12))?.id;
     await t.call("DELETE", `/v1/api-keys/${id}`);
     expect((await t.call("GET", "/v1/api-keys", { key })).status).toBe(401);
   });
@@ -33,9 +31,7 @@ describe("auth", () => {
   it("blocks suspended orgs", async () => {
     const { newId } = await import("@send0/core");
     const org = newId("org");
-    await t.db
-      .insert(schema.orgs)
-      .values({ id: org, name: "Bad", status: "suspended" });
+    await t.db.insert(schema.orgs).values({ id: org, name: "Bad", status: "suspended" });
     const key = await t.makeKey({ orgId: org });
     const r = await t.call("GET", "/v1/api-keys", { key });
     expect(r.status).toBe(403);
@@ -120,23 +116,17 @@ describe("api keys", () => {
   });
 
   it("paginates newest first with a stable cursor", async () => {
-    for (let i = 0; i < 5; i++)
-      await t.call("POST", "/v1/api-keys", { body: { name: `page-${i}` } });
+    for (let i = 0; i < 5; i++) await t.call("POST", "/v1/api-keys", { body: { name: `page-${i}` } });
     const seen: string[] = [];
     let cursor: string | null = null;
     do {
-      const r: { body: any } = await t.call(
-        "GET",
-        `/v1/api-keys?limit=2${cursor ? `&cursor=${cursor}` : ""}`
-      );
+      const r: { body: any } = await t.call("GET", `/v1/api-keys?limit=2${cursor ? `&cursor=${cursor}` : ""}`);
       expect(r.body.data.length).toBeLessThanOrEqual(2);
       seen.push(...r.body.data.map((k: any) => k.id));
       cursor = r.body.next_cursor;
     } while (cursor);
     expect(new Set(seen).size).toBe(seen.length);
-    const all = (await t.call("GET", "/v1/api-keys?limit=100")).body.data.map(
-      (k: any) => k.id
-    );
+    const all = (await t.call("GET", "/v1/api-keys?limit=100")).body.data.map((k: any) => k.id);
     expect(seen).toEqual(all);
   });
 
@@ -147,9 +137,7 @@ describe("api keys", () => {
   });
 
   it("404s when revoking someone else's or a missing key", async () => {
-    expect((await t.call("DELETE", "/v1/api-keys/key_missing")).status).toBe(
-      404
-    );
+    expect((await t.call("DELETE", "/v1/api-keys/key_missing")).status).toBe(404);
   });
 });
 
@@ -168,9 +156,7 @@ describe("idempotency", () => {
     expect(b.status).toBe(201);
     expect(b.body.id).toBe(a.body.id);
     expect(b.headers.get("idempotent-replayed")).toBe("true");
-    const named = (
-      await t.call("GET", "/v1/api-keys?limit=100")
-    ).body.data.filter((k: any) => k.name === "idem");
+    const named = (await t.call("GET", "/v1/api-keys?limit=100")).body.data.filter((k: any) => k.name === "idem");
     expect(named).toHaveLength(1);
   });
 

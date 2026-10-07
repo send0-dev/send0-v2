@@ -1,6 +1,21 @@
 import { cn } from "@/lib/utils";
 
-type Status = "received" | "queued" | "sent" | "delivered" | "bounced" | "complained" | "failed" | "pending" | "approved" | "rejected" | "succeeded" | "enabled" | "disabled" | "active" | "suspended";
+type Status =
+  | "received"
+  | "queued"
+  | "sent"
+  | "delivered"
+  | "bounced"
+  | "complained"
+  | "failed"
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "succeeded"
+  | "enabled"
+  | "disabled"
+  | "active"
+  | "suspended";
 
 const COLORS: Record<Status, string> = {
   received: "text-muted-foreground",
@@ -48,7 +63,14 @@ export function StatusIcon({ status, className }: { status: string; className?: 
       return (
         <svg viewBox="0 0 14 14" className={cls} aria-hidden>
           <circle cx="7" cy="7" r="6.25" fill="currentColor" />
-          <path d="M4.3 7.2 6.1 9l3.6-3.8" fill="none" stroke="var(--panel)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M4.3 7.2 6.1 9l3.6-3.8"
+            fill="none"
+            stroke="var(--panel)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     case "bounced":

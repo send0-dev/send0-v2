@@ -16,8 +16,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     throw new AppError(0, "network_error", "Can't reach send0. Check your connection and try again.");
   }
   const data = (res.headers.get("content-type")?.includes("json") ? await res.json() : null) as
-    | (T & { error?: { code?: string; message?: string; field?: string } })
-    | null;
+    (T & { error?: { code?: string; message?: string; field?: string } }) | null;
   if (!res.ok) {
     const e = data?.error;
     throw new AppError(res.status, e?.code ?? "error", e?.message ?? `Request failed (${res.status}).`, e?.field ?? undefined);

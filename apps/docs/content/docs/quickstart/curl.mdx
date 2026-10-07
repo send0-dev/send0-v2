@@ -70,7 +70,9 @@ curl https://api.send0.dev/v1/messages/msg_9Kd2…/reply \
 </Steps>
 
 <Callout type="info">
-  Send an `Idempotency-Key` with every POST. If the network drops and you retry with the same key and body, you get the original response back instead of a second email. Keys are remembered for 24 hours.
+  Send an `Idempotency-Key` with every POST. If the network drops and you retry with the same key
+  and body, you get the original response back instead of a second email. Keys are remembered for 24
+  hours.
 </Callout>
 
 The full contract is in the [OpenAPI spec](https://api.send0.dev/openapi.json). See [REST API](/reference/api).

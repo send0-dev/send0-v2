@@ -58,7 +58,10 @@ export default function InboxPage() {
     const q = filter.trim().toLowerCase();
     if (!q) return threads.items;
     return threads.items.filter(
-      (t) => t.subject.toLowerCase().includes(q) || t.participants.some((p) => p.toLowerCase().includes(q)) || t.latest_message?.snippet.toLowerCase().includes(q)
+      (t) =>
+        t.subject.toLowerCase().includes(q) ||
+        t.participants.some((p) => p.toLowerCase().includes(q)) ||
+        t.latest_message?.snippet.toLowerCase().includes(q),
     );
   }, [threads.items, filter]);
 
@@ -111,12 +114,29 @@ export default function InboxPage() {
                 </PaneBar>
               }
             >
-              <QueryState query={threads.state} skeleton={<ListSkeleton />} isEmpty={(items) => items.length === 0} empty={<InboxEmpty inbox={ibx} />}>
+              <QueryState
+                query={threads.state}
+                skeleton={<ListSkeleton />}
+                isEmpty={(items) => items.length === 0}
+                empty={<InboxEmpty inbox={ibx} />}
+              >
                 {() => (
                   <>
-                    <ThreadList threads={visible} selectedId={threadId} onSelect={select} inboxAddress={ibx.address} inboxName={ibx.display_name || ibx.local_part} />
-                    {filter && !visible.length && <p className="px-gutter py-8 text-center text-[13px] text-faint">No threads match “{filter}”.</p>}
-                    <LoadMore hasNextPage={threads.hasNextPage} isFetchingNextPage={threads.isFetchingNextPage} fetchNextPage={() => void threads.fetchNextPage()} />
+                    <ThreadList
+                      threads={visible}
+                      selectedId={threadId}
+                      onSelect={select}
+                      inboxAddress={ibx.address}
+                      inboxName={ibx.display_name || ibx.local_part}
+                    />
+                    {filter && !visible.length && (
+                      <p className="px-gutter py-8 text-center text-[13px] text-faint">No threads match “{filter}”.</p>
+                    )}
+                    <LoadMore
+                      hasNextPage={threads.hasNextPage}
+                      isFetchingNextPage={threads.isFetchingNextPage}
+                      fetchNextPage={() => void threads.fetchNextPage()}
+                    />
                   </>
                 )}
               </QueryState>

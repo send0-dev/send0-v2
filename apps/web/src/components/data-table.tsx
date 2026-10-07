@@ -15,7 +15,19 @@ export interface Column<T> {
 const HIDE = { sm: "max-sm:hidden", md: "max-md:hidden", lg: "max-lg:hidden" } as const;
 
 /** A plain, accessible table: columns describe themselves; rows are optionally clickable. */
-export function DataTable<T>({ columns, rows, rowKey, onRowClick, className }: { columns: Column<T>[]; rows: T[]; rowKey: (row: T) => string; onRowClick?: (row: T) => void; className?: string }) {
+export function DataTable<T>({
+  columns,
+  rows,
+  rowKey,
+  onRowClick,
+  className,
+}: {
+  columns: Column<T>[];
+  rows: T[];
+  rowKey: (row: T) => string;
+  onRowClick?: (row: T) => void;
+  className?: string;
+}) {
   return (
     <Table className={className}>
       <TableHeader>

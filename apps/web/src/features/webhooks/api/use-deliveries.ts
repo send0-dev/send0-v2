@@ -10,6 +10,6 @@ export function useDeliveries(webhookId: string, status: DeliveryFilter) {
   return useCursorList(
     webhookKeys.deliveries(webhookId, status),
     (cursor) => send0.webhooks.deliveries(webhookId, { limit: 50, cursor, ...(status === "all" ? {} : { status }) }),
-    { refetchInterval: 10_000 }
+    { refetchInterval: 10_000 },
   );
 }

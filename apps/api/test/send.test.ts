@@ -26,7 +26,11 @@ let inboxId: string;
 const parsed = async (i = -1) => parseInbound(outbox.at(i)!.raw, { trustedAuthservIds: [] });
 
 beforeAll(async () => {
-  t = await setup({ mailer, publish: async (_o, e) => void published.push(e), sesEvents: { token: "tok_" + "x".repeat(40), topicArn: "arn:aws:sns:ap-south-1:1:send0-ses-events" } });
+  t = await setup({
+    mailer,
+    publish: async (_o, e) => void published.push(e),
+    sesEvents: { token: "tok_" + "x".repeat(40), topicArn: "arn:aws:sns:ap-south-1:1:send0-ses-events" },
+  });
   inboxId = (await t.call("POST", "/v1/inboxes", { body: { name: "procurement-agent", display_name: "Procurement Agent" } })).body.id;
   // Dana emails us first, which is what lets a free, reply-only inbox write back.
   await deliver(t.db, "procurement-agent@send0.email", fixture("gmail-reply.eml"));
@@ -58,12 +62,27 @@ describe("policy", () => {
 
 describe("send", () => {
   it("sends a new message through SES with our Message-ID and records it", async () => {
-    const r = await send({ to: { email: "Dana@Gmail.com", name: "Dana" }, subject: "Delivery window", text: "Thursday works.", html: "<p>Thursday works.</p>" });
+    const r = await send({
+      to: { email: "Dana@Gmail.com", name: "Dana" },
+      subject: "Delivery window",
+      text: "Thursday works.",
+      html: "<p>Thursday works.</p>",
+    });
     expect(r.status).toBe(201);
-    expect(r.body).toMatchObject({ object: "message", direction: "out", status: "sent", subject: "Delivery window", to: [{ name: "Dana", email: "dana@gmail.com" }] });
+    expect(r.body).toMatchObject({
+      object: "message",
+      direction: "out",
+      status: "sent",
+      subject: "Delivery window",
+      to: [{ name: "Dana", email: "dana@gmail.com" }],
+    });
     expect(r.body.rfc_message_id).toBe(`<${r.body.id}@send0.email>`);
 
-    expect(outbox[0]).toMatchObject({ from: "procurement-agent@send0.email", recipients: ["dana@gmail.com"], tags: { msg_id: r.body.id, inbox_id: inboxId } });
+    expect(outbox[0]).toMatchObject({
+      from: "procurement-agent@send0.email",
+      recipients: ["dana@gmail.com"],
+      tags: { msg_id: r.body.id, inbox_id: inboxId },
+    });
     const p = await parsed();
     expect(p.rfcMessageId).toBe(r.body.rfc_message_id);
     expect(p.from).toEqual({ name: "Procurement Agent", email: "procurement-agent@send0.email" });
@@ -140,7 +159,10 @@ describe("approval", () => {
 
   it("turns sends into drafts that only an admin can approve", async () => {
     const agentKey = await t.makeKey({ scopes: ["read", "send"], inboxIds: [approvalInbox] });
-    const r = await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { key: agentKey, body: { to: "dana@gmail.com", subject: "Offer", text: "We accept." } });
+    const r = await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, {
+      key: agentKey,
+      body: { to: "dana@gmail.com", subject: "Offer", text: "We accept." },
+    });
     expect(r.status).toBe(202);
     expect(r.body).toMatchObject({ object: "draft", status: "pending", subject: "Offer" });
     expect(outbox).toHaveLength(0);
@@ -157,7 +179,9 @@ describe("approval", () => {
   });
 
   it("lists drafts across inboxes and edits pending ones", async () => {
-    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Draft me", text: "v1" } })).body;
+    const d = (
+      await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Draft me", text: "v1" } })
+    ).body;
     const pending = (await t.call("GET", "/v1/drafts?status=pending")).body.data.map((x: any) => x.id);
     expect(pending).toContain(d.id);
     const otherInboxKey = await t.makeKey({ scopes: ["read"], inboxIds: [inboxId] });
@@ -174,20 +198,29 @@ describe("approval", () => {
 
   it("doesn't let an agent edit a draft waiting for review", async () => {
     const agentKey = await t.makeKey({ scopes: ["read", "send"], inboxIds: [approvalInbox] });
-    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { key: agentKey, body: { to: "dana@gmail.com", subject: "Hi", text: "v1" } })).body;
+    const d = (
+      await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, {
+        key: agentKey,
+        body: { to: "dana@gmail.com", subject: "Hi", text: "v1" },
+      })
+    ).body;
     expect((await t.call("PATCH", `/v1/drafts/${d.id}`, { key: agentKey, body: { text: "swapped after review" } })).status).toBe(403);
     expect((await t.call("GET", `/v1/drafts/${d.id}`)).body.text).toBe("v1");
   });
 
   it("sends a draft once even when two people approve it at the same time", async () => {
-    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Once", text: "x" } })).body;
+    const d = (
+      await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Once", text: "x" } })
+    ).body;
     const [a, b] = await Promise.all([t.call("POST", `/v1/drafts/${d.id}/send`), t.call("POST", `/v1/drafts/${d.id}/send`)]);
     expect([a.status, b.status].sort()).toEqual([201, 409]);
     expect(outbox).toHaveLength(1);
   });
 
   it("puts a draft back in the queue when sending it fails", async () => {
-    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Retry me", text: "x" } })).body;
+    const d = (
+      await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Retry me", text: "x" } })
+    ).body;
     mailerFails = new MailerError("SES is down", 503, true, "ServiceUnavailable");
     expect((await t.call("POST", `/v1/drafts/${d.id}/send`)).status).toBeGreaterThanOrEqual(500);
     expect((await t.call("GET", `/v1/drafts/${d.id}`)).body).toMatchObject({ status: "pending", decided_by: null });
@@ -196,7 +229,9 @@ describe("approval", () => {
   });
 
   it("lets a signed-in member approve without an admin scope", async () => {
-    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Human ok", text: "x" } })).body;
+    const d = (
+      await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "Human ok", text: "x" } })
+    ).body;
     const member = createApp({
       db: t.db,
       files: { signedGetUrl: async () => "x" },
@@ -210,13 +245,18 @@ describe("approval", () => {
 
   it("refuses dashboard requests for a suspended workspace", async () => {
     await t.db.update(schema.orgs).set({ status: "suspended" }).where(eq(schema.orgs.id, t.orgId));
-    const member = createApp({ db: t.db, files: { signedGetUrl: async () => "x" }, presetAuth: { orgId: t.orgId, keyId: "usr_x", mode: "live", scopes: ["admin"], inboxIds: null, actor: "user" } });
+    const member = createApp({
+      db: t.db,
+      files: { signedGetUrl: async () => "x" },
+      presetAuth: { orgId: t.orgId, keyId: "usr_x", mode: "live", scopes: ["admin"], inboxIds: null, actor: "user" },
+    });
     expect((await member.request("/v1/inboxes")).status).toBe(403);
     await t.db.update(schema.orgs).set({ status: "active" }).where(eq(schema.orgs.id, t.orgId));
   });
 
   it("can reject drafts", async () => {
-    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "No", text: "x" } })).body;
+    const d = (await t.call("POST", `/v1/inboxes/${approvalInbox}/messages`, { body: { to: "dana@gmail.com", subject: "No", text: "x" } }))
+      .body;
     expect((await t.call("POST", `/v1/drafts/${d.id}/reject`)).body.status).toBe("rejected");
     expect((await t.call("GET", `/v1/inboxes/${approvalInbox}/drafts?status=rejected`)).body.data.map((x: any) => x.id)).toContain(d.id);
   });
@@ -228,7 +268,10 @@ describe("SES events", () => {
 
   it("records delivery", async () => {
     const m = await sendOne();
-    await handleSesEvent({ db: t.db, files: null as never, publish: async (_o, e) => void published.push(e) }, evt(m.id, { eventType: "Delivery", delivery: { recipients: ["dana@gmail.com"] } }) as never);
+    await handleSesEvent(
+      { db: t.db, files: null as never, publish: async (_o, e) => void published.push(e) },
+      evt(m.id, { eventType: "Delivery", delivery: { recipients: ["dana@gmail.com"] } }) as never,
+    );
     expect((await t.call("GET", `/v1/messages/${m.id}`)).body.status).toBe("delivered");
     expect(types()).toContain("message.delivered");
   });
@@ -236,7 +279,10 @@ describe("SES events", () => {
   it("suppresses permanent bounces and complaints, and never downgrades status", async () => {
     const m = await sendOne();
     const deps = { db: t.db, files: null as never, publish: async (_o: string, e: EventEnvelope) => void published.push(e) };
-    await handleSesEvent(deps, evt(m.id, { eventType: "Complaint", complaint: { complainedRecipients: [{ emailAddress: "Dana@gmail.com" }] } }) as never);
+    await handleSesEvent(
+      deps,
+      evt(m.id, { eventType: "Complaint", complaint: { complainedRecipients: [{ emailAddress: "Dana@gmail.com" }] } }) as never,
+    );
     await handleSesEvent(deps, evt(m.id, { eventType: "Delivery", delivery: { recipients: ["dana@gmail.com"] } }) as never);
     expect((await t.call("GET", `/v1/messages/${m.id}`)).body.status).toBe("complained");
     const blocked = await send({ to: "dana@gmail.com", subject: "again", text: "x" });
@@ -251,7 +297,10 @@ describe("SES events", () => {
     for (let i = ids.length; i < PAUSE_RULES.minSent; i++) ids.push((await sendOne(`bulk ${i}`)).id);
     const deps = { db: t.db, files: null as never, publish: async (_o: string, e: EventEnvelope) => void published.push(e) };
     published.length = 0;
-    await handleSesEvent(deps, evt(ids[0]!, { eventType: "Complaint", complaint: { complainedRecipients: [{ emailAddress: "dana@gmail.com" }] } }) as never);
+    await handleSesEvent(
+      deps,
+      evt(ids[0]!, { eventType: "Complaint", complaint: { complainedRecipients: [{ emailAddress: "dana@gmail.com" }] } }) as never,
+    );
     expect(types()).toEqual(["message.complained", "inbox.suspended"]);
     const [org] = await t.db.select().from(schema.orgs).where(eq(schema.orgs.id, t.orgId));
     expect(org!.sendingPausedReason).toMatch(/complaint rate/);
@@ -273,7 +322,8 @@ describe("SES events", () => {
 
 describe("SNS endpoint", () => {
   const url = (token = "tok_" + "x".repeat(40)) => `/internal/ses-events?token=${token}`;
-  const post = (body: unknown, token?: string) => t.app.request(url(token), { method: "POST", body: JSON.stringify(body), headers: { "content-type": "text/plain" } });
+  const post = (body: unknown, token?: string) =>
+    t.app.request(url(token), { method: "POST", body: JSON.stringify(body), headers: { "content-type": "text/plain" } });
   const topic = "arn:aws:sns:ap-south-1:1:send0-ses-events";
 
   it("hides itself without the token and rejects other topics", async () => {
@@ -284,15 +334,34 @@ describe("SNS endpoint", () => {
   it("confirms the subscription only against SNS hosts", async () => {
     const fetchSpy = vi.fn(async () => new Response("ok"));
     vi.stubGlobal("fetch", fetchSpy);
-    expect((await post({ Type: "SubscriptionConfirmation", TopicArn: topic, Message: "", SubscribeURL: "https://evil.example.com/x" })).status).toBe(400);
-    expect((await post({ Type: "SubscriptionConfirmation", TopicArn: topic, Message: "", SubscribeURL: "https://sns.ap-south-1.amazonaws.com/?Action=ConfirmSubscription&Token=t" })).status).toBe(200);
+    expect(
+      (await post({ Type: "SubscriptionConfirmation", TopicArn: topic, Message: "", SubscribeURL: "https://evil.example.com/x" })).status,
+    ).toBe(400);
+    expect(
+      (
+        await post({
+          Type: "SubscriptionConfirmation",
+          TopicArn: topic,
+          Message: "",
+          SubscribeURL: "https://sns.ap-south-1.amazonaws.com/?Action=ConfirmSubscription&Token=t",
+        })
+      ).status,
+    ).toBe(200);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
   });
 
   it("applies notifications", async () => {
     const m = (await send({ to: "dana@gmail.com", subject: "via sns", text: "x" })).body;
-    const res = await post({ Type: "Notification", TopicArn: topic, Message: JSON.stringify({ eventType: "Delivery", mail: { messageId: "x", tags: { msg_id: [m.id] } }, delivery: { recipients: ["dana@gmail.com"] } }) });
+    const res = await post({
+      Type: "Notification",
+      TopicArn: topic,
+      Message: JSON.stringify({
+        eventType: "Delivery",
+        mail: { messageId: "x", tags: { msg_id: [m.id] } },
+        delivery: { recipients: ["dana@gmail.com"] },
+      }),
+    });
     expect(await res.json()).toMatchObject({ ok: true, handled: true, status: "delivered" });
   });
 });

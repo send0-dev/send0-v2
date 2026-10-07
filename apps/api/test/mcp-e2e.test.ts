@@ -21,7 +21,11 @@ const call = async (name: string, args: Record<string, unknown> = {}) => {
 
 beforeAll(async () => {
   t = await setup({ hub: hubClient, queue: { send: async () => {} }, mailer: { sendRaw: async () => ({ providerMessageId: "ses-1" }) } });
-  const client = new Send0({ apiKey: t.adminKey, baseUrl: "https://api.test", fetch: ((i: RequestInfo, init?: RequestInit) => t.app.request(i as string, init)) as typeof fetch });
+  const client = new Send0({
+    apiKey: t.adminKey,
+    baseUrl: "https://api.test",
+    fetch: ((i: RequestInfo, init?: RequestInit) => t.app.request(i as string, init)) as typeof fetch,
+  });
   const server = createSend0Server({ client });
   const [a, b] = InMemoryTransport.createLinkedPair();
   await server.connect(a);
@@ -34,7 +38,17 @@ describe("send0 MCP server", () => {
   it("exposes the agent tools with safety annotations", async () => {
     const { tools } = await mcp.listTools();
     expect(tools.map((x) => x.name).sort()).toEqual(
-      ["create_inbox", "get_message", "get_thread", "list_inboxes", "list_threads", "reply", "search_messages", "send_email", "wait_for_email"].sort(),
+      [
+        "create_inbox",
+        "get_message",
+        "get_thread",
+        "list_inboxes",
+        "list_threads",
+        "reply",
+        "search_messages",
+        "send_email",
+        "wait_for_email",
+      ].sort(),
     );
     const byName = Object.fromEntries(tools.map((x) => [x.name, x]));
     expect(byName.wait_for_email!.annotations?.readOnlyHint).toBe(true);

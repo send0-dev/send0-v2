@@ -9,8 +9,7 @@ import { blobStoreFromEnv } from "../src/blobs";
 import { handleEmail, MAX_MESSAGE_BYTES, rawKey, type InboundMessage } from "../src/handler";
 import { checkRecipient } from "../src/recipient";
 
-const fixture = (name: string) =>
-  readFileSync(fileURLToPath(new URL(`../../../fixtures/emails/${name}`, import.meta.url).href));
+const fixture = (name: string) => readFileSync(fileURLToPath(new URL(`../../../fixtures/emails/${name}`, import.meta.url).href));
 
 const cfg = { MAIL_DOMAINS: "send0.email", TRUSTED_AUTHSERV_IDS: "mx.cloudflare.net" };
 let db: Db;
@@ -168,7 +167,9 @@ describe("blobStoreFromEnv", () => {
     expect(() => blobStoreFromEnv({ S3_BUCKET: "b", S3_REGION: "ap-south-1" })).toThrow(
       "BLOB_DRIVER=s3 but missing: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY",
     );
-    expect(blobStoreFromEnv({ S3_BUCKET: "b", S3_REGION: "r", S3_ACCESS_KEY_ID: "k", S3_SECRET_ACCESS_KEY: "s" }).constructor.name).toBe("S3BlobStore");
+    expect(blobStoreFromEnv({ S3_BUCKET: "b", S3_REGION: "r", S3_ACCESS_KEY_ID: "k", S3_SECRET_ACCESS_KEY: "s" }).constructor.name).toBe(
+      "S3BlobStore",
+    );
   });
   it("uses R2 when asked and the binding exists", () => {
     expect(() => blobStoreFromEnv({ BLOB_DRIVER: "r2" })).toThrow(/RAW_MAIL binding is missing/);

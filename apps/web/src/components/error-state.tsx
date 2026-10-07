@@ -12,7 +12,9 @@ export function ErrorState({ error, onRetry, className }: { error: unknown; onRe
     <div role="alert" className={cn("flex flex-col items-center justify-center gap-1 px-6 py-12 text-center", className)}>
       <Icon className="mb-2 size-5 text-muted-foreground" />
       <p className="font-medium">{forbidden ? "You don't have access to this" : "Couldn't load this"}</p>
-      <p className="max-w-sm text-[13px] text-muted-foreground">{forbidden ? "Ask a workspace owner or admin if you need it." : e.message}</p>
+      <p className="max-w-sm text-[13px] text-muted-foreground">
+        {forbidden ? "Ask a workspace owner or admin if you need it." : e.message}
+      </p>
       {!forbidden && onRetry && (
         <Button variant="secondary" size="sm" className="mt-3" onClick={onRetry}>
           Try again

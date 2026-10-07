@@ -43,7 +43,12 @@ export async function createHarness(opts: { gateway?: Gateway } = {}) {
     return async (method: string, path: string, body?: unknown, headers: Record<string, string> = {}) => {
       const res = await web.request(APP + path, {
         method,
-        headers: { origin: APP, ...(cookie ? { cookie } : {}), ...(body !== undefined ? { "content-type": "application/json" } : {}), ...headers },
+        headers: {
+          origin: APP,
+          ...(cookie ? { cookie } : {}),
+          ...(body !== undefined ? { "content-type": "application/json" } : {}),
+          ...headers,
+        },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       const set = res.headers.get("set-cookie");

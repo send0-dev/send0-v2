@@ -5,12 +5,25 @@
   "license": "MIT",
   "type": "module",
   "homepage": "https://send0.dev",
-  "bin": { "send0-mcp": "./dist/cli.js" },
+  "bin": {
+    "send0-mcp": "./dist/cli.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "files": ["dist", "README.md", "LICENSE"],
-  "engines": { "node": ">=18" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsup src/index.ts src/cli.ts --format esm --dts --clean",
     "test": "vitest run",

@@ -19,7 +19,7 @@ describe("LoginForm", () => {
       http.post("*/auth/login", async ({ request }) => {
         body = await request.json();
         return HttpResponse.json({ error: { code: "invalid_credentials", message: "Email or password is incorrect." } }, { status: 401 });
-      })
+      }),
     );
     const { user } = renderApp(<LoginForm />);
     await user.type(screen.getByLabelText("Email"), "dana@acme.com");

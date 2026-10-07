@@ -29,7 +29,11 @@ export function InboxesCard({ className }: { className?: string }) {
       <div className="flex flex-1 flex-col px-2 pb-2">
         {inboxes.isPending && [0, 1, 2].map((i) => <Skeleton key={i} className="mx-2 my-2.5 h-4" />)}
         {inboxes.items.slice(0, SHOWN).map((i) => (
-          <Link key={i.id} to={`/inboxes/${i.id}`} className="flex h-10 items-center gap-2.5 rounded-md px-2 transition-colors hover:bg-hover">
+          <Link
+            key={i.id}
+            to={`/inboxes/${i.id}`}
+            className="flex h-10 items-center gap-2.5 rounded-md px-2 transition-colors hover:bg-hover"
+          >
             <InboxDot id={i.id} />
             <span className="grid min-w-0 flex-1">
               <span className="truncate text-[13px] font-medium">{i.display_name || i.local_part}</span>

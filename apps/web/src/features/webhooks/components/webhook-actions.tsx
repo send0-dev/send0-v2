@@ -5,7 +5,13 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { errorMessage } from "@/lib/api";
 import { useDeleteWebhook, useRotateWebhookSecret, useTestWebhook, useUpdateWebhook } from "../api/use-webhook-mutations";
 import { SigningSecretDialog } from "./signing-secret-dialog";
@@ -24,7 +30,11 @@ export function WebhookActions({ webhook }: { webhook: Webhook }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Button size="sm" loading={test.isPending} onClick={() => test.mutate(undefined, { onSuccess: () => toast.success("Test event sent"), onError: fail })}>
+      <Button
+        size="sm"
+        loading={test.isPending}
+        onClick={() => test.mutate(undefined, { onSuccess: () => toast.success("Test event sent"), onError: fail })}
+      >
         <Send />
         Send test event
       </Button>
@@ -37,7 +47,10 @@ export function WebhookActions({ webhook }: { webhook: Webhook }) {
         <DropdownMenuContent opensDialogs align="end">
           <DropdownMenuItem
             onSelect={() =>
-              update.mutate({ status: enabled ? "disabled" : "enabled" }, { onSuccess: () => toast.success(enabled ? "Webhook disabled" : "Webhook enabled"), onError: fail })
+              update.mutate(
+                { status: enabled ? "disabled" : "enabled" },
+                { onSuccess: () => toast.success(enabled ? "Webhook disabled" : "Webhook enabled"), onError: fail },
+              )
             }
           >
             {enabled ? "Disable" : "Enable"}

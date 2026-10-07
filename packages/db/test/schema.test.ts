@@ -33,9 +33,7 @@ describe("schema", () => {
   });
 
   it("treats addresses case-insensitively and never reuses them", async () => {
-    await expect(
-      db.insert(inboxes).values({ id: "ibx_2", orgId: "org_1", domainId: "dom_shared", localPart: "bot" }),
-    ).rejects.toThrow();
+    await expect(db.insert(inboxes).values({ id: "ibx_2", orgId: "org_1", domainId: "dom_shared", localPart: "bot" })).rejects.toThrow();
   });
 
   it("de-duplicates inbound mail by Message-ID, but not outbound", async () => {

@@ -3,7 +3,7 @@ export class Page<T> implements AsyncIterable<T> {
   constructor(
     readonly data: T[],
     readonly nextCursor: string | null,
-    private readonly fetchNext: (cursor: string) => Promise<Page<T>>
+    private readonly fetchNext: (cursor: string) => Promise<Page<T>>,
   ) {}
 
   get hasMore(): boolean {

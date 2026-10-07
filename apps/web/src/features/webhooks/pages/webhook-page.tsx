@@ -57,12 +57,22 @@ export default function WebhookPage() {
           query={deliveries.state}
           skeleton={<ListSkeleton rows={5} />}
           isEmpty={(items) => items.length === 0}
-          empty={<EmptyState icon={Send} title="No deliveries" description={filter === "all" ? "Send a test event to see what your endpoint receives." : `No ${filter} deliveries.`} />}
+          empty={
+            <EmptyState
+              icon={Send}
+              title="No deliveries"
+              description={filter === "all" ? "Send a test event to see what your endpoint receives." : `No ${filter} deliveries.`}
+            />
+          }
         >
           {(items) => (
             <>
               <DeliveriesList webhookId={webhookId} deliveries={items} />
-              <LoadMore hasNextPage={deliveries.hasNextPage} isFetchingNextPage={deliveries.isFetchingNextPage} fetchNextPage={() => void deliveries.fetchNextPage()} />
+              <LoadMore
+                hasNextPage={deliveries.hasNextPage}
+                isFetchingNextPage={deliveries.isFetchingNextPage}
+                fetchNextPage={() => void deliveries.fetchNextPage()}
+              />
             </>
           )}
         </QueryState>

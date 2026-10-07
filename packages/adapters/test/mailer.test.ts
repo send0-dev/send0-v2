@@ -3,7 +3,12 @@ import { MailerError, SesMailer } from "../src/mailer";
 
 afterEach(() => vi.unstubAllGlobals());
 const cfg = { accessKeyId: "AKIDEXAMPLE", secretAccessKey: "s", region: "ap-south-1", configurationSet: "send0-default" };
-const input = { from: "kunal@send0.email", recipients: ["a@x.com", "b@y.com"], raw: "Subject: hé\r\n\r\nhi", tags: { msg_id: "msg_1", org_id: "org_1", bad: "a b/c" } };
+const input = {
+  from: "kunal@send0.email",
+  recipients: ["a@x.com", "b@y.com"],
+  raw: "Subject: hé\r\n\r\nhi",
+  tags: { msg_id: "msg_1", org_id: "org_1", bad: "a b/c" },
+};
 
 describe("SesMailer", () => {
   it("posts SendEmail v2 with raw content, config set and tags", async () => {
@@ -21,7 +26,9 @@ describe("SesMailer", () => {
   });
 
   it("turns SES errors into MailerError with retryability", async () => {
-    vi.stubGlobal("fetch", async () => Response.json({ __type: "MessageRejected", message: "Email address is not verified." }, { status: 400 }));
+    vi.stubGlobal("fetch", async () =>
+      Response.json({ __type: "MessageRejected", message: "Email address is not verified." }, { status: 400 }),
+    );
     const e = await new SesMailer(cfg).sendRaw(input).catch((x) => x);
     expect(e).toBeInstanceOf(MailerError);
     expect(e).toMatchObject({ status: 400, retryable: false, code: "MessageRejected" });

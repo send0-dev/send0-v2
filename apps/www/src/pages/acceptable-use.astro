@@ -10,13 +10,13 @@ import { site } from "../site";
 >
   <h2 id="scope">1. Who this applies to</h2>
   <p>
-    This policy applies to everyone who uses the send0 hosted service ("send0 Cloud"), including the AI agents and
-    software acting on your behalf. You are responsible for everything sent or received through your account, whether
-    a person or an agent did it. It forms part of our <a href="/terms">Terms of Service</a>.
+    This policy applies to everyone who uses the send0 hosted service ("send0 Cloud"), including the AI agents and software acting on your
+    behalf. You are responsible for everything sent or received through your account, whether a person or an agent did it. It forms part of
+    our <a href="/terms">Terms of Service</a>.
   </p>
   <p>
-    If you self-host the open-source edition, this policy doesn't govern your instance, but your email provider's own
-    rules and the law still do.
+    If you self-host the open-source edition, this policy doesn't govern your instance, but your email provider's own rules and the law
+    still do.
   </p>
 
   <h2 id="allowed">2. What send0 is for</h2>
@@ -31,7 +31,9 @@ import { site } from "../site";
   <h2 id="prohibited">3. What you may not do</h2>
   <h3>Unsolicited and bulk mail</h3>
   <ul>
-    <li>Send cold outreach: mail to people who haven't contacted you, agreed to hear from you, or have no existing relationship with you</li>
+    <li>
+      Send cold outreach: mail to people who haven't contacted you, agreed to hear from you, or have no existing relationship with you
+    </li>
     <li>Send newsletters, marketing campaigns, promotions or other bulk mail</li>
     <li>Use bought, rented, scraped or harvested address lists</li>
     <li>Rotate inboxes, domains or accounts to get around sending limits or suppression</li>
@@ -63,46 +65,71 @@ import { site } from "../site";
   <p>To protect deliverability for everyone, these controls apply automatically:</p>
   <div class="table-scroll">
     <table>
-      <thead><tr><th>Control</th><th>How it works</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Control</th>
+          <th>How it works</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td>Reply-only free tier</td><td>Free accounts can send only to addresses that have already emailed that inbox, plus the account owner's verified address.</td></tr>
-        <tr><td>Verified accounts</td><td>Every account must verify its email address. Disposable and temporary email addresses can't sign up.</td></tr>
-        <tr><td>Gradual limits</td><td>New accounts can send up to 50 messages a day. Limits rise as an account builds a clean sending record.</td></tr>
-        <tr><td>Automatic pause</td><td>Sending pauses if an account's complaint rate passes 0.3% or its hard-bounce rate passes 5%.</td></tr>
-        <tr><td>Suppression</td><td>Addresses that hard-bounce or complain are suppressed automatically and can't be mailed again from your account.</td></tr>
-        <tr><td>Custom domains for volume</td><td>Sending beyond the starter limits requires a verified custom domain with SPF, DKIM and DMARC.</td></tr>
-        <tr><td>Reserved addresses</td><td>postmaster, abuse, admin, support, noreply, security and billing can't be claimed as send0.email inboxes.</td></tr>
+        <tr>
+          <td>Reply-only free tier</td>
+          <td>Free accounts can send only to addresses that have already emailed that inbox, plus the account owner's verified address.</td>
+        </tr>
+        <tr>
+          <td>Verified accounts</td>
+          <td>Every account must verify its email address. Disposable and temporary email addresses can't sign up.</td>
+        </tr>
+        <tr>
+          <td>Gradual limits</td>
+          <td>New accounts can send up to 50 messages a day. Limits rise as an account builds a clean sending record.</td>
+        </tr>
+        <tr>
+          <td>Automatic pause</td>
+          <td>Sending pauses if an account's complaint rate passes 0.3% or its hard-bounce rate passes 5%.</td>
+        </tr>
+        <tr>
+          <td>Suppression</td>
+          <td>Addresses that hard-bounce or complain are suppressed automatically and can't be mailed again from your account.</td>
+        </tr>
+        <tr>
+          <td>Custom domains for volume</td>
+          <td>Sending beyond the starter limits requires a verified custom domain with SPF, DKIM and DMARC.</td>
+        </tr>
+        <tr>
+          <td>Reserved addresses</td>
+          <td>postmaster, abuse, admin, support, noreply, security and billing can't be claimed as send0.email inboxes.</td>
+        </tr>
       </tbody>
     </table>
   </div>
   <p>
-    Every message must identify its sender honestly. Ongoing conversational mail must stop when a recipient asks, and
-    any message that isn't a direct reply must give the recipient an easy way to opt out.
+    Every message must identify its sender honestly. Ongoing conversational mail must stop when a recipient asks, and any message that isn't
+    a direct reply must give the recipient an easy way to opt out.
   </p>
 
   <h2 id="enforcement">5. Enforcement</h2>
   <p>
-    We monitor bounce rates, complaint rates, blocklist reports and abuse reports. Depending on how serious a problem
-    is, we may warn you, lower your limits, pause sending, suspend an inbox or close your account. For clear abuse
-    such as phishing or malware we act immediately and without notice. We may also report illegal activity to the
-    relevant authorities.
+    We monitor bounce rates, complaint rates, blocklist reports and abuse reports. Depending on how serious a problem is, we may warn you,
+    lower your limits, pause sending, suspend an inbox or close your account. For clear abuse such as phishing or malware we act immediately
+    and without notice. We may also report illegal activity to the relevant authorities.
   </p>
   <p>
-    If we pause or suspend something, you'll receive an <code>inbox.suspended</code> event and an email explaining
-    why. You can reply to that email to appeal, and a person will review it.
+    If we pause or suspend something, you'll receive an <code>inbox.suspended</code> event and an email explaining why. You can reply to
+    that email to appeal, and a person will review it.
   </p>
 
   <h2 id="report">6. Reporting abuse</h2>
   <p>
     If you received unwanted mail from a send0 address, or think someone is misusing send0, email
-    <a href={`mailto:${site.email.abuse}`}>{site.email.abuse}</a>. Include the full message with headers if you can.
-    A person reads every report, and we aim to respond within one business day. Security vulnerabilities go to
+    <a href={`mailto:${site.email.abuse}`}>{site.email.abuse}</a>. Include the full message with headers if you can. A person reads every
+    report, and we aim to respond within one business day. Security vulnerabilities go to
     <a href={`mailto:${site.email.security}`}>{site.email.security}</a>.
   </p>
 
   <h2 id="changes">7. Changes</h2>
   <p>
-    We may update this policy as the service and the email ecosystem change. We'll post the new version here and,
-    for significant changes, email account owners before they take effect.
+    We may update this policy as the service and the email ecosystem change. We'll post the new version here and, for significant changes,
+    email account owners before they take effect.
   </p>
 </Legal>

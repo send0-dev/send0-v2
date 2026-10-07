@@ -8,7 +8,23 @@ import { cn } from "@/lib/utils";
  * A headline number. Every tile has the same three rows, so a row of them lines up exactly:
  * label + change, the value, then a one-line hint with the sparkline on the right.
  */
-export function StatTile({ label, value, change, changeLabel, spark, color, hint }: { label: string; value: ReactNode; change?: number | null; changeLabel?: string; spark: number[]; color: string; hint: string }) {
+export function StatTile({
+  label,
+  value,
+  change,
+  changeLabel,
+  spark,
+  color,
+  hint,
+}: {
+  label: string;
+  value: ReactNode;
+  change?: number | null;
+  changeLabel?: string;
+  spark: number[];
+  color: string;
+  hint: string;
+}) {
   const up = (change ?? 0) >= 0;
   return (
     <div className="grid h-[116px] min-w-0 grid-rows-[20px_1fr_28px] gap-1 rounded-lg border bg-card px-4 py-3.5">
@@ -16,7 +32,12 @@ export function StatTile({ label, value, change, changeLabel, spark, color, hint
         <span className="truncate text-xs text-muted-foreground">{label}</span>
         {change !== undefined && change !== null && (
           <Tooltip content={changeLabel}>
-            <span className={cn("inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium tabular", up ? "text-success" : "text-destructive")}>
+            <span
+              className={cn(
+                "tabular inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium",
+                up ? "text-success" : "text-destructive",
+              )}
+            >
               {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
               {Math.abs(change)}%
             </span>

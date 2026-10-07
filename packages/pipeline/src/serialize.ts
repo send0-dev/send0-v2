@@ -36,9 +36,7 @@ export function serializeMessage(m: MessageRow, attachments: AttachmentRow[], op
     text: m.text,
     ...(opts.includeHtml ? { html: m.html } : {}),
     extracted_text: m.extractedText,
-    extracted: m.extracted
-      ? { otp: m.extracted.otp, links: m.extracted.links, action_link: m.extracted.actionLink }
-      : null,
+    extracted: m.extracted ? { otp: m.extracted.otp, links: m.extracted.links, action_link: m.extracted.actionLink } : null,
     auth: m.auth ? { spf: m.auth.spf, dkim: m.auth.dkim, dmarc: m.auth.dmarc } : null,
     safety: m.safety ? { prompt_injection: m.safety.promptInjection, reasons: m.safety.reasons } : null,
     tag: m.tag,

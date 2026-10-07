@@ -27,9 +27,8 @@ const cloud = [
       Free to run yourself. <span class="dim">Simple when we run it.</span>
     </h2>
     <p class="lede">
-      Self-hosting costs you nothing but your servers and sending fees. Cloud
-      pricing will be published before the beta opens, and every plan will
-      include webhooks.
+      Self-hosting costs you nothing but your servers and sending fees. Cloud pricing will be published before the beta opens, and every
+      plan will include webhooks.
     </p>
   </div>
 
@@ -43,19 +42,19 @@ const cloud = [
         <span class="amount">$0</span>
         <span class="per mono">forever</span>
       </div>
-      {
-        site.repoPublic ? (
-          <a class="btn btn-secondary" href={site.github} rel="noopener">
-            View on GitHub
-          </a>
-        ) : (
-          <a class="btn btn-secondary" href="#waitlist">
-            Notify me when the code opens
-          </a>
-        )
-      }
+      {site.repoPublic ? (
+        <a class="btn btn-secondary" href={site.github} rel="noopener">
+          View on GitHub
+        </a>
+      ) : (
+        <a class="btn btn-secondary" href="#waitlist">
+          Notify me when the code opens
+        </a>
+      )}
       <ul>
-        {selfHost.map((f) => <li>{f}</li>)}
+        {selfHost.map((f) => (
+          <li>{f}</li>
+        ))}
       </ul>
     </article>
 
@@ -68,18 +67,20 @@ const cloud = [
       <div class="price">
         <span class="amount soon">Coming soon</span>
       </div>
-      <a class="btn btn-accent" href="#waitlist">Get early access</a>
+      <a class="btn btn-accent" href="#waitlist">
+        Get early access
+      </a>
       <ul>
-        {cloud.map((f) => <li>{f}</li>)}
+        {cloud.map((f) => (
+          <li>{f}</li>
+        ))}
       </ul>
     </article>
   </div>
 
   <p class="foot reveal">
-    Self-hosted? You pay your cloud provider and Amazon SES, about $0.10 per
-    1,000 emails sent. You pay send0 nothing. Questions? <a
-      href={`mailto:${site.email.hello}`}>{site.email.hello}</a
-    >
+    Self-hosted? You pay your cloud provider and Amazon SES, about $0.10 per 1,000 emails sent. You pay send0 nothing. Questions?{" "}
+    <a href={`mailto:${site.email.hello}`}>{site.email.hello}</a>
   </p>
 </section>
 

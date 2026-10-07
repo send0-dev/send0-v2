@@ -26,8 +26,8 @@ export function ChangePasswordForm() {
           toast.success("Password changed. Other devices were signed out.");
         },
         onError: (e) => applyServerError(form, e),
-      }
-    )
+      },
+    ),
   );
   return (
     <Form {...form}>

@@ -89,7 +89,10 @@ export class SessionService {
 
   /** Points the user's sessions on `orgId` back to their default workspace (after removal). */
   async detachWorkspace(userId: string, orgId: string): Promise<void> {
-    await this.ctx.db.update(sessions).set({ orgId: null }).where(and(eq(sessions.userId, userId), eq(sessions.orgId, orgId)));
+    await this.ctx.db
+      .update(sessions)
+      .set({ orgId: null })
+      .where(and(eq(sessions.userId, userId), eq(sessions.orgId, orgId)));
   }
 
   async end(token: string): Promise<void> {
@@ -98,8 +101,6 @@ export class SessionService {
 
   /** Signs the user out everywhere, optionally keeping one session. */
   async endAll(userId: string, keepSessionId?: string): Promise<void> {
-    await this.ctx.db
-      .delete(sessions)
-      .where(and(eq(sessions.userId, userId), keepSessionId ? ne(sessions.id, keepSessionId) : undefined));
+    await this.ctx.db.delete(sessions).where(and(eq(sessions.userId, userId), keepSessionId ? ne(sessions.id, keepSessionId) : undefined));
   }
 }

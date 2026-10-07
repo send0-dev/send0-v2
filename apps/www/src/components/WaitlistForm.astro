@@ -9,9 +9,13 @@ const id = `wl-${source}`;
 <form class="wl" method="post" action="/api/waitlist" data-waitlist>
   <input type="hidden" name="source" value={source} />
   <div class="hp" aria-hidden="true">
-    <label>Leave this empty <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+    <label>
+      Leave this empty <input type="text" name="company" tabindex="-1" autocomplete="off" />
+    </label>
   </div>
-  <label class="sr-only" for={id}>Work email</label>
+  <label class="sr-only" for={id}>
+    Work email
+  </label>
   <div class="field">
     <input
       id={id}
@@ -25,7 +29,17 @@ const id = `wl-${source}`;
     />
     <button class="btn btn-accent" type="submit">
       <span class="label">Join the waitlist</span>
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"></path></svg>
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3 8h10M9 4l4 4-4 4"></path>
+      </svg>
     </button>
   </div>
   <p class="status" role="status" aria-live="polite"></p>
@@ -74,10 +88,7 @@ const id = `wl-${source}`;
     const status = form?.querySelector<HTMLElement>(".status");
     if (form && status) {
       form.dataset.state = result === "ok" ? "done" : "error";
-      status.textContent =
-        result === "ok"
-          ? "Thanks. We'll email you when the beta opens."
-          : "That email didn't look right. Try again.";
+      status.textContent = result === "ok" ? "Thanks. We'll email you when the beta opens." : "That email didn't look right. Try again.";
     }
   }
 </script>
@@ -102,7 +113,9 @@ const id = `wl-${source}`;
     border-radius: 12px;
     background: var(--surface);
     box-shadow: var(--shadow);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
   }
   .field:focus-within {
     border-color: var(--accent);

@@ -25,7 +25,10 @@ export const serializeApiKey = (k: typeof apiKeys.$inferSelect) => ({
 
 export const apiKeyCreateBody = z.object({
   name: z.string().trim().min(1).max(100),
-  scopes: z.array(z.enum(SCOPES as [string, ...string[]])).min(1).default(["read", "send"]),
+  scopes: z
+    .array(z.enum(SCOPES as [string, ...string[]]))
+    .min(1)
+    .default(["read", "send"]),
   inbox_ids: z.array(z.string()).min(1).max(100).nullable().optional(),
 });
 

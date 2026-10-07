@@ -20,20 +20,29 @@ Every inbound message is parsed when it arrives. The fields agents use most:
   "extracted": { "otp": null, "links": ["https://acme.com/po/4471"], "action_link": null },
   "auth": { "spf": "pass", "dkim": "pass", "dmarc": "pass" },
   "safety": { "prompt_injection": "none", "reasons": [] },
-  "attachments": [{ "id": "att_x1…", "filename": "po.pdf", "content_type": "application/pdf", "size": 84211, "inline": false, "content_id": null }],
+  "attachments": [
+    {
+      "id": "att_x1…",
+      "filename": "po.pdf",
+      "content_type": "application/pdf",
+      "size": 84211,
+      "inline": false,
+      "content_id": null
+    }
+  ],
   "tag": null
 }
 ```
 
-| Field | What it is |
-|---|---|
-| `text` / `html` | The full body. `html` is included when you fetch a single message. |
-| `extracted_text` | **Only the new text.** Quoted history, forwarded content and signatures are removed. Feed this to a model to save tokens. |
-| `extracted.otp` | The most likely one-time code (`482913`, `731 902` → `731902`, `K7Q2MZ`). Order numbers, phone numbers, years and promo codes are ignored. |
-| `extracted.action_link` | The most likely verify, sign-in, reset or confirm link. `links` lists all links, with unsubscribe and tracking links removed. |
-| `auth` | SPF, DKIM and DMARC results from our receiving server: `pass`, `fail`, `softfail`, `neutral`, `none`, … |
+| Field                     | What it is                                                                                                                                                |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text` / `html`           | The full body. `html` is included when you fetch a single message.                                                                                        |
+| `extracted_text`          | **Only the new text.** Quoted history, forwarded content and signatures are removed. Feed this to a model to save tokens.                                 |
+| `extracted.otp`           | The most likely one-time code (`482913`, `731 902` → `731902`, `K7Q2MZ`). Order numbers, phone numbers, years and promo codes are ignored.                |
+| `extracted.action_link`   | The most likely verify, sign-in, reset or confirm link. `links` lists all links, with unsubscribe and tracking links removed.                             |
+| `auth`                    | SPF, DKIM and DMARC results from our receiving server: `pass`, `fail`, `softfail`, `neutral`, `none`, …                                                   |
 | `safety.prompt_injection` | `none`, `suspected` or `likely`, with `reasons` such as `instruction_override` or `hidden_text`. See [Prompt-injection safety](/guides/prompt-injection). |
-| `status` | Inbound: `received`. Outbound: `queued` → `sent` → `delivered`, or `bounced`, `complained`, `failed`. |
+| `status`                  | Inbound: `received`. Outbound: `queued` → `sent` → `delivered`, or `bounced`, `complained`, `failed`.                                                     |
 
 ## Listing and searching
 

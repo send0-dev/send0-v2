@@ -30,8 +30,8 @@ export function CreateInboxForm({ onCreated, onCancel }: { onCreated: (inbox: In
   const onSubmit = form.handleSubmit((v) =>
     create.mutate(
       { ...(v.name ? { name: v.name } : {}), ...(v.displayName ? { display_name: v.displayName } : {}), send_policy: v.sendPolicy },
-      { onSuccess: onCreated, onError: (e) => applyServerError(form, e) }
-    )
+      { onSuccess: onCreated, onError: (e) => applyServerError(form, e) },
+    ),
   );
 
   return (
@@ -45,7 +45,14 @@ export function CreateInboxForm({ onCreated, onCancel }: { onCreated: (inbox: In
               <FormLabel>Address</FormLabel>
               <div className="flex items-center rounded-md border border-input bg-card shadow-xs focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/20">
                 <FormControl>
-                  <input {...field} autoFocus autoComplete="off" spellCheck={false} placeholder="support-agent" className="h-8 min-w-0 flex-1 bg-transparent px-2.5 text-sm outline-none placeholder:text-muted-foreground/70" />
+                  <input
+                    {...field}
+                    autoFocus
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="support-agent"
+                    className="h-8 min-w-0 flex-1 bg-transparent px-2.5 text-sm outline-none placeholder:text-muted-foreground/70"
+                  />
                 </FormControl>
                 <span className="pr-2.5 font-mono text-[12.5px] text-muted-foreground">@send0.email</span>
               </div>

@@ -65,7 +65,14 @@ export const thread = (messages: Message[] = [message()]): ThreadWithMessages =>
   participants: ["dana@acme.dev", "agent@send0.email"],
   message_count: messages.length,
   labels: [],
-  latest_message: messages.at(-1) ? { id: messages.at(-1)!.id, direction: messages.at(-1)!.direction, from: messages.at(-1)!.from, snippet: messages.at(-1)!.extracted_text ?? "" } : null,
+  latest_message: messages.at(-1)
+    ? {
+        id: messages.at(-1)!.id,
+        direction: messages.at(-1)!.direction,
+        from: messages.at(-1)!.from,
+        snippet: messages.at(-1)!.extracted_text ?? "",
+      }
+    : null,
   last_message_at: at,
   created_at: at,
   messages,
@@ -84,4 +91,4 @@ export const apiKey = (over: Partial<ApiKey> = {}): ApiKey => ({
   ...over,
 });
 
-export const list = <T,>(data: T[]) => ({ object: "list" as const, data, next_cursor: null });
+export const list = <T>(data: T[]) => ({ object: "list" as const, data, next_cursor: null });

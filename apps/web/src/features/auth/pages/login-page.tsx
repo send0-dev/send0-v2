@@ -16,7 +16,10 @@ export default function LoginPage() {
       <LoginForm />
       <p className="mt-6 text-center text-[13px] text-muted-foreground">
         New to send0?{" "}
-        <Link to={`/signup${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`} className="font-medium text-foreground underline-offset-4 hover:underline">
+        <Link
+          to={`/signup${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
           Create an account
         </Link>
       </p>

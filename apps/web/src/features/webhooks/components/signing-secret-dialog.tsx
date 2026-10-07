@@ -3,7 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /** Shows a webhook signing secret once (after creating or rotating). */
-export function SigningSecretDialog({ secret, onClose, title = "Save your signing secret" }: { secret: string | null; onClose: () => void; title?: string }) {
+export function SigningSecretDialog({
+  secret,
+  onClose,
+  title = "Save your signing secret",
+}: {
+  secret: string | null;
+  onClose: () => void;
+  title?: string;
+}) {
   return (
     <Dialog open={!!secret} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
@@ -15,7 +23,9 @@ export function SigningSecretDialog({ secret, onClose, title = "Save your signin
         </DialogHeader>
         {secret && <SecretReveal value={secret} what="signing secret" />}
         <DialogFooter>
-          <Button variant="primary" onClick={onClose}>Done</Button>
+          <Button variant="primary" onClick={onClose}>
+            Done
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

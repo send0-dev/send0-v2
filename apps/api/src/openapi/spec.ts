@@ -5,20 +5,9 @@ import { streamQuery } from "../routes/events";
 import { statsQuery } from "../routes/stats";
 import { inboxCreateBody, inboxUpdateBody } from "../routes/inboxes";
 import { messageListQuery, orgMessageListQuery, waitQuery } from "../routes/messages";
-import {
-  draftListQuery,
-  draftUpdateBody,
-  forwardBody,
-  orgDraftListQuery,
-  replyBody,
-  sendBody,
-} from "../routes/send";
+import { draftListQuery, draftUpdateBody, forwardBody, orgDraftListQuery, replyBody, sendBody } from "../routes/send";
 import { threadGetQuery } from "../routes/threads";
-import {
-  deliveryListQuery,
-  webhookCreateBody,
-  webhookUpdateBody,
-} from "../routes/webhooks";
+import { deliveryListQuery, webhookCreateBody, webhookUpdateBody } from "../routes/webhooks";
 import { registry } from "./schemas";
 
 type Method = "get" | "post" | "patch" | "delete";
@@ -60,8 +49,7 @@ export const operations: Operation[] = [
     tag: "Inboxes",
     scope: "send",
     summary: "Create an inbox",
-    description:
-      "Creates `name@send0.email` (or on a verified custom domain). Omit `name` for a random address.",
+    description: "Creates `name@send0.email` (or on a verified custom domain). Omit `name` for a random address.",
     body: inboxCreateBody,
     responses: { 201: "Inbox" },
   },
@@ -101,8 +89,7 @@ export const operations: Operation[] = [
     tag: "Inboxes",
     scope: "admin",
     summary: "Delete an inbox",
-    description:
-      "Mail to the address is refused from now on. The address is never reassigned.",
+    description: "Mail to the address is refused from now on. The address is never reassigned.",
     responses: { 200: "DeletedInbox" },
   },
 
@@ -114,8 +101,7 @@ export const operations: Operation[] = [
     tag: "Messages",
     scope: "read",
     summary: "List and search messages",
-    description:
-      "Newest first. `from` accepts wildcards such as `*@acme.dev`; `q` is full-text search over subject and body.",
+    description: "Newest first. `from` accepts wildcards such as `*@acme.dev`; `q` is full-text search over subject and body.",
     query: messageListQuery,
     responses: { 200: "MessageList" },
   },
@@ -138,8 +124,7 @@ export const operations: Operation[] = [
     tag: "Messages",
     scope: "send",
     summary: "Send a message",
-    description:
-      "Starts a new thread. Inboxes with `send_policy: approval` return a draft (202) instead.",
+    description: "Starts a new thread. Inboxes with `send_policy: approval` return a draft (202) instead.",
     body: sendBody,
     responses: { 201: "Message", 202: "Draft" },
   },
@@ -173,8 +158,7 @@ export const operations: Operation[] = [
     summary: "Download the original .eml",
     responses: {
       302: {
-        redirect:
-          "Pre-signed download link for the raw message, valid 15 minutes",
+        redirect: "Pre-signed download link for the raw message, valid 15 minutes",
       },
     },
   },
@@ -194,8 +178,7 @@ export const operations: Operation[] = [
     tag: "Messages",
     scope: "send",
     summary: "Reply to a message",
-    description:
-      "Replies in the same thread with correct In-Reply-To and References.",
+    description: "Replies in the same thread with correct In-Reply-To and References.",
     body: replyBody,
     responses: { 201: "Message", 202: "Draft" },
   },
@@ -283,7 +266,8 @@ export const operations: Operation[] = [
     operationId: "sendDraft",
     tag: "Drafts",
     scope: "admin",
-    description: "Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.",
+    description:
+      "Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.",
     summary: "Approve and send a draft",
     responses: { 201: "Message" },
   },
@@ -293,7 +277,8 @@ export const operations: Operation[] = [
     operationId: "rejectDraft",
     tag: "Drafts",
     scope: "admin",
-    description: "Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.",
+    description:
+      "Needs an admin key, so an agent can't approve its own mail. Members can also approve in the dashboard. A draft someone else already decided returns 409.",
     summary: "Reject a draft",
     responses: { 200: "Draft" },
   },
@@ -393,8 +378,7 @@ export const operations: Operation[] = [
     tag: "Events",
     scope: "read",
     summary: "Stream events (SSE)",
-    description:
-      "Server-Sent Events for one inbox (`inbox_id`) or the whole organization. Send `Last-Event-ID` to resume.",
+    description: "Server-Sent Events for one inbox (`inbox_id`) or the whole organization. Send `Last-Event-ID` to resume.",
     query: streamQuery,
     responses: { 200: { sse: true } },
   },
@@ -439,7 +423,8 @@ export const operations: Operation[] = [
     tag: "Usage",
     scope: "read",
     summary: "Get daily stats",
-    description: "Mail per UTC day for the last `days` days (default 14, up to 90): received, sent, delivered, bounced and failed. Days with no mail are zeros.",
+    description:
+      "Mail per UTC day for the last `days` days (default 14, up to 90): received, sent, delivered, bounced and failed. Days with no mail are zeros.",
     query: statsQuery,
     responses: { 200: "Stats" },
   },
@@ -454,9 +439,7 @@ export const operations: Operation[] = [
   },
 ];
 
-const PARAM_DESCRIPTIONS: Record<string, string> = Object.fromEntries(
-  Object.values(P).map((p) => [p.name, p.description])
-);
+const PARAM_DESCRIPTIONS: Record<string, string> = Object.fromEntries(Object.values(P).map((p) => [p.name, p.description]));
 
 const jsonSchema = (s: z.ZodType) => {
   const out = z.toJSONSchema(s, {
@@ -485,9 +468,7 @@ function dropDatetimePatterns<T>(node: T): T {
 }
 
 /** The OpenAPI 3.1 document for the public API. */
-export function buildOpenApi(
-  opts: { serverUrl?: string; version?: string } = {}
-) {
+export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}) {
   const components = z.toJSONSchema(registry, {
     uri: (id) => `#/components/schemas/${id}`,
     target: "draft-2020-12",
@@ -537,8 +518,7 @@ export function buildOpenApi(
             "text/event-stream": {
               schema: {
                 type: "string",
-                description:
-                  "Each `data:` line is a JSON Event (see the Event schema).",
+                description: "Each `data:` line is a JSON Event (see the Event schema).",
               },
             },
           },
@@ -574,8 +554,7 @@ export function buildOpenApi(
                 name: "Idempotency-Key",
                 in: "header",
                 required: false,
-                description:
-                  "Retry-safe POSTs: same key + same body returns the stored response for 24 hours.",
+                description: "Retry-safe POSTs: same key + same body returns the stored response for 24 hours.",
                 schema: { type: "string", maxLength: 255 },
               },
             ]
@@ -598,22 +577,12 @@ export function buildOpenApi(
     info: {
       title: "send0 API",
       version: opts.version ?? "1.0.0",
-      description:
-        "Email inboxes for AI agents: create an address, receive, wait, reply, and get webhooks. https://send0.dev",
+      description: "Email inboxes for AI agents: create an address, receive, wait, reply, and get webhooks. https://send0.dev",
       license: { name: "AGPL-3.0", identifier: "AGPL-3.0-only" },
     },
     servers: [{ url: opts.serverUrl ?? "https://api.send0.dev" }],
     security: [{ bearerAuth: [] }],
-    tags: [
-      "Inboxes",
-      "Messages",
-      "Threads",
-      "Drafts",
-      "Webhooks",
-      "Events",
-      "API keys",
-      "Usage",
-    ].map((name) => ({ name })),
+    tags: ["Inboxes", "Messages", "Threads", "Drafts", "Webhooks", "Events", "API keys", "Usage"].map((name) => ({ name })),
     paths,
     components: {
       securitySchemes: {

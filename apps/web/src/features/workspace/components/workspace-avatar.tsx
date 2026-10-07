@@ -8,7 +8,10 @@ export function WorkspaceAvatar({ name, size = "md" }: { name: string; size?: "s
   return (
     <span
       aria-hidden
-      className={cn("flex shrink-0 items-center justify-center rounded-md font-semibold text-white", size === "sm" ? "size-5 text-[10px]" : "size-7 text-xs")}
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-md font-semibold text-white",
+        size === "sm" ? "size-5 text-[10px]" : "size-7 text-xs",
+      )}
       style={{ background: `oklch(0.55 0.12 ${hue})` }}
     >
       {name.trim()[0]?.toUpperCase() ?? "?"}

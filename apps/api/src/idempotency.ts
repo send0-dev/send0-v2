@@ -37,7 +37,12 @@ export const idempotency = createMiddleware<AppEnv>(async (c, next) => {
       await db.update(idempotencyKeys).set({ route, requestHash, responseStatus: null, responseBody: null, createdAt: now() }).where(where);
     } else if (prev) {
       if (prev.requestHash !== requestHash) {
-        throw new ApiError(422, "idempotency_key_reused", "This Idempotency-Key was already used with a different request.", "Idempotency-Key");
+        throw new ApiError(
+          422,
+          "idempotency_key_reused",
+          "This Idempotency-Key was already used with a different request.",
+          "Idempotency-Key",
+        );
       }
       if (prev.responseStatus === null) {
         throw conflict("idempotency_in_progress", "A request with this Idempotency-Key is still being processed. Retry shortly.");

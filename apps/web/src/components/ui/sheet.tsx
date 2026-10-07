@@ -15,20 +15,20 @@ export function SheetContent({
 }: ComponentProps<typeof SheetPrimitive.Content> & { side?: "right" | "left" }) {
   return (
     <SheetPrimitive.Portal>
-      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "fixed inset-y-2 z-50 flex w-[calc(100%-1rem)] flex-col rounded-xl bg-elevated shadow-elevated transition ease-out data-[state=open]:animate-in data-[state=open]:duration-200 data-[state=closed]:animate-out data-[state=closed]:duration-150",
+          "fixed inset-y-2 z-50 flex w-[calc(100%-1rem)] flex-col rounded-xl bg-elevated shadow-elevated transition ease-out data-[state=closed]:animate-out data-[state=closed]:duration-150 data-[state=open]:animate-in data-[state=open]:duration-200",
           side === "right"
-            ? "right-2 sm:max-w-xl data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
-            : "left-2 max-w-72 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left",
-          className
+            ? "right-2 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-xl"
+            : "left-2 max-w-72 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+          className,
         )}
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="absolute top-3.5 right-3.5 flex size-6 cursor-pointer items-center justify-center rounded-md text-faint outline-none transition-colors hover:bg-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40">
+        <SheetPrimitive.Close className="absolute top-3.5 right-3.5 flex size-6 cursor-pointer items-center justify-center rounded-md text-faint transition-colors outline-none hover:bg-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40">
           <XIcon className="size-4" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>

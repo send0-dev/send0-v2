@@ -8,13 +8,17 @@ import { applyServerError } from "@/lib/form-errors";
 import { useResetPassword } from "../api/use-auth-mutations";
 import { newPassword } from "../schemas";
 
-const schema = z.object({ password: newPassword, confirm: z.string() }).refine((v) => v.password === v.confirm, { path: ["confirm"], message: "The passwords don't match." });
+const schema = z
+  .object({ password: newPassword, confirm: z.string() })
+  .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "The passwords don't match." });
 type Values = z.infer<typeof schema>;
 
 export function ResetPasswordForm({ token, onDone }: { token: string; onDone: () => void }) {
   const reset = useResetPassword();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { password: "", confirm: "" } });
-  const onSubmit = form.handleSubmit((v) => reset.mutate({ token, password: v.password }, { onSuccess: onDone, onError: (e) => applyServerError(form, e) }));
+  const onSubmit = form.handleSubmit((v) =>
+    reset.mutate({ token, password: v.password }, { onSuccess: onDone, onError: (e) => applyServerError(form, e) }),
+  );
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="grid gap-4" noValidate>

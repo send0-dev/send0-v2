@@ -61,8 +61,5 @@ export function isDisposableEmail(email: string): boolean {
   const domain = email.split("@").pop()!.toLowerCase();
   if (DISPOSABLE.has(domain)) return true;
   // Subdomains of listed domains, and our sandbox domain
-  return (
-    [...DISPOSABLE].some((d) => domain.endsWith(`.${d}`)) ||
-    domain.endsWith(".sandbox.send0.dev")
-  );
+  return [...DISPOSABLE].some((d) => domain.endsWith(`.${d}`)) || domain.endsWith(".sandbox.send0.dev");
 }

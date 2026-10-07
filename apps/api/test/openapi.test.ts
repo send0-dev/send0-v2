@@ -23,8 +23,14 @@ describe("OpenAPI document", () => {
         .map((r) => `${r.method.toLowerCase()} ${norm(r.path)}`),
     );
     const documented = new Set(operations.map((o) => `${o.method} ${norm(o.path)}`));
-    expect([...served].filter((r) => !documented.has(r)), "served but undocumented").toEqual([]);
-    expect([...documented].filter((r) => !served.has(r)), "documented but not served").toEqual([]);
+    expect(
+      [...served].filter((r) => !documented.has(r)),
+      "served but undocumented",
+    ).toEqual([]);
+    expect(
+      [...documented].filter((r) => !served.has(r)),
+      "documented but not served",
+    ).toEqual([]);
     await t.close();
   });
 
@@ -49,7 +55,10 @@ describe("responses match the spec", () => {
   };
 
   beforeAll(async () => {
-    t = await setup({ mailer: { sendRaw: async (i) => (outbox.push(i), { providerMessageId: "ses-1" }) }, queue: { send: async () => {} } });
+    t = await setup({
+      mailer: { sendRaw: async (i) => (outbox.push(i), { providerMessageId: "ses-1" }) },
+      queue: { send: async () => {} },
+    });
   });
   afterAll(() => t.close());
 
@@ -71,7 +80,10 @@ describe("responses match the spec", () => {
 
     const dana = list.data.find((m) => m.from?.email === "dana@gmail.com")!;
     check(S.Message, (await t.call("POST", `/v1/messages/${dana.id}/reply`, { body: { text: "ok" } })).body);
-    check(S.Message, (await t.call("POST", `/v1/inboxes/${inbox.id}/messages`, { body: { to: "dana@gmail.com", subject: "s", text: "t" } })).body);
+    check(
+      S.Message,
+      (await t.call("POST", `/v1/inboxes/${inbox.id}/messages`, { body: { to: "dana@gmail.com", subject: "s", text: "t" } })).body,
+    );
 
     await t.call("PATCH", `/v1/inboxes/${inbox.id}`, { body: { send_policy: "approval" } });
     const draft = check(S.Draft, (await t.call("POST", `/v1/messages/${dana.id}/forward`, { body: { to: "dana@gmail.com" } })).body);

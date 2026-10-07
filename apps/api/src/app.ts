@@ -13,12 +13,7 @@ import { inboxMessageRoutes, messageRoutes } from "./routes/messages";
 import { mcpRoutes } from "./routes/mcp";
 import { statsRoutes } from "./routes/stats";
 import { usageRoutes } from "./routes/usage";
-import {
-  draftRoutes,
-  inboxDraftRoutes,
-  inboxSendRoutes,
-  messageSendRoutes,
-} from "./routes/send";
+import { draftRoutes, inboxDraftRoutes, inboxSendRoutes, messageSendRoutes } from "./routes/send";
 import { threadRoutes } from "./routes/threads";
 import type { AppDeps, AppEnv } from "./types";
 
@@ -32,9 +27,7 @@ export function createApp(deps: AppDeps) {
     c.header("x-request-id", c.get("requestId"));
   });
 
-  app.get("/", (c) =>
-    c.json({ name: "send0 API", docs: "https://send0.dev", version: "v1" })
-  );
+  app.get("/", (c) => c.json({ name: "send0 API", docs: "https://send0.dev", version: "v1" }));
   app.get("/health", (c) => c.json({ ok: true }));
   let spec: ReturnType<typeof buildOpenApi> | undefined;
   app.get("/openapi.json", (c) => {
@@ -65,34 +58,12 @@ export function createApp(deps: AppDeps) {
   app.route("/v1", v1);
   app.route("/mcp", mcpRoutes(app));
 
-  app.notFound((c) =>
-    c.json(
-      errorBody(
-        c,
-        new ApiError(
-          404,
-          "route_not_found",
-          `No route ${c.req.method} ${c.req.path}.`
-        )
-      ),
-      404
-    )
-  );
+  app.notFound((c) => c.json(errorBody(c, new ApiError(404, "route_not_found", `No route ${c.req.method} ${c.req.path}.`)), 404));
 
   app.onError((err, c) => {
     if (err instanceof ApiError) return c.json(errorBody(c, err), err.status);
     if (err instanceof HTTPException && err.status < 500) {
-      return c.json(
-        errorBody(
-          c,
-          new ApiError(
-            err.status as 400,
-            "invalid_request",
-            err.message || "Invalid request."
-          )
-        ),
-        err.status
-      );
+      return c.json(errorBody(c, new ApiError(err.status as 400, "invalid_request", err.message || "Invalid request.")), err.status);
     }
     console.error(
       JSON.stringify({
@@ -100,19 +71,9 @@ export function createApp(deps: AppDeps) {
         request_id: c.get("requestId"),
         error: String(err),
         stack: (err as Error).stack,
-      })
+      }),
     );
-    return c.json(
-      errorBody(
-        c,
-        new ApiError(
-          500,
-          "internal_error",
-          "Something went wrong on our side. It has been logged."
-        )
-      ),
-      500
-    );
+    return c.json(errorBody(c, new ApiError(500, "internal_error", "Something went wrong on our side. It has been logged.")), 500);
   });
 
   return app;

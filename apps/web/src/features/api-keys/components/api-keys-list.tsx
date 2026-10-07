@@ -40,7 +40,9 @@ export function ApiKeysList({ keys, onRevoke }: { keys: ApiKey[]; onRevoke: (key
               <span className={COL.access}>
                 <Badge variant={level === "admin" ? "warning" : "neutral"}>{ACCESS_LEVELS[level].label}</Badge>
               </span>
-              <span className={`${COL.inboxes} text-xs text-muted-foreground`}>{k.inbox_ids ? pluralize(k.inbox_ids.length, "inbox", "inboxes") : "All"}</span>
+              <span className={`${COL.inboxes} text-xs text-muted-foreground`}>
+                {k.inbox_ids ? pluralize(k.inbox_ids.length, "inbox", "inboxes") : "All"}
+              </span>
               <span className={`${COL.used} text-xs text-faint`}>{k.last_used_at ? <RelativeTime iso={k.last_used_at} /> : "Never"}</span>
               <span className={COL.actions}>
                 <DropdownMenu>

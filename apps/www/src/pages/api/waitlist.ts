@@ -26,7 +26,9 @@ export const POST: APIRoute = async ({ request }) => {
     return reply(true, "Thanks. We'll email you when the beta opens.", 200);
   }
 
-  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const email = String(form.get("email") ?? "")
+    .trim()
+    .toLowerCase();
   if (email.length > 254 || !EMAIL_RE.test(email)) {
     return reply(false, "That email didn't look right. Try again.", 400);
   }
@@ -36,9 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
   const country = request.headers.get("cf-ipcountry");
 
   try {
-    await env.WAITLIST_DB.prepare(
-      "INSERT INTO waitlist (email, source, country) VALUES (?1, ?2, ?3) ON CONFLICT(email) DO NOTHING",
-    )
+    await env.WAITLIST_DB.prepare("INSERT INTO waitlist (email, source, country) VALUES (?1, ?2, ?3) ON CONFLICT(email) DO NOTHING")
       .bind(email, source, country)
       .run();
   } catch (err) {

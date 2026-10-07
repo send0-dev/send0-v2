@@ -24,6 +24,11 @@ export function RequireStage({ allow }: { allow: Stage[] }) {
   if (stage === "ready" && isSafePath(next)) return <Navigate to={next} replace />;
   const here = location.pathname + location.search;
   const target = STAGE_HOME[stage];
-  const keepNext = stage === "anonymous" && here !== "/" ? `?next=${encodeURIComponent(here)}` : next && isSafePath(next) ? `?next=${encodeURIComponent(next)}` : "";
+  const keepNext =
+    stage === "anonymous" && here !== "/"
+      ? `?next=${encodeURIComponent(here)}`
+      : next && isSafePath(next)
+        ? `?next=${encodeURIComponent(next)}`
+        : "";
   return <Navigate to={target + keepNext} replace />;
 }

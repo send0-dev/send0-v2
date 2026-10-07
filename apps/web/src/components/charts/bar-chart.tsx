@@ -19,7 +19,17 @@ const dateFmt = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }
  * Stacked bars with a hover readout. Pure SVG, sized by its container; no chart library.
  * Labels are ISO dates (YYYY-MM-DD) and shown as "Oct 6".
  */
-export function BarChart({ data, series, height, className }: { data: BarDatum[]; series: Series[]; /** Fixed plot height; omit to fill the container */ height?: number; className?: string }) {
+export function BarChart({
+  data,
+  series,
+  height,
+  className,
+}: {
+  data: BarDatum[];
+  series: Series[];
+  /** Fixed plot height; omit to fill the container */ height?: number;
+  className?: string;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const totals = data.map((d) => series.reduce((s, x) => s + (d.values[x.key] ?? 0), 0));
   const max = Math.max(4, ...totals);
@@ -63,7 +73,10 @@ export function BarChart({ data, series, height, className }: { data: BarDatum[]
                 return (
                   <div
                     key={s.key}
-                    className={cn("relative w-full transition-[height] duration-500 ease-out", j === series.length - 1 || !series.slice(j + 1).some((x) => d.values[x.key]) ? "rounded-t-[3px]" : "")}
+                    className={cn(
+                      "relative w-full transition-[height] duration-500 ease-out",
+                      j === series.length - 1 || !series.slice(j + 1).some((x) => d.values[x.key]) ? "rounded-t-[3px]" : "",
+                    )}
                     style={{ height: `${(v / max) * 100}%`, background: s.color, opacity: hover === null || hover === i ? 1 : 0.55 }}
                   />
                 );

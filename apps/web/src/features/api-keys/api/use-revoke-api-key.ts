@@ -13,7 +13,10 @@ export function useRevokeApiKey() {
     mutationFn: (id: string) => send0.apiKeys.revoke(id),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: apiKeyKeys.list() });
-      qc.setQueryData<Cache>(apiKeyKeys.list(), (d) => d && { ...d, pages: d.pages.map((p) => ({ ...p, data: p.data.filter((k) => k.id !== id) })) });
+      qc.setQueryData<Cache>(
+        apiKeyKeys.list(),
+        (d) => d && { ...d, pages: d.pages.map((p) => ({ ...p, data: p.data.filter((k) => k.id !== id) })) },
+      );
     },
     // Success or failure, the list is refetched: a failed revoke reappears.
     onSettled: () => qc.invalidateQueries({ queryKey: apiKeyKeys.list() }),

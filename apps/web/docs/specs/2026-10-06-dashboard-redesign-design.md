@@ -12,15 +12,15 @@ Not in scope: billing, custom domains UI, sandbox inboxes, SSO.
 
 ## Stack
 
-| Concern | Choice |
-|---|---|
-| Build and routing | Vite, React 19, React Router (library mode), routes lazy-loaded |
-| Server state | TanStack Query |
-| Forms | react-hook-form with zod resolvers |
-| Components | shadcn/ui on Radix, Tailwind v4 tokens, `cmdk` for ⌘K, `sonner` for toasts, lucide icons |
-| API client | `@send0/sdk` with `baseUrl = ${location.origin}/api` and a `fetch` that sends the session cookie |
-| Auth and workspace calls | a small typed `authClient` for `/auth/*` |
-| Tests | Vitest, Testing Library, MSW; server tests against the real API in-process; puppeteer end-to-end |
+| Concern                  | Choice                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| Build and routing        | Vite, React 19, React Router (library mode), routes lazy-loaded                                  |
+| Server state             | TanStack Query                                                                                   |
+| Forms                    | react-hook-form with zod resolvers                                                               |
+| Components               | shadcn/ui on Radix, Tailwind v4 tokens, `cmdk` for ⌘K, `sonner` for toasts, lucide icons         |
+| API client               | `@send0/sdk` with `baseUrl = ${location.origin}/api` and a `fetch` that sends the session cookie |
+| Auth and workspace calls | a small typed `authClient` for `/auth/*`                                                         |
+| Tests                    | Vitest, Testing Library, MSW; server tests against the real API in-process; puppeteer end-to-end |
 
 ## Information architecture
 
@@ -33,21 +33,21 @@ App shell:
   - User menu at the bottom: theme, account, log out.
 - Top bar: breadcrumbs, a ⌘K button, and the page's main action.
 
-| Route | Content |
-|---|---|
-| `/` | Overview: usage meters (sends today against the daily cap, inboxes against the plan limit), a paused-sending banner, pending drafts, the 10 latest messages, and a getting-started checklist until it's complete |
-| `/inboxes` | Table: address, display name, send policy, message count, last activity. Create in a dialog |
-| `/inboxes/:id` | Split view. Left: thread list. Right: the thread (messages, SPF/DKIM/DMARC badges, prompt-injection warning, extracted OTP and links, attachments, reply composer). Inbox settings open in a sheet. The selected thread is in the URL (`?thread=`) |
-| `/messages` | Org-wide table. Filters in search params: `direction`, `status`, `inbox`, `q`. Cursor paging. A row opens a detail sheet with headers, Text/HTML/Raw tabs and delivery status |
-| `/drafts` | Drafts awaiting approval: Approve, Edit, Reject |
-| `/webhooks`, `/webhooks/:id` | List; detail page with the delivery log (status, attempts, response) plus replay, test, rotate secret and enable/disable |
-| `/api-keys` | Table; create dialog (name, scopes, inbox restriction); the key is shown once; revoke with confirmation |
-| `/settings/workspace` | Rename; transfer ownership; delete the workspace |
-| `/settings/members` | Members and pending invites; invite, change role, remove, leave |
-| `/settings/account` | Profile, password, sign out of other sessions |
-| `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email`, `/check-email` | Split layout: the form, and a product panel |
-| `/invite/:token` | Accept an invite |
-| `/onboarding` | 4 steps: workspace, first inbox, API key, live "Try it" |
+| Route                                                                                       | Content                                                                                                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                                                                                         | Overview: usage meters (sends today against the daily cap, inboxes against the plan limit), a paused-sending banner, pending drafts, the 10 latest messages, and a getting-started checklist until it's complete                                   |
+| `/inboxes`                                                                                  | Table: address, display name, send policy, message count, last activity. Create in a dialog                                                                                                                                                        |
+| `/inboxes/:id`                                                                              | Split view. Left: thread list. Right: the thread (messages, SPF/DKIM/DMARC badges, prompt-injection warning, extracted OTP and links, attachments, reply composer). Inbox settings open in a sheet. The selected thread is in the URL (`?thread=`) |
+| `/messages`                                                                                 | Org-wide table. Filters in search params: `direction`, `status`, `inbox`, `q`. Cursor paging. A row opens a detail sheet with headers, Text/HTML/Raw tabs and delivery status                                                                      |
+| `/drafts`                                                                                   | Drafts awaiting approval: Approve, Edit, Reject                                                                                                                                                                                                    |
+| `/webhooks`, `/webhooks/:id`                                                                | List; detail page with the delivery log (status, attempts, response) plus replay, test, rotate secret and enable/disable                                                                                                                           |
+| `/api-keys`                                                                                 | Table; create dialog (name, scopes, inbox restriction); the key is shown once; revoke with confirmation                                                                                                                                            |
+| `/settings/workspace`                                                                       | Rename; transfer ownership; delete the workspace                                                                                                                                                                                                   |
+| `/settings/members`                                                                         | Members and pending invites; invite, change role, remove, leave                                                                                                                                                                                    |
+| `/settings/account`                                                                         | Profile, password, sign out of other sessions                                                                                                                                                                                                      |
+| `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email`, `/check-email` | Split layout: the form, and a product panel                                                                                                                                                                                                        |
+| `/invite/:token`                                                                            | Accept an invite                                                                                                                                                                                                                                   |
+| `/onboarding`                                                                               | 4 steps: workspace, first inbox, API key, live "Try it"                                                                                                                                                                                            |
 
 ## Visual language
 
@@ -121,14 +121,14 @@ Rules:
 
 ## Roles
 
-| Action | Owner | Admin | Member |
-|---|---|---|---|
-| Read inboxes, threads, messages; reply; approve or reject drafts | ✓ | ✓ | ✓ |
-| Create or delete inboxes, change inbox settings | ✓ | ✓ | – |
-| API keys, webhooks | ✓ | ✓ | – |
-| Invite and remove members, change roles | ✓ | ✓ (cannot change or remove the owner or other admins) | – |
-| Rename the workspace | ✓ | ✓ | – |
-| Transfer ownership, delete the workspace | ✓ | – | – |
+| Action                                                           | Owner | Admin                                                 | Member |
+| ---------------------------------------------------------------- | ----- | ----------------------------------------------------- | ------ |
+| Read inboxes, threads, messages; reply; approve or reject drafts | ✓     | ✓                                                     | ✓      |
+| Create or delete inboxes, change inbox settings                  | ✓     | ✓                                                     | –      |
+| API keys, webhooks                                               | ✓     | ✓                                                     | –      |
+| Invite and remove members, change roles                          | ✓     | ✓ (cannot change or remove the owner or other admins) | –      |
+| Rename the workspace                                             | ✓     | ✓                                                     | –      |
+| Transfer ownership, delete the workspace                         | ✓     | –                                                     | –      |
 
 Members are free and unlimited for now.
 

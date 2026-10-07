@@ -1,6 +1,13 @@
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useState } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCurrentWorkspace } from "@/features/session/api/use-me";
 import { useSwitchWorkspace } from "@/features/session/api/use-session-actions";
 import { CreateWorkspaceDialog } from "@/features/workspace/components/create-workspace-dialog";
@@ -16,7 +23,10 @@ export function WorkspaceSwitcher() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger aria-label={`Workspace: ${workspace.name}. Switch workspace`} className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-1.5 text-left outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/40 data-[state=open]:bg-hover">
+        <DropdownMenuTrigger
+          aria-label={`Workspace: ${workspace.name}. Switch workspace`}
+          className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-1.5 text-left transition-colors outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/40 data-[state=open]:bg-hover"
+        >
           <WorkspaceAvatar name={workspace.name} size="sm" />
           <span className="min-w-0 flex-1 truncate text-[13px] font-semibold tracking-[-0.01em]">{workspace.name}</span>
           <ChevronsUpDown className="size-3.5 shrink-0 text-faint" />

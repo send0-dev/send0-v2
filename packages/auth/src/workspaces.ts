@@ -18,7 +18,7 @@ function workspaceName(raw: string): string {
 export class WorkspaceService {
   constructor(
     private readonly ctx: AuthContext,
-    private readonly sessions: SessionService
+    private readonly sessions: SessionService,
   ) {}
 
   /**
@@ -71,14 +71,28 @@ export class WorkspaceService {
     if (targetUserId === owner.id) throw new AuthError(400, "invalid_request", "You already own this workspace.", "user_id");
     await this.ctx.db.transaction(async (tx) => {
       // Lock the owner's row and re-check it, so two transfers started at once can't both win.
-      const [self] = await tx.select().from(members).where(and(eq(members.orgId, ws.id), eq(members.userId, owner.id))).for("update");
+      const [self] = await tx
+        .select()
+        .from(members)
+        .where(and(eq(members.orgId, ws.id), eq(members.userId, owner.id)))
+        .for("update");
       if (self?.role !== "owner") throw forbidden("Only the owner can transfer the workspace.");
-      const [target] = await tx.select().from(members).where(and(eq(members.orgId, ws.id), eq(members.userId, targetUserId))).for("update");
+      const [target] = await tx
+        .select()
+        .from(members)
+        .where(and(eq(members.orgId, ws.id), eq(members.userId, targetUserId)))
+        .for("update");
       if (!target) throw notFound("member");
       if (target.role !== "admin") throw new AuthError(400, "not_admin", "Make them an admin first, then transfer ownership.", "user_id");
       // Demote first: the database allows only one owner per workspace.
-      await tx.update(members).set({ role: "admin" }).where(and(eq(members.orgId, ws.id), eq(members.userId, owner.id)));
-      await tx.update(members).set({ role: "owner" }).where(and(eq(members.orgId, ws.id), eq(members.userId, targetUserId)));
+      await tx
+        .update(members)
+        .set({ role: "admin" })
+        .where(and(eq(members.orgId, ws.id), eq(members.userId, owner.id)));
+      await tx
+        .update(members)
+        .set({ role: "owner" })
+        .where(and(eq(members.orgId, ws.id), eq(members.userId, targetUserId)));
     });
   }
 
@@ -89,14 +103,24 @@ export class WorkspaceService {
    */
   async delete(ws: Workspace, confirmName: string): Promise<void> {
     if (!can(ws.role, "workspace.delete")) throw forbidden("Only the owner can delete the workspace.");
-    if (confirmName.trim() !== ws.name) throw new AuthError(400, "confirm_mismatch", "Type the workspace name exactly to confirm.", "confirm");
+    if (confirmName.trim() !== ws.name)
+      throw new AuthError(400, "confirm_mismatch", "Type the workspace name exactly to confirm.", "confirm");
     const now = this.ctx.now();
     await this.ctx.db.transaction(async (tx) => {
       await tx.update(orgs).set({ deletedAt: now }).where(eq(orgs.id, ws.id));
-      await tx.update(apiKeys).set({ revokedAt: now }).where(and(eq(apiKeys.orgId, ws.id), isNull(apiKeys.revokedAt)));
+      await tx
+        .update(apiKeys)
+        .set({ revokedAt: now })
+        .where(and(eq(apiKeys.orgId, ws.id), isNull(apiKeys.revokedAt)));
       await tx.update(webhooks).set({ status: "disabled" }).where(eq(webhooks.orgId, ws.id));
-      await tx.update(inboxes).set({ deletedAt: now, status: "deleted" }).where(and(eq(inboxes.orgId, ws.id), isNull(inboxes.deletedAt)));
-      await tx.update(invites).set({ revokedAt: now }).where(and(eq(invites.orgId, ws.id), isNull(invites.acceptedAt), isNull(invites.revokedAt)));
+      await tx
+        .update(inboxes)
+        .set({ deletedAt: now, status: "deleted" })
+        .where(and(eq(inboxes.orgId, ws.id), isNull(inboxes.deletedAt)));
+      await tx
+        .update(invites)
+        .set({ revokedAt: now })
+        .where(and(eq(invites.orgId, ws.id), isNull(invites.acceptedAt), isNull(invites.revokedAt)));
     });
   }
 

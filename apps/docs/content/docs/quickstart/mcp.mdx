@@ -6,7 +6,8 @@ description: Give Claude Code, Claude Desktop, Cursor or any MCP client its own 
 The send0 MCP server gives your assistant tools to create inboxes, wait for email, read threads and reply.
 
 <Callout type="warn">
-  Give the assistant an API key limited to what it needs. A key with `read` and `send` scopes, restricted to one inbox, is the safest choice. See [API keys](/api-keys).
+  Give the assistant an API key limited to what it needs. A key with `read` and `send` scopes,
+  restricted to one inbox, is the safest choice. See [API keys](/api-keys).
 </Callout>
 
 ## Connect
@@ -38,6 +39,7 @@ There are two ways to run it. They have the same tools.
       }
     }
     ```
+
   </Tab>
   <Tab value="VS Code">
     In `.vscode/mcp.json`:
@@ -53,6 +55,7 @@ There are two ways to run it. They have the same tools.
       }
     }
     ```
+
   </Tab>
   <Tab value="Other clients">
     Any client or agent framework that supports **Streamable HTTP** MCP servers works:
@@ -64,6 +67,7 @@ There are two ways to run it. They have the same tools.
     | Default inbox (optional) | `https://api.send0.dev/mcp?inbox_id=ibx_…` |
 
     The server is stateless, so there's no session to keep.
+
   </Tab>
 </Tabs>
 
@@ -91,6 +95,7 @@ Add `?inbox_id=ibx_…` to the URL if the assistant should always use one inbox.
       }
     }
     ```
+
   </Tab>
   <Tab value="Cursor">
     Add the same block to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in a project).

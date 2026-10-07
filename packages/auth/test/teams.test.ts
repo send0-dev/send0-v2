@@ -11,7 +11,11 @@ let close: () => Promise<void>;
 let auth: Auth;
 let now = new Date("2026-10-06T10:00:00Z");
 const outbox: SendRawInput[] = [];
-const err = (p: Promise<unknown>) => p.then(() => null, (e: unknown) => e as AuthError);
+const err = (p: Promise<unknown>) =>
+  p.then(
+    () => null,
+    (e: unknown) => e as AuthError,
+  );
 const inviteToken = async (to: string) => {
   const mail = [...outbox].reverse().find((m) => m.recipients.includes(to))!;
   const p = await parseInbound(mail.raw, { trustedAuthservIds: [] });
@@ -80,7 +84,12 @@ describe("invites", () => {
     expect(invite).toMatchObject({ email: "mia@acme.com", role: "member", invitedBy: "olivia" });
     const token = await inviteToken("mia@acme.com");
 
-    expect(await auth.invites.preview(token)).toMatchObject({ workspace: "Acme", email: "mia@acme.com", role: "member", hasAccount: false });
+    expect(await auth.invites.preview(token)).toMatchObject({
+      workspace: "Acme",
+      email: "mia@acme.com",
+      role: "member",
+      hasAccount: false,
+    });
     const { user, session } = await auth.invites.signUpAndAccept({ token, password: "lantern-cove-88", name: "Mia" });
     expect(user.emailVerifiedAt).toBeInstanceOf(Date);
     expect(user.onboardedAt).toBeInstanceOf(Date);
@@ -127,8 +136,12 @@ describe("invites", () => {
   });
 
   it("only lets owners and admins invite or see invitations", async () => {
-    const memberSession = (await auth.sessions.resolve((await auth.accounts.logIn({ email: "mia@acme.com", password: "lantern-cove-88" })).session.token))!;
-    expect((await err(auth.invites.create(memberSession.workspace!, memberSession.user, { email: "x@acme.com", role: "member" })))?.status).toBe(403);
+    const memberSession = (await auth.sessions.resolve(
+      (await auth.accounts.logIn({ email: "mia@acme.com", password: "lantern-cove-88" })).session.token,
+    ))!;
+    expect(
+      (await err(auth.invites.create(memberSession.workspace!, memberSession.user, { email: "x@acme.com", role: "member" })))?.status,
+    ).toBe(403);
     expect((await err(auth.invites.listPending(memberSession.workspace!)))?.status).toBe(403);
   });
 });
@@ -146,7 +159,9 @@ describe("members and roles", () => {
   });
 
   it("lets admins manage members but not other admins or the owner", async () => {
-    const sam = (await auth.sessions.resolve((await auth.accounts.logIn({ email: "sam@acme.com", password: "tangerine-orbit-42" })).session.token))!;
+    const sam = (await auth.sessions.resolve(
+      (await auth.accounts.logIn({ email: "sam@acme.com", password: "tangerine-orbit-42" })).session.token,
+    ))!;
     expect((await auth.members.changeRole(sam.workspace!, sam.user, await userId("mia@acme.com"), "admin")).role).toBe("admin");
     expect((await err(auth.members.changeRole(sam.workspace!, sam.user, await userId("mia@acme.com"), "member")))?.status).toBe(403);
     expect((await err(auth.members.remove(sam.workspace!, sam.user, await userId("olivia@acme.com"))))?.status).toBe(403);
@@ -224,8 +239,13 @@ describe("workspaces", () => {
     const s = await owner.session();
     const side = s.workspaces.find((w) => w.name === "Side project")!;
     const k = await newApiKey("live");
-    await db.insert(schema.apiKeys).values({ id: newId("key"), orgId: side.id, name: "k", prefix: k.prefix, hash: k.hash, mode: "live", scopes: ["admin"] });
-    await db.insert(schema.domains).values({ id: "dom_shared", name: "send0.email", kind: "shared", status: "verified" }).onConflictDoNothing();
+    await db
+      .insert(schema.apiKeys)
+      .values({ id: newId("key"), orgId: side.id, name: "k", prefix: k.prefix, hash: k.hash, mode: "live", scopes: ["admin"] });
+    await db
+      .insert(schema.domains)
+      .values({ id: "dom_shared", name: "send0.email", kind: "shared", status: "verified" })
+      .onConflictDoNothing();
     await db.insert(schema.inboxes).values({ id: newId("ibx"), orgId: side.id, domainId: "dom_shared", localPart: "side-agent" });
     await auth.invites.create(side, s.user, { email: "pending@acme.com", role: "member" });
 

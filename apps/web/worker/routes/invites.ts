@@ -44,7 +44,10 @@ export const inviteRoutes = new Hono<WebEnv>()
   })
 
   .post("/token/:token/signup", async (c) => {
-    const b = await readBody(c, z.object({ password: z.string().min(1, "Enter a password.").max(200), name: z.string().trim().max(80).optional() }));
+    const b = await readBody(
+      c,
+      z.object({ password: z.string().min(1, "Enter a password.").max(200), name: z.string().trim().max(80).optional() }),
+    );
     const { session } = await c.get("deps").auth.invites.signUpAndAccept({ token: c.req.param("token"), ...b, ...clientMeta(c) });
     setSessionCookie(c, session.token, session.expiresAt);
     return ok(c, 201);

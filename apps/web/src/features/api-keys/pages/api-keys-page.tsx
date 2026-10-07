@@ -35,7 +35,14 @@ export default function ApiKeysPage() {
           query={keys.state}
           skeleton={<ListSkeleton rows={3} />}
           isEmpty={(items) => items.length === 0}
-          empty={<EmptyState icon={KeyRound} title="No API keys" description="Give each agent its own key, limited to its own inbox, so one leak can't read the rest." action={newKey} />}
+          empty={
+            <EmptyState
+              icon={KeyRound}
+              title="No API keys"
+              description="Give each agent its own key, limited to its own inbox, so one leak can't read the rest."
+              action={newKey}
+            />
+          }
         >
           {(items) => (
             <>
@@ -44,10 +51,16 @@ export default function ApiKeysPage() {
                 <span className="tabular ml-auto">{pluralize(items.length, "key")}</span>
               </PaneBar>
               <ApiKeysList keys={items} onRevoke={setRevoking} />
-              <LoadMore hasNextPage={keys.hasNextPage} isFetchingNextPage={keys.isFetchingNextPage} fetchNextPage={() => void keys.fetchNextPage()} />
+              <LoadMore
+                hasNextPage={keys.hasNextPage}
+                isFetchingNextPage={keys.isFetchingNextPage}
+                fetchNextPage={() => void keys.fetchNextPage()}
+              />
               <ListHint title="Use a key">
-                <CodeBlock code={`curl https://api.send0.dev/v1/inboxes \
-  -H "Authorization: Bearer $SEND0_API_KEY"`} />
+                <CodeBlock
+                  code={`curl https://api.send0.dev/v1/inboxes \
+  -H "Authorization: Bearer $SEND0_API_KEY"`}
+                />
               </ListHint>
             </>
           )}

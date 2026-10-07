@@ -19,7 +19,7 @@ export interface Member {
 export class MemberService {
   constructor(
     private readonly ctx: AuthContext,
-    private readonly sessions: SessionService
+    private readonly sessions: SessionService,
   ) {}
 
   list(orgId: string): Promise<Member[]> {
@@ -34,7 +34,10 @@ export class MemberService {
   async changeRole(ws: Workspace, actor: User, targetUserId: string, role: Role): Promise<Member> {
     const target = await this.manageable(ws, actor, targetUserId);
     if (!(assignableRoles(ws.role) as Role[]).includes(role)) throw new AuthError(400, "invalid_role", "Choose admin or member.", "role");
-    await this.ctx.db.update(members).set({ role }).where(and(eq(members.orgId, ws.id), eq(members.userId, targetUserId)));
+    await this.ctx.db
+      .update(members)
+      .set({ role })
+      .where(and(eq(members.orgId, ws.id), eq(members.userId, targetUserId)));
     return { ...target, role };
   }
 
@@ -51,10 +54,12 @@ export class MemberService {
 
   private async manageable(ws: Workspace, actor: User, targetUserId: string): Promise<Member> {
     if (!can(ws.role, "member.manage")) throw forbidden("Only owners and admins can manage members.");
-    if (targetUserId === actor.id) throw new AuthError(400, "invalid_request", "You can't change your own role. Use “Leave workspace” instead.");
+    if (targetUserId === actor.id)
+      throw new AuthError(400, "invalid_request", "You can't change your own role. Use “Leave workspace” instead.");
     const target = (await this.list(ws.id)).find((m) => m.userId === targetUserId);
     if (!target) throw notFound("member");
-    if (!canManageMember(ws.role, target.role)) throw forbidden(target.role === "owner" ? "Nobody can change the owner." : "Only the owner can change other admins.");
+    if (!canManageMember(ws.role, target.role))
+      throw forbidden(target.role === "owner" ? "Nobody can change the owner." : "Only the owner can change other admins.");
     return target;
   }
 

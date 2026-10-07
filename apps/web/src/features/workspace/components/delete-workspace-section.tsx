@@ -12,7 +12,10 @@ export function DeleteWorkspaceSection({ workspace }: { workspace: WorkspaceRef 
   const del = useDeleteWorkspace();
   return (
     <SettingsSection danger title="Danger zone">
-      <SettingsRow label="Delete workspace" description="Keys stop working, webhooks stop and inboxes refuse mail at once. Everything is erased after 30 days.">
+      <SettingsRow
+        label="Delete workspace"
+        description="Keys stop working, webhooks stop and inboxes refuse mail at once. Everything is erased after 30 days."
+      >
         <Button variant="destructive-outline" onClick={() => setOpen(true)}>
           Delete workspace
         </Button>

@@ -14,7 +14,12 @@ import { mailboxShort } from "@/features/messages/mailbox-names";
 
 function Sentence({ m, inbox }: { m: Message; inbox: string }) {
   const who = m.direction === "in" ? mailboxShort(m.from) : inbox;
-  const verb = m.direction === "in" ? `emailed ${inbox}` : m.status === "bounced" || m.status === "complained" ? `bounced at ${m.to[0]?.email}` : `sent to ${m.to[0]?.email ?? "…"}`;
+  const verb =
+    m.direction === "in"
+      ? `emailed ${inbox}`
+      : m.status === "bounced" || m.status === "complained"
+        ? `bounced at ${m.to[0]?.email}`
+        : `sent to ${m.to[0]?.email ?? "…"}`;
   return (
     <span className="min-w-0 truncate">
       <span className="font-medium text-foreground">{who}</span> <span className="text-muted-foreground">{verb}</span>
@@ -45,16 +50,26 @@ export function ActivityFeed({ className }: { className?: string }) {
           </div>
         }
         isEmpty={(items) => items.length === 0}
-        empty={<EmptyState icon={Activity} title="Nothing yet" description="Mail your inboxes send and receive appears here as it happens." className="py-10" />}
+        empty={
+          <EmptyState
+            icon={Activity}
+            title="Nothing yet"
+            description="Mail your inboxes send and receive appears here as it happens."
+            className="py-10"
+          />
+        }
       >
         {(items) => (
           <ol className="relative px-2 pb-2">
             <span aria-hidden className="absolute top-3 bottom-5 left-[19px] w-px bg-border" />
             {items.map((m) => (
               <li key={m.id}>
-                <Link to={`/messages?message=${m.id}`} className="relative flex h-12 items-center gap-3 rounded-md px-2 text-[13px] transition-colors hover:bg-hover">
+                <Link
+                  to={`/messages?message=${m.id}`}
+                  className="relative flex h-12 items-center gap-3 rounded-md px-2 text-[13px] transition-colors hover:bg-hover"
+                >
                   <span className="relative z-10 rounded-full ring-4 ring-card">
-                    <Avatar name={m.direction === "in" ? (m.from?.name || m.from?.email || "?") : local(m.inbox_id)} size="sm" />
+                    <Avatar name={m.direction === "in" ? m.from?.name || m.from?.email || "?" : local(m.inbox_id)} size="sm" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
                     <Sentence m={m} inbox={local(m.inbox_id)} />

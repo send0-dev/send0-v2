@@ -17,8 +17,8 @@
     "APP_URL": "https://app.send0.dev",
     "MAIL_FROM": "noreply@send0.dev",
     "SES_REGION": "ap-south-1",
-    "SES_CONFIGURATION_SET": "send0-default"
+    "SES_CONFIGURATION_SET": "send0-default",
     // Secrets: SES_ACCESS_KEY_ID, SES_SECRET_ACCESS_KEY (system-mail sender)
   },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
 }

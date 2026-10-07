@@ -11,7 +11,9 @@ export function RouteError() {
       <p className="font-mono text-xs text-muted-foreground">{notFound ? "404" : "Error"}</p>
       <h1 className="text-lg font-semibold">{notFound ? "This page doesn't exist" : "Something broke on this page"}</h1>
       <p className="max-w-sm text-[13px] text-muted-foreground">
-        {notFound ? "Check the address, or head back to the overview." : "Reload to try again. If it keeps happening, email support@send0.dev."}
+        {notFound
+          ? "Check the address, or head back to the overview."
+          : "Reload to try again. If it keeps happening, email support@send0.dev."}
       </p>
       <div className="mt-3 flex gap-2">
         {!notFound && (

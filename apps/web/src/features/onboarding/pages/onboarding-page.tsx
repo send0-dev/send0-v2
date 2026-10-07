@@ -49,7 +49,9 @@ export default function OnboardingPage() {
           <>
             <Stepper steps={STEPS} current={step} />
             <div className="rounded-xl bg-panel p-6 shadow-panel sm:p-8">
-              {step === 0 && <WorkspaceStep defaultName={user?.name ? `${user.name.split(" ")[0]}'s workspace` : ""} onDone={() => setStep(1)} />}
+              {step === 0 && (
+                <WorkspaceStep defaultName={user?.name ? `${user.name.split(" ")[0]}'s workspace` : ""} onDone={() => setStep(1)} />
+              )}
               {step === 1 && <InboxStep owner={user?.name ?? null} onDone={(i) => (setInbox(i), setStep(2))} />}
               {step === 2 && <KeyStep onDone={(k) => (setApiKey(k), setStep(3))} />}
               {step === 3 && inbox && <TryStep inbox={inbox} apiKey={apiKey} />}

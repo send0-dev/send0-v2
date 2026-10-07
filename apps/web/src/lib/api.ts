@@ -23,7 +23,7 @@ export class AppError extends Error {
     readonly code: string,
     message: string,
     /** The request field the error is about, when there is one */
-    readonly field?: string
+    readonly field?: string,
   ) {
     super(message);
   }

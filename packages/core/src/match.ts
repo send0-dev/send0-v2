@@ -15,7 +15,10 @@ export interface MatchableMessage {
 }
 
 function globToRegExp(glob: string): RegExp {
-  const escaped = glob.toLowerCase().replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+  const escaped = glob
+    .toLowerCase()
+    .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*/g, ".*");
   return new RegExp(`^${escaped}$`);
 }
 

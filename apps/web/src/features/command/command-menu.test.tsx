@@ -48,7 +48,7 @@ describe("CommandMenu", () => {
       <CommandMenuProvider>
         <CommandMenu />
       </CommandMenuProvider>,
-      { me: me() }
+      { me: me() },
     );
     expect(screen.queryByPlaceholderText(/Search pages/)).not.toBeInTheDocument();
     await user.keyboard("{Meta>}k{/Meta}");

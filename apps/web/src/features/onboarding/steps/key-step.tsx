@@ -15,14 +15,22 @@ export function KeyStep({ onDone }: { onDone: (key: string) => void }) {
   const [saved, setSaved] = useState(false);
   return (
     <>
-      <StepHeader title="Your API key" description="Your code and agents use it to call send0. It can read and send, but can't manage keys or webhooks." />
+      <StepHeader
+        title="Your API key"
+        description="Your code and agents use it to call send0. It can read and send, but can't manage keys or webhooks."
+      />
       {!key ? (
         <Button
           variant="primary"
           size="lg"
           className="w-full"
           loading={create.isPending}
-          onClick={() => create.mutate({ name: "Default key", scopes: ["read", "send"] }, { onSuccess: setKey, onError: (e) => toast.error(errorMessage(e)) })}
+          onClick={() =>
+            create.mutate(
+              { name: "Default key", scopes: ["read", "send"] },
+              { onSuccess: setKey, onError: (e) => toast.error(errorMessage(e)) },
+            )
+          }
         >
           Create API key
         </Button>

@@ -43,31 +43,33 @@ const cases = [
   <div class="strip reveal">
     <p class="mono">Works with any agent framework, through REST, the SDK or MCP</p>
     <ul>
-      {frameworks.map((f) => <li>{f}</li>)}
+      {frameworks.map((f) => (
+        <li>{f}</li>
+      ))}
     </ul>
   </div>
 
   <div class="section-head reveal">
     <span class="eyebrow">Use cases</span>
-    <h2 id="usecases-title" class="h2">Email is still how the world says yes. <span class="dim">Agents need in.</span></h2>
+    <h2 id="usecases-title" class="h2">
+      Email is still how the world says yes. <span class="dim">Agents need in.</span>
+    </h2>
     <p class="lede">
-      Verification codes, purchase orders, support tickets, invoices. Much of the work you want agents to do
-      arrives by email. send0 gives each agent a real address it can read, write and reason about.
+      Verification codes, purchase orders, support tickets, invoices. Much of the work you want agents to do arrives by email. send0 gives
+      each agent a real address it can read, write and reason about.
     </p>
   </div>
 
   <div class="grid">
-    {
-      cases.map((c, i) => (
-        <article class="case reveal">
-          <span class="num mono">0{i + 1}</span>
-          <span class="label mono">{c.label}</span>
-          <h3>{c.title}</h3>
-          <p>{c.body}</p>
-          <code class="detail">{c.detail}</code>
-        </article>
-      ))
-    }
+    {cases.map((c, i) => (
+      <article class="case reveal">
+        <span class="num mono">0{i + 1}</span>
+        <span class="label mono">{c.label}</span>
+        <h3>{c.title}</h3>
+        <p>{c.body}</p>
+        <code class="detail">{c.detail}</code>
+      </article>
+    ))}
   </div>
 </section>
 

@@ -5,7 +5,8 @@ import { errorMessage, send0 } from "@/lib/api";
 /** Fetches a short-lived download link and opens it. */
 export function useAttachmentDownload() {
   return useMutation({
-    mutationFn: ({ messageId, attachmentId }: { messageId: string; attachmentId: string }) => send0.messages.attachment(messageId, attachmentId),
+    mutationFn: ({ messageId, attachmentId }: { messageId: string; attachmentId: string }) =>
+      send0.messages.attachment(messageId, attachmentId),
     onSuccess: (att) => window.open(att.download_url, "_blank", "noopener"),
     onError: (e) => toast.error(errorMessage(e)),
   });

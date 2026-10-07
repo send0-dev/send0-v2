@@ -31,9 +31,9 @@ describe("S3BlobStore", () => {
 
   it("throws with the S3 error on failure so the caller can fail the delivery", async () => {
     vi.stubGlobal("fetch", async () => new Response("<Error><Code>AccessDenied</Code></Error>", { status: 403 }));
-    await expect(
-      new S3BlobStore(cfg).put("raw/x.eml", new Uint8Array(1), { contentType: "message/rfc822" }),
-    ).rejects.toThrow(/403 <Error><Code>AccessDenied/);
+    await expect(new S3BlobStore(cfg).put("raw/x.eml", new Uint8Array(1), { contentType: "message/rfc822" })).rejects.toThrow(
+      /403 <Error><Code>AccessDenied/,
+    );
   });
 
   it("supports custom endpoints for MinIO and other S3-compatible stores", async () => {
@@ -47,7 +47,13 @@ describe("S3BlobStore", () => {
 describe("S3BlobStore.signedGetUrl", () => {
   const cfg = { accessKeyId: "AKIDEXAMPLE", secretAccessKey: "secret", region: "ap-south-1", bucket: "send0-raw-mail" };
   it("returns a SigV4 query-signed URL with expiry and download name", async () => {
-    const u = new URL(await new S3BlobStore(cfg).signedGetUrl("att/org_1/msg_1/att_1", { expiresIn: 900, filename: "price list.pdf", contentType: "application/pdf" }));
+    const u = new URL(
+      await new S3BlobStore(cfg).signedGetUrl("att/org_1/msg_1/att_1", {
+        expiresIn: 900,
+        filename: "price list.pdf",
+        contentType: "application/pdf",
+      }),
+    );
     expect(u.origin + u.pathname).toBe("https://send0-raw-mail.s3.ap-south-1.amazonaws.com/att/org_1/msg_1/att_1");
     expect(u.searchParams.get("X-Amz-Algorithm")).toBe("AWS4-HMAC-SHA256");
     expect(u.searchParams.get("X-Amz-Expires")).toBe("900");
@@ -66,6 +72,9 @@ describe("R2BlobStore", () => {
   it("maps options onto the R2 binding", async () => {
     const put = vi.fn(async () => null);
     await new R2BlobStore({ put } as never).put("k", new Uint8Array(2), { contentType: "message/rfc822", metadata: { a: "b" } });
-    expect(put).toHaveBeenCalledWith("k", expect.any(Uint8Array), { httpMetadata: { contentType: "message/rfc822" }, customMetadata: { a: "b" } });
+    expect(put).toHaveBeenCalledWith("k", expect.any(Uint8Array), {
+      httpMetadata: { contentType: "message/rfc822" },
+      customMetadata: { a: "b" },
+    });
   });
 });

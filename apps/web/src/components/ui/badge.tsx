@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex h-5 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2 text-[11px] font-medium leading-none [&_svg]:size-3",
+  "inline-flex h-5 shrink-0 items-center gap-1 rounded-full border px-2 text-[11px] leading-none font-medium whitespace-nowrap [&_svg]:size-3",
   {
     variants: {
       variant: {
@@ -17,7 +17,7 @@ const badgeVariants = cva(
       },
     },
     defaultVariants: { variant: "neutral" },
-  }
+  },
 );
 
 export type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>["variant"]>;

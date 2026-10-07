@@ -1,8 +1,7 @@
 import { isReservedLocalPart, parseRecipient, type Recipient } from "@send0/core";
 
 export type RecipientCheck =
-  | { ok: true; recipient: Recipient }
-  | { ok: false; reason: "invalid" | "foreign_domain" | "reserved"; smtp: string };
+  { ok: true; recipient: Recipient } | { ok: false; reason: "invalid" | "foreign_domain" | "reserved"; smtp: string };
 
 const list = (v: string | undefined) =>
   (v ?? "")

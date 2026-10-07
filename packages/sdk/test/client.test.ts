@@ -37,7 +37,11 @@ describe("client basics", () => {
   });
 
   it("covers org-wide lists and draft edits", async () => {
-    const m = mockFetch([json({ data: [], next_cursor: null }), json({ data: [], next_cursor: null }), json({ object: "draft", id: "drf_1" })]);
+    const m = mockFetch([
+      json({ data: [], next_cursor: null }),
+      json({ data: [], next_cursor: null }),
+      json({ object: "draft", id: "drf_1" }),
+    ]);
     const s = new Send0({ apiKey: "k", baseUrl: "https://api.example", fetch: m.fetch });
     await s.messages.listAll({ inbox_id: "ibx_1", status: "bounced" });
     await s.drafts.listAll({ status: "pending" });
@@ -57,9 +61,14 @@ describe("client basics", () => {
     expect(m.calls[0]!.headers.get("idempotency-key")).toBe("reply-123");
 
     // A long-poll that hangs until it's aborted.
-    const hang: typeof fetch = (_url, init) => new Promise((_res, rej) => init!.signal!.addEventListener("abort", () => rej(new DOMException("aborted", "AbortError"))));
+    const hang: typeof fetch = (_url, init) =>
+      new Promise((_res, rej) => init!.signal!.addEventListener("abort", () => rej(new DOMException("aborted", "AbortError"))));
     const controller = new AbortController();
-    const waiting = new Send0({ apiKey: "k", fetch: hang, maxRetries: 0 }).inboxes.wait("ibx_1", { timeout: 60 }, { signal: controller.signal });
+    const waiting = new Send0({ apiKey: "k", fetch: hang, maxRetries: 0 }).inboxes.wait(
+      "ibx_1",
+      { timeout: 60 },
+      { signal: controller.signal },
+    );
     controller.abort();
     await expect(waiting).rejects.toBeDefined();
   });
@@ -70,7 +79,9 @@ describe("client basics", () => {
 
   it("maps API errors to Send0Error", async () => {
     const m = mockFetch([json({ error: { code: "recipient_not_allowed", message: "nope", param: "to", request_id: "r1" } }, 403)]);
-    const e = await new Send0({ apiKey: "k", fetch: m.fetch }).messages.send("ibx_1", { to: "a@b.co", subject: "s", text: "t" }).catch((x) => x);
+    const e = await new Send0({ apiKey: "k", fetch: m.fetch }).messages
+      .send("ibx_1", { to: "a@b.co", subject: "s", text: "t" })
+      .catch((x) => x);
     expect(e).toBeInstanceOf(Send0Error);
     expect(e).toMatchObject({ status: 403, code: "recipient_not_allowed", param: "to", requestId: "r1", message: "nope" });
   });
@@ -132,7 +143,10 @@ describe("wait", () => {
   });
 
   it("splits waits longer than 120s and keeps the same since", async () => {
-    const m = mockFetch([json({ object: "wait_result", timed_out: true, message: null }), json({ object: "wait_result", timed_out: false, message: { id: "msg_2" } })]);
+    const m = mockFetch([
+      json({ object: "wait_result", timed_out: true, message: null }),
+      json({ object: "wait_result", timed_out: false, message: { id: "msg_2" } }),
+    ]);
     const msg = await new Send0({ apiKey: "k", fetch: m.fetch }).inboxes.wait("ibx_1", { timeout: 200 });
     expect(msg?.id).toBe("msg_2");
     const [a, b] = m.calls.map((c) => new URL(c.url).searchParams);
@@ -156,7 +170,10 @@ describe("raw download", () => {
 
 describe("SSE", () => {
   it("parses events across chunk boundaries and skips comments", async () => {
-    const chunks = ["retry: 3000\n: connected\n\nid: evt_1\nevent: message.received\nda", 'ta: {"id":"evt_1"}\n\n: ping\n\nid: evt_2\ndata: {"id":"evt_2"}\r\n\r\n'];
+    const chunks = [
+      "retry: 3000\n: connected\n\nid: evt_1\nevent: message.received\nda",
+      'ta: {"id":"evt_1"}\n\n: ping\n\nid: evt_2\ndata: {"id":"evt_2"}\r\n\r\n',
+    ];
     const body = new ReadableStream<Uint8Array>({
       start(c) {
         for (const ch of chunks) c.enqueue(new TextEncoder().encode(ch));

@@ -13,33 +13,21 @@ import type { AppEnv } from "../types";
  * The tools call the API in-process with the same key, so the key's scopes and inbox limits
  * apply exactly as they do over HTTP.
  */
-export function mcpRoutes(api: {
-  fetch: (request: Request) => Response | Promise<Response>;
-}) {
+export function mcpRoutes(api: { fetch: (request: Request) => Response | Promise<Response> }) {
   return new Hono<AppEnv>()
     .use(
       "*",
       cors({
         origin: "*",
         allowMethods: ["GET", "POST", "DELETE", "OPTIONS"],
-        allowHeaders: [
-          "authorization",
-          "content-type",
-          "mcp-session-id",
-          "mcp-protocol-version",
-          "last-event-id",
-          "x-send0-inbox",
-        ],
+        allowHeaders: ["authorization", "content-type", "mcp-session-id", "mcp-protocol-version", "last-event-id", "x-send0-inbox"],
         exposeHeaders: ["mcp-session-id", "mcp-protocol-version"],
         maxAge: 86400,
-      })
+      }),
     )
     .use("*", async (c, next) => {
       // MCP clients look for this to know a key is needed.
-      c.header(
-        "WWW-Authenticate",
-        'Bearer realm="send0", error_description="Use a send0 API key as the Bearer token"'
-      );
+      c.header("WWW-Authenticate", 'Bearer realm="send0", error_description="Use a send0 API key as the Bearer token"');
       await next();
     })
     .use("*", requireApiKey)
@@ -52,11 +40,9 @@ export function mcpRoutes(api: {
         apiKey: key,
         baseUrl: "https://api.internal",
         maxRetries: 0,
-        fetch: ((input: RequestInfo | URL, init?: RequestInit) =>
-          Promise.resolve(api.fetch(new Request(input, init)))) as typeof fetch,
+        fetch: ((input: RequestInfo | URL, init?: RequestInit) => Promise.resolve(api.fetch(new Request(input, init)))) as typeof fetch,
       });
-      const defaultInboxId =
-        c.req.query("inbox_id") ?? c.req.header("x-send0-inbox") ?? undefined;
+      const defaultInboxId = c.req.query("inbox_id") ?? c.req.header("x-send0-inbox") ?? undefined;
       // Loaded on first use, so the MCP SDK doesn't add to every API request's cold start.
       const { handleMcpHttp } = await import("@send0/mcp");
       return handleMcpHttp(c.req.raw, { client, defaultInboxId });

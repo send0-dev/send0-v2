@@ -10,13 +10,18 @@ import { applyServerError } from "@/lib/form-errors";
 import { useInviteMember } from "../api/use-member-mutations";
 import { ROLE_INFO } from "../roles";
 
-const schema = z.object({ email: z.string().trim().min(1, "Enter an email address.").email("Enter a valid email address."), role: z.enum(["member", "admin"]) });
+const schema = z.object({
+  email: z.string().trim().min(1, "Enter an email address.").email("Enter a valid email address."),
+  role: z.enum(["member", "admin"]),
+});
 type Values = z.infer<typeof schema>;
 
 export function InviteMemberForm({ onInvited, onCancel }: { onInvited: (email: string) => void; onCancel: () => void }) {
   const invite = useInviteMember();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: "", role: "member" } });
-  const onSubmit = form.handleSubmit((v) => invite.mutate(v, { onSuccess: () => onInvited(v.email), onError: (e) => applyServerError(form, e) }));
+  const onSubmit = form.handleSubmit((v) =>
+    invite.mutate(v, { onSuccess: () => onInvited(v.email), onError: (e) => applyServerError(form, e) }),
+  );
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="grid gap-5" noValidate>

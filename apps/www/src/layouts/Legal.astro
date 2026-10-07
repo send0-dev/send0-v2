@@ -30,13 +30,11 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
 
       <div class="layout">
         <nav class="side" aria-label="Legal pages">
-          {
-            pages.map((p) => (
-              <a href={p.href} aria-current={path === p.href ? "page" : undefined}>
-                {p.label}
-              </a>
-            ))
-          }
+          {pages.map((p) => (
+            <a href={p.href} aria-current={path === p.href ? "page" : undefined}>
+              {p.label}
+            </a>
+          ))}
         </nav>
         <article class="prose">
           <slot />
@@ -99,7 +97,9 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
     border-radius: 7px;
     font-size: 14px;
     color: var(--fg-muted);
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
   .side a:hover {
     background: var(--bg-subtle);

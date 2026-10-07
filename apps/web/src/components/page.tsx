@@ -43,7 +43,17 @@ export function PageContent({ className, ...props }: ComponentProps<"div">) {
 }
 
 /** Big title + one line of context at the top of a page. */
-export function PageTitle({ title, description, actions, className }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; className?: string }) {
+export function PageTitle({
+  title,
+  description,
+  actions,
+  className,
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
   return (
     <div className={cn("flex flex-wrap items-end justify-between gap-4", className)}>
       <div className="min-w-0">

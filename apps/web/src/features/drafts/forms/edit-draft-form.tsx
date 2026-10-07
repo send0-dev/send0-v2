@@ -21,7 +21,10 @@ export function EditDraftForm({ draft, onSaved, onCancel }: { draft: Draft; onSa
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { subject: draft.subject, text: draft.text ?? "" } });
   const onSubmit = form.handleSubmit((v) =>
     // Editing replaces the HTML version too, so what's approved is exactly what was reviewed.
-    update.mutate({ id: draft.id, subject: v.subject, text: v.text, html: null }, { onSuccess: onSaved, onError: (e) => applyServerError(form, e) })
+    update.mutate(
+      { id: draft.id, subject: v.subject, text: v.text, html: null },
+      { onSuccess: onSaved, onError: (e) => applyServerError(form, e) },
+    ),
   );
   return (
     <Form {...form}>

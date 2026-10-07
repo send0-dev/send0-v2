@@ -66,7 +66,10 @@ const urlSchema = z
     }
   }, "must be a public https:// URL");
 
-const eventsSchema = z.array(z.enum([...EVENT_TYPES, "*"])).min(1).max(20);
+const eventsSchema = z
+  .array(z.enum([...EVENT_TYPES, "*"]))
+  .min(1)
+  .max(20);
 
 export const webhookCreateBody = z.object({
   url: urlSchema,
@@ -75,7 +78,12 @@ export const webhookCreateBody = z.object({
 });
 
 export const webhookUpdateBody = z
-  .object({ url: urlSchema, events: eventsSchema, inbox_ids: z.array(z.string()).min(1).max(100).nullable(), status: z.enum(["enabled", "disabled"]) })
+  .object({
+    url: urlSchema,
+    events: eventsSchema,
+    inbox_ids: z.array(z.string()).min(1).max(100).nullable(),
+    status: z.enum(["enabled", "disabled"]),
+  })
   .partial()
   .refine((b) => Object.keys(b).length > 0, "send at least one field to update");
 
@@ -183,10 +191,23 @@ export const webhookRoutes = new Hono<AppEnv>()
       .db.select({ d: deliveries, type: events.type })
       .from(deliveries)
       .innerJoin(events, eq(events.id, deliveries.eventId))
-      .where(and(eq(deliveries.webhookId, hook.id), status ? eq(deliveries.status, status) : undefined, pageWhere(cursor, deliveries.createdAt, deliveries.id)))
+      .where(
+        and(
+          eq(deliveries.webhookId, hook.id),
+          status ? eq(deliveries.status, status) : undefined,
+          pageWhere(cursor, deliveries.createdAt, deliveries.id),
+        ),
+      )
       .orderBy(...pageOrder(deliveries.createdAt, deliveries.id))
       .limit(limit + 1);
-    return c.json(toPage(rows, limit, (r) => ({ at: r.d.createdAt, id: r.d.id }), (r) => serializeDelivery(r.d, r.type)));
+    return c.json(
+      toPage(
+        rows,
+        limit,
+        (r) => ({ at: r.d.createdAt, id: r.d.id }),
+        (r) => serializeDelivery(r.d, r.type),
+      ),
+    );
   })
 
   // Replay: queue another attempt now, whatever happened before.
@@ -205,7 +226,11 @@ export const webhookRoutes = new Hono<AppEnv>()
 
 async function load(c: Context<AppEnv>, id: string): Promise<WebhookRow> {
   const { orgId } = c.get("auth");
-  const [row] = await c.get("deps").db.select().from(webhooks).where(and(eq(webhooks.id, id), eq(webhooks.orgId, orgId)));
+  const [row] = await c
+    .get("deps")
+    .db.select()
+    .from(webhooks)
+    .where(and(eq(webhooks.id, id), eq(webhooks.orgId, orgId)));
   if (!row) throw notFound("webhook", id);
   return row;
 }

@@ -6,7 +6,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-[color,background-color,border-color,box-shadow,opacity] duration-100 outline-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-1 focus-visible:ring-offset-panel disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+  "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,opacity] duration-100 outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-1 focus-visible:ring-offset-panel disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {
@@ -15,7 +15,8 @@ const buttonVariants = cva(
           "bg-brand text-brand-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.18),0_1px_2px_rgb(0_0_0/0.2)] hover:bg-brand-strong",
         /** Strong but neutral */
         default: "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:opacity-90",
-        secondary: "border border-border-strong bg-elevated text-foreground shadow-[0_1px_1px_rgb(0_0_0/0.04)] hover:bg-hover dark:bg-white/[0.03] dark:hover:bg-white/[0.06]",
+        secondary:
+          "border border-border-strong bg-elevated text-foreground shadow-[0_1px_1px_rgb(0_0_0/0.04)] hover:bg-hover dark:bg-white/[0.03] dark:hover:bg-white/[0.06]",
         ghost: "text-muted-foreground hover:bg-hover hover:text-foreground",
         destructive: "bg-destructive text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.15)] hover:bg-destructive/90",
         "destructive-outline": "border border-border-strong bg-elevated text-destructive hover:bg-destructive-soft dark:bg-white/[0.03]",
@@ -32,7 +33,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: { variant: "secondary", size: "default" },
-  }
+  },
 );
 
 export interface ButtonProps extends ComponentProps<"button">, VariantProps<typeof buttonVariants> {
@@ -56,7 +57,14 @@ export function Button({ className, variant, size, asChild, loading, disabled, s
     <button data-slot="button" className={classes} disabled={disabled || loading} {...props}>
       {loading && <Loader2 className="animate-spin" />}
       {children}
-      {shortcut && <Kbd aria-hidden className={cn("ml-0.5", variant === "primary" || variant === "default" ? "border-white/20 bg-white/15 text-current" : "")}>{shortcut}</Kbd>}
+      {shortcut && (
+        <Kbd
+          aria-hidden
+          className={cn("ml-0.5", variant === "primary" || variant === "default" ? "border-white/20 bg-white/15 text-current" : "")}
+        >
+          {shortcut}
+        </Kbd>
+      )}
     </button>
   );
 }

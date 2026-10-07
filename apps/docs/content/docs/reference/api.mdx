@@ -10,30 +10,30 @@ description: Endpoints, authentication and the OpenAPI 3.1 spec.
 
 ## Endpoints
 
-| Method | Path | Scope |
-|---|---|---|
-| `POST` | `/v1/inboxes` | send |
-| `GET` | `/v1/inboxes` · `/v1/inboxes/{inbox_id}` | read |
-| `PATCH` | `/v1/inboxes/{inbox_id}` | send |
-| `DELETE` | `/v1/inboxes/{inbox_id}` | admin |
-| `GET` | `/v1/inboxes/{inbox_id}/messages` | read |
-| `GET` | `/v1/inboxes/{inbox_id}/messages/wait` | read |
-| `POST` | `/v1/inboxes/{inbox_id}/messages` | send |
-| `GET` | `/v1/messages`: every inbox the key can see, filter by `inbox_id`, `status`, `direction`, `q` | read |
-| `GET` | `/v1/messages/{message_id}` · `/raw` · `/attachments/{attachment_id}` | read |
-| `POST` | `/v1/messages/{message_id}/reply` · `/forward` | send |
-| `GET` | `/v1/inboxes/{inbox_id}/threads` · `/threads/{thread_id}` | read |
-| `GET` | `/v1/drafts` (every inbox; `status=pending` is the approval queue) · `/v1/inboxes/{inbox_id}/drafts` · `/v1/drafts/{draft_id}` | read |
-| `PATCH` | `/v1/drafts/{draft_id}`: edit a pending draft's `subject`, `text` or `html` | send |
-| `POST` | `/v1/drafts/{draft_id}/send` · `/reject` | admin (or a person in the dashboard) |
-| `POST` `GET` `PATCH` `DELETE` | `/v1/webhooks[/{webhook_id}]` | admin |
-| `POST` | `/v1/webhooks/{webhook_id}/rotate-secret` · `/test` | admin |
-| `GET` | `/v1/webhooks/{webhook_id}/deliveries` | admin |
-| `POST` | `/v1/webhooks/{webhook_id}/deliveries/{delivery_id}/retry` | admin |
-| `GET` | `/v1/events/stream` | read |
-| `GET` | `/v1/usage`: plan, inboxes used, sends today against the daily limit, paused state | read |
-| `GET` | `/v1/stats?days=14`: mail per UTC day (received, sent, delivered, bounced, failed), up to 90 days | read |
-| `POST` | `/mcp`: the [remote MCP server](/reference/mcp-tools#remote) (Streamable HTTP) | as the key |
-| `POST` `GET` | `/v1/api-keys` · `DELETE /v1/api-keys/{api_key_id}` | admin |
+| Method                        | Path                                                                                                                           | Scope                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| `POST`                        | `/v1/inboxes`                                                                                                                  | send                                 |
+| `GET`                         | `/v1/inboxes` · `/v1/inboxes/{inbox_id}`                                                                                       | read                                 |
+| `PATCH`                       | `/v1/inboxes/{inbox_id}`                                                                                                       | send                                 |
+| `DELETE`                      | `/v1/inboxes/{inbox_id}`                                                                                                       | admin                                |
+| `GET`                         | `/v1/inboxes/{inbox_id}/messages`                                                                                              | read                                 |
+| `GET`                         | `/v1/inboxes/{inbox_id}/messages/wait`                                                                                         | read                                 |
+| `POST`                        | `/v1/inboxes/{inbox_id}/messages`                                                                                              | send                                 |
+| `GET`                         | `/v1/messages`: every inbox the key can see, filter by `inbox_id`, `status`, `direction`, `q`                                  | read                                 |
+| `GET`                         | `/v1/messages/{message_id}` · `/raw` · `/attachments/{attachment_id}`                                                          | read                                 |
+| `POST`                        | `/v1/messages/{message_id}/reply` · `/forward`                                                                                 | send                                 |
+| `GET`                         | `/v1/inboxes/{inbox_id}/threads` · `/threads/{thread_id}`                                                                      | read                                 |
+| `GET`                         | `/v1/drafts` (every inbox; `status=pending` is the approval queue) · `/v1/inboxes/{inbox_id}/drafts` · `/v1/drafts/{draft_id}` | read                                 |
+| `PATCH`                       | `/v1/drafts/{draft_id}`: edit a pending draft's `subject`, `text` or `html`                                                    | send                                 |
+| `POST`                        | `/v1/drafts/{draft_id}/send` · `/reject`                                                                                       | admin (or a person in the dashboard) |
+| `POST` `GET` `PATCH` `DELETE` | `/v1/webhooks[/{webhook_id}]`                                                                                                  | admin                                |
+| `POST`                        | `/v1/webhooks/{webhook_id}/rotate-secret` · `/test`                                                                            | admin                                |
+| `GET`                         | `/v1/webhooks/{webhook_id}/deliveries`                                                                                         | admin                                |
+| `POST`                        | `/v1/webhooks/{webhook_id}/deliveries/{delivery_id}/retry`                                                                     | admin                                |
+| `GET`                         | `/v1/events/stream`                                                                                                            | read                                 |
+| `GET`                         | `/v1/usage`: plan, inboxes used, sends today against the daily limit, paused state                                             | read                                 |
+| `GET`                         | `/v1/stats?days=14`: mail per UTC day (received, sent, delivered, bounced, failed), up to 90 days                              | read                                 |
+| `POST`                        | `/mcp`: the [remote MCP server](/reference/mcp-tools#remote) (Streamable HTTP)                                                 | as the key                           |
+| `POST` `GET`                  | `/v1/api-keys` · `DELETE /v1/api-keys/{api_key_id}`                                                                            | admin                                |
 
 Conventions: [errors, idempotency and pagination](/reference/errors).

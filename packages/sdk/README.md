@@ -23,7 +23,7 @@ await browser.click("Create account");
 
 // Blocks until the email lands (up to 60s here), then returns it with the code already extracted.
 const msg = await send0.inboxes.wait(inbox.id, { from: "*@github.com", timeout: 60 });
-console.log(msg?.extracted?.otp);         // "482913"
+console.log(msg?.extracted?.otp); // "482913"
 console.log(msg?.extracted?.action_link); // "https://github.com/verify?..."
 ```
 
@@ -61,12 +61,19 @@ The stream reconnects on its own and resumes from the last event it saw.
 ## Webhooks
 
 ```ts
-const hook = await send0.webhooks.create({ url: "https://example.com/hooks/send0", events: ["message.received"] });
+const hook = await send0.webhooks.create({
+  url: "https://example.com/hooks/send0",
+  events: ["message.received"],
+});
 // Store hook.secret. It's only shown once.
 
 // In your handler, with the raw request body:
 import { verifyWebhook } from "@send0/sdk";
-const ok = await verifyWebhook(rawBody, req.headers.get("send0-signature"), process.env.SEND0_WEBHOOK_SECRET!);
+const ok = await verifyWebhook(
+  rawBody,
+  req.headers.get("send0-signature"),
+  process.env.SEND0_WEBHOOK_SECRET!,
+);
 ```
 
 ## Errors, retries and idempotency

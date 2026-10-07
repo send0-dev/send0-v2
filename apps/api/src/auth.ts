@@ -12,7 +12,11 @@ export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
   const preset = c.get("deps").presetAuth;
   if (preset) {
     // The dashboard already knows who this is; the workspace must still be in good standing.
-    const [org] = await c.get("deps").db.select({ status: orgs.status, deletedAt: orgs.deletedAt }).from(orgs).where(eq(orgs.id, preset.orgId));
+    const [org] = await c
+      .get("deps")
+      .db.select({ status: orgs.status, deletedAt: orgs.deletedAt })
+      .from(orgs)
+      .where(eq(orgs.id, preset.orgId));
     if (!org || org.deletedAt) throw unauthorized();
     if (org.status !== "active") throw forbidden("This organization is suspended. Contact support@send0.dev.");
     c.set("auth", preset);
@@ -40,16 +44,10 @@ export const requireApiKey = createMiddleware<AppEnv>(async (c, next) => {
     .limit(1);
 
   if (!row) throw unauthorized();
-  if (row.orgStatus !== "active")
-    throw forbidden(
-      "This organization is suspended. Contact support@send0.dev."
-    );
+  if (row.orgStatus !== "active") throw forbidden("This organization is suspended. Contact support@send0.dev.");
 
   const at = now();
-  if (
-    !row.lastUsedAt ||
-    at.getTime() - row.lastUsedAt.getTime() > LAST_USED_RESOLUTION_MS
-  ) {
+  if (!row.lastUsedAt || at.getTime() - row.lastUsedAt.getTime() > LAST_USED_RESOLUTION_MS) {
     const touch = db
       .update(apiKeys)
       .set({ lastUsedAt: at })

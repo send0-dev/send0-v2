@@ -25,7 +25,7 @@ export class AccountService {
 
   constructor(
     private readonly ctx: AuthContext,
-    private readonly sessions: SessionService
+    private readonly sessions: SessionService,
   ) {}
 
   /** Validates and normalizes a new account's email and password. */
@@ -44,7 +44,13 @@ export class AccountService {
    * Inserts the user row. `verified` is for flows that already proved the email, and `onboarded`
    * for people who join an existing workspace instead of setting up their own (both: invites).
    */
-  async createUser(input: { email: string; password: string; name?: string | null; verified?: boolean; onboarded?: boolean }): Promise<User> {
+  async createUser(input: {
+    email: string;
+    password: string;
+    name?: string | null;
+    verified?: boolean;
+    onboarded?: boolean;
+  }): Promise<User> {
     const [user] = await this.ctx.db
       .insert(users)
       .values({
@@ -148,7 +154,10 @@ export class AccountService {
       throw new AuthError(400, "invalid_credentials", "Your current password is incorrect.", "current");
     const problem = passwordProblem(input.next, user.email);
     if (problem) throw new AuthError(400, "weak_password", problem, "next");
-    await this.ctx.db.update(users).set({ passwordHash: await hashPassword(input.next) }).where(eq(users.id, user.id));
+    await this.ctx.db
+      .update(users)
+      .set({ passwordHash: await hashPassword(input.next) })
+      .where(eq(users.id, user.id));
     await this.sessions.endAll(user.id, input.keepSessionId); // other devices are signed out; this one stays
     await this.ctx.trySendEmail(user.email, passwordChangedEmail({ name: user.name, appUrl: this.ctx.deps.appUrl }));
   }
@@ -161,7 +170,10 @@ export class AccountService {
   }
 
   async finishOnboarding(user: User): Promise<void> {
-    await this.ctx.db.update(users).set({ onboardedAt: this.ctx.now() }).where(and(eq(users.id, user.id), isNull(users.onboardedAt)));
+    await this.ctx.db
+      .update(users)
+      .set({ onboardedAt: this.ctx.now() })
+      .where(and(eq(users.id, user.id), isNull(users.onboardedAt)));
   }
 
   private async sendVerification(user: User): Promise<void> {
@@ -177,7 +189,9 @@ export class AccountService {
       .update(authTokens)
       .set({ usedAt: now })
       .where(and(eq(authTokens.userId, userId), eq(authTokens.purpose, purpose), isNull(authTokens.usedAt)));
-    await this.ctx.db.insert(authTokens).values({ tokenHash: await hashToken(token), userId, purpose, expiresAt: new Date(now.getTime() + ttlMs) });
+    await this.ctx.db
+      .insert(authTokens)
+      .values({ tokenHash: await hashToken(token), userId, purpose, expiresAt: new Date(now.getTime() + ttlMs) });
     return token;
   }
 
@@ -186,7 +200,14 @@ export class AccountService {
     const [row] = await this.ctx.db
       .update(authTokens)
       .set({ usedAt: now })
-      .where(and(eq(authTokens.tokenHash, await hashToken(token)), eq(authTokens.purpose, purpose), isNull(authTokens.usedAt), gt(authTokens.expiresAt, now)))
+      .where(
+        and(
+          eq(authTokens.tokenHash, await hashToken(token)),
+          eq(authTokens.purpose, purpose),
+          isNull(authTokens.usedAt),
+          gt(authTokens.expiresAt, now),
+        ),
+      )
       .returning({ userId: authTokens.userId });
     if (!row) {
       throw new AuthError(
@@ -194,7 +215,7 @@ export class AccountService {
         "invalid_token",
         purpose === "verify_email"
           ? "This verification link is invalid or has expired. Request a new one."
-          : "This reset link is invalid or has expired. Request a new one."
+          : "This reset link is invalid or has expired. Request a new one.",
       );
     }
     return row.userId;

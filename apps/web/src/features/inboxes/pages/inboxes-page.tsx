@@ -44,7 +44,14 @@ export default function InboxesPage() {
           query={inboxes.state}
           skeleton={<ListSkeleton />}
           isEmpty={(items) => items.length === 0}
-          empty={<EmptyState icon={Inbox} title="No inboxes yet" description="An inbox is a real address your agent can receive, wait on and reply from." action={newInbox} />}
+          empty={
+            <EmptyState
+              icon={Inbox}
+              title="No inboxes yet"
+              description="An inbox is a real address your agent can receive, wait on and reply from."
+              action={newInbox}
+            />
+          }
         >
           {(items) => (
             <>
@@ -53,7 +60,11 @@ export default function InboxesPage() {
                 <span className="tabular ml-auto">{pluralize(visible.length, "inbox", "inboxes")}</span>
               </PaneBar>
               <InboxesList inboxes={visible} cursor={cursor} />
-              <LoadMore hasNextPage={inboxes.hasNextPage} isFetchingNextPage={inboxes.isFetchingNextPage} fetchNextPage={() => void inboxes.fetchNextPage()} />
+              <LoadMore
+                hasNextPage={inboxes.hasNextPage}
+                isFetchingNextPage={inboxes.isFetchingNextPage}
+                fetchNextPage={() => void inboxes.fetchNextPage()}
+              />
               {items.length < 6 && (
                 <ListHint title="Agents can create their own inboxes">
                   <CodeBlock code={`await send0.inboxes.create({ name: "signup-agent" });\n// → signup-agent@send0.email`} />

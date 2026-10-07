@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import {
   SearchDialog,
   SearchDialogClose,
@@ -9,16 +9,16 @@ import {
   SearchDialogList,
   SearchDialogOverlay,
   type SharedProps,
-} from 'fumadocs-ui/components/dialog/search';
-import { useDocsSearch } from 'fumadocs-core/search/client';
-import { staticClient } from 'fumadocs-core/search/client/orama-static';
-import { useI18n } from 'fumadocs-ui/contexts/i18n';
+} from "fumadocs-ui/components/dialog/search";
+import { useDocsSearch } from "fumadocs-core/search/client";
+import { staticClient } from "fumadocs-core/search/client/orama-static";
+import { useI18n } from "fumadocs-ui/contexts/i18n";
 
 export default function DefaultSearchDialog(props: SharedProps) {
   const { locale } = useI18n(); // (optional) for i18n
   const { search, setSearch, query } = useDocsSearch({
     // basePath: the exported index lives at /docs/api/search
-    client: staticClient({ locale, from: '/docs/api/search' }),
+    client: staticClient({ locale, from: "/docs/api/search" }),
   });
 
   return (
@@ -30,7 +30,7 @@ export default function DefaultSearchDialog(props: SharedProps) {
           <SearchDialogInput />
           <SearchDialogClose />
         </SearchDialogHeader>
-        <SearchDialogList items={query.data !== 'empty' ? query.data : null} />
+        <SearchDialogList items={query.data !== "empty" ? query.data : null} />
       </SearchDialogContent>
     </SearchDialog>
   );

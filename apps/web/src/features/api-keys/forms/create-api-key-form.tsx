@@ -27,14 +27,17 @@ type Values = z.infer<typeof schema>;
 export function CreateApiKeyForm({ onCreated, onCancel }: { onCreated: (key: ApiKeyWithSecret) => void; onCancel: () => void }) {
   const create = useCreateApiKey();
   const inboxes = useInboxes();
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: "", access: "send", allInboxes: true, inboxIds: [] } });
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", access: "send", allInboxes: true, inboxIds: [] },
+  });
   const allInboxes = form.watch("allInboxes");
 
   const onSubmit = form.handleSubmit((v) =>
     create.mutate(
       { name: v.name, scopes: [...ACCESS_LEVELS[v.access].scopes], inbox_ids: v.allInboxes ? null : v.inboxIds },
-      { onSuccess: onCreated, onError: (e) => applyServerError(form, e) }
-    )
+      { onSuccess: onCreated, onError: (e) => applyServerError(form, e) },
+    ),
   );
 
   return (
@@ -92,12 +95,16 @@ export function CreateApiKeyForm({ onCreated, onCancel }: { onCreated: (key: Api
                     <label key={inbox.id} className="flex cursor-pointer items-center gap-2.5 px-3 py-2 hover:bg-muted/50">
                       <Checkbox
                         checked={field.value.includes(inbox.id)}
-                        onCheckedChange={(c) => field.onChange(c === true ? [...field.value, inbox.id] : field.value.filter((id) => id !== inbox.id))}
+                        onCheckedChange={(c) =>
+                          field.onChange(c === true ? [...field.value, inbox.id] : field.value.filter((id) => id !== inbox.id))
+                        }
                       />
                       <span className="truncate font-mono text-[12.5px]">{inbox.address}</span>
                     </label>
                   ))}
-                  {inboxes.isSuccess && !inboxes.items.length && <p className="px-3 py-2 text-[13px] text-muted-foreground">No inboxes yet.</p>}
+                  {inboxes.isSuccess && !inboxes.items.length && (
+                    <p className="px-3 py-2 text-[13px] text-muted-foreground">No inboxes yet.</p>
+                  )}
                 </div>
                 <FormMessage />
               </FormItem>

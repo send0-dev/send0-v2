@@ -59,7 +59,7 @@ fixtures/emails  Real-world .eml corpus used by tests (CRLF preserved; don't ref
 - TypeScript everywhere, `strict` + `noUncheckedIndexedAccess`, ESM only. Prettier owns formatting (140 columns, double quotes); ESLint owns correctness.
 - Every promise is awaited, returned, handed to `waitUntil`, or explicitly `void`ed. Workers drop unawaited work silently; `no-floating-promises` enforces this.
 - One responsibility per module. Pure logic goes in `packages/core` with unit tests; I/O stays at the edges behind an interface in `packages/adapters` or `AppDeps`.
-- Comments explain *why*, not what. Keep them short.
+- Comments explain _why_, not what. Keep them short.
 - Never commit secrets. They live in git-ignored `.dev.vars` files and `.secrets*`. Don't print them in logs or output.
 
 ### API

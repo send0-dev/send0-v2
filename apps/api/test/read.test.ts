@@ -24,7 +24,12 @@ describe("messages", () => {
   it("lists newest first with attachments and extracted fields, no html", async () => {
     const r = await t.call("GET", `/v1/inboxes/${inboxId}/messages`);
     expect(r.status).toBe(200);
-    expect(r.body.data.map((m: any) => m.id)).toEqual([ids["forwarded.eml"], ids["attachment-pdf.eml"], ids["otp-html-only.eml"], ids["gmail-reply.eml"]]);
+    expect(r.body.data.map((m: any) => m.id)).toEqual([
+      ids["forwarded.eml"],
+      ids["attachment-pdf.eml"],
+      ids["otp-html-only.eml"],
+      ids["gmail-reply.eml"],
+    ]);
     const pdf = r.body.data[1];
     expect(pdf.attachments).toEqual([expect.objectContaining({ filename: "price-list.pdf", content_type: "application/pdf" })]);
     expect(pdf.html).toBeUndefined();
@@ -55,7 +60,9 @@ describe("messages", () => {
   it("redirects /raw to a short-lived download link", async () => {
     const res = await t.app.request(`/v1/messages/${ids["gmail-reply.eml"]}/raw`, { headers: { authorization: `Bearer ${t.adminKey}` } });
     expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toMatch(new RegExp(`^https://files\\.test/raw/org_\\w+/${ids["gmail-reply.eml"]}\\.eml\\?expires=900`));
+    expect(res.headers.get("location")).toMatch(
+      new RegExp(`^https://files\\.test/raw/org_\\w+/${ids["gmail-reply.eml"]}\\.eml\\?expires=900`),
+    );
   });
 
   it("returns attachment metadata with a download link", async () => {
@@ -113,13 +120,26 @@ describe("usage", () => {
 describe("stats", () => {
   // A fixed clock: the fixtures are stamped 2026-10-05 (see beforeAll).
   const at = async (path: string): Promise<any> => {
-    const app = createApp({ db: t.db, files: { signedGetUrl: async () => "x" }, now: () => new Date("2026-10-06T12:00:00Z"), presetAuth: { orgId: t.orgId, keyId: "key_x", mode: "live", scopes: ["read"], inboxIds: null } });
+    const app = createApp({
+      db: t.db,
+      files: { signedGetUrl: async () => "x" },
+      now: () => new Date("2026-10-06T12:00:00Z"),
+      presetAuth: { orgId: t.orgId, keyId: "key_x", mode: "live", scopes: ["read"], inboxIds: null },
+    });
     return (await app.request(path)).json();
   };
 
   it("counts mail per UTC day, with empty days as zeros", async () => {
     const r = await at("/v1/stats?days=7");
-    expect(r.days.map((d: any) => d.date)).toEqual(["2026-09-30", "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06"]);
+    expect(r.days.map((d: any) => d.date)).toEqual([
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02",
+      "2026-10-03",
+      "2026-10-04",
+      "2026-10-05",
+      "2026-10-06",
+    ]);
     expect(r.days[5]).toMatchObject({ received: 5 });
     expect(r.totals).toEqual({ received: 5, sent: 0, delivered: 0, bounced: 0, failed: 0 });
     expect((await at(`/v1/stats?inbox_id=${otherInboxId}`)).totals.received).toBe(1);

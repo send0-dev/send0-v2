@@ -1,24 +1,11 @@
 import { sql, type SQL } from "drizzle-orm";
-import {
-  bigint,
-  boolean,
-  customType,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  primaryKey,
-  text,
-  timestamp,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { bigint, boolean, customType, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 // Column names are snake_case in the database (Drizzle `casing: "snake_case"`).
 
 const tsvector = customType<{ data: string }>({ dataType: () => "tsvector" });
 
-const createdAt = () =>
-  timestamp({ withTimezone: true }).notNull().defaultNow();
+const createdAt = () => timestamp({ withTimezone: true }).notNull().defaultNow();
 const updatedAt = () =>
   timestamp({ withTimezone: true })
     .notNull()
@@ -65,7 +52,7 @@ export const users = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [uniqueIndex("users_email_idx").on(sql`lower(${t.email})`)]
+  (t) => [uniqueIndex("users_email_idx").on(sql`lower(${t.email})`)],
 );
 
 export const members = pgTable(
@@ -86,8 +73,10 @@ export const members = pgTable(
     primaryKey({ columns: [t.orgId, t.userId] }),
     index("members_user_idx").on(t.userId),
     // Exactly one owner per workspace (transfers demote before they promote).
-    uniqueIndex("members_one_owner_idx").on(t.orgId).where(sql`${t.role} = 'owner'`),
-  ]
+    uniqueIndex("members_one_owner_idx")
+      .on(t.orgId)
+      .where(sql`${t.role} = 'owner'`),
+  ],
 );
 
 export const sessions = pgTable(
@@ -107,10 +96,7 @@ export const sessions = pgTable(
     userAgent: text(),
     createdAt: createdAt(),
   },
-  (t) => [
-    uniqueIndex("sessions_token_idx").on(t.tokenHash),
-    index("sessions_user_idx").on(t.userId),
-  ]
+  (t) => [uniqueIndex("sessions_token_idx").on(t.tokenHash), index("sessions_user_idx").on(t.userId)],
 );
 
 /** Single-use, expiring tokens for email verification and password reset. */
@@ -126,7 +112,7 @@ export const authTokens = pgTable(
     usedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [index("auth_tokens_user_idx").on(t.userId, t.purpose)]
+  (t) => [index("auth_tokens_user_idx").on(t.userId, t.purpose)],
 );
 
 /** Invitations to join a workspace. Only the hash of the emailed token is stored. */
@@ -152,7 +138,7 @@ export const invites = pgTable(
     uniqueIndex("invites_open_idx")
       .on(t.orgId, sql`lower(${t.email})`)
       .where(sql`${t.acceptedAt} is null and ${t.revokedAt} is null`),
-  ]
+  ],
 );
 
 /** Fixed-window counters for login, sign-up and email rate limits. */
@@ -163,7 +149,7 @@ export const rateLimits = pgTable(
     count: integer().notNull().default(0),
     expiresAt: timestamp({ withTimezone: true }).notNull(),
   },
-  (t) => [index("rate_limits_expires_idx").on(t.expiresAt)]
+  (t) => [index("rate_limits_expires_idx").on(t.expiresAt)],
 );
 
 export const apiKeys = pgTable(
@@ -186,10 +172,7 @@ export const apiKeys = pgTable(
     revokedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [
-    uniqueIndex("api_keys_hash_idx").on(t.hash),
-    index("api_keys_org_idx").on(t.orgId),
-  ]
+  (t) => [uniqueIndex("api_keys_hash_idx").on(t.hash), index("api_keys_org_idx").on(t.orgId)],
 );
 
 export const idempotencyKeys = pgTable(
@@ -207,10 +190,7 @@ export const idempotencyKeys = pgTable(
     responseBody: jsonb(),
     createdAt: createdAt(),
   },
-  (t) => [
-    primaryKey({ columns: [t.orgId, t.key] }),
-    index("idempotency_created_idx").on(t.createdAt),
-  ]
+  (t) => [primaryKey({ columns: [t.orgId, t.key] }), index("idempotency_created_idx").on(t.createdAt)],
 );
 
 // ---------- Addresses ----------
@@ -232,10 +212,7 @@ export const domains = pgTable(
     verifiedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [
-    uniqueIndex("domains_name_idx").on(sql`lower(${t.name})`),
-    index("domains_org_idx").on(t.orgId),
-  ]
+  (t) => [uniqueIndex("domains_name_idx").on(sql`lower(${t.name})`), index("domains_org_idx").on(t.orgId)],
 );
 
 export const inboxes = pgTable(
@@ -268,12 +245,9 @@ export const inboxes = pgTable(
   },
   (t) => [
     // Addresses are never reused, even after deletion: the row stays, so the unique index holds.
-    uniqueIndex("inboxes_address_idx").on(
-      t.domainId,
-      sql`lower(${t.localPart})`
-    ),
+    uniqueIndex("inboxes_address_idx").on(t.domainId, sql`lower(${t.localPart})`),
     index("inboxes_org_idx").on(t.orgId, t.createdAt.desc()),
-  ]
+  ],
 );
 
 // ---------- Mail ----------
@@ -305,12 +279,8 @@ export const threads = pgTable(
   },
   (t) => [
     index("threads_inbox_recent_idx").on(t.inboxId, t.lastMessageAt.desc()),
-    index("threads_inbox_subject_idx").on(
-      t.inboxId,
-      t.subjectNorm,
-      t.lastMessageAt.desc()
-    ),
-  ]
+    index("threads_inbox_subject_idx").on(t.inboxId, t.subjectNorm, t.lastMessageAt.desc()),
+  ],
 );
 
 export const messages = pgTable(
@@ -328,15 +298,7 @@ export const messages = pgTable(
       .references(() => threads.id, { onDelete: "cascade" }),
     direction: text({ enum: ["in", "out"] }).notNull(),
     status: text({
-      enum: [
-        "received",
-        "queued",
-        "sent",
-        "delivered",
-        "bounced",
-        "complained",
-        "failed",
-      ],
+      enum: ["received", "queued", "sent", "delivered", "bounced", "complained", "failed"],
     }).notNull(),
     rfcMessageId: text(),
     inReplyTo: text()
@@ -378,7 +340,7 @@ export const messages = pgTable(
     createdAt: createdAt(),
     tsv: tsvector().generatedAlwaysAs(
       (): SQL =>
-        sql`setweight(to_tsvector('simple', coalesce(${messages.subject}, '')), 'A') || setweight(to_tsvector('simple', coalesce(${messages.extractedText}, ${messages.text}, '')), 'B')`
+        sql`setweight(to_tsvector('simple', coalesce(${messages.subject}, '')), 'A') || setweight(to_tsvector('simple', coalesce(${messages.extractedText}, ${messages.text}, '')), 'B')`,
     ),
   },
   (t) => [
@@ -390,7 +352,7 @@ export const messages = pgTable(
       .on(t.inboxId, t.rfcMessageId)
       .where(sql`${t.direction} = 'in' and ${t.rfcMessageId} is not null`),
     index("messages_tsv_idx").using("gin", t.tsv),
-  ]
+  ],
 );
 
 export const attachments = pgTable(
@@ -411,7 +373,7 @@ export const attachments = pgTable(
     blobKey: text().notNull(),
     createdAt: createdAt(),
   },
-  (t) => [index("attachments_message_idx").on(t.messageId)]
+  (t) => [index("attachments_message_idx").on(t.messageId)],
 );
 
 export const drafts = pgTable(
@@ -434,7 +396,7 @@ export const drafts = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("drafts_inbox_idx").on(t.inboxId, t.createdAt.desc())]
+  (t) => [index("drafts_inbox_idx").on(t.inboxId, t.createdAt.desc())],
 );
 
 export const suppressions = pgTable(
@@ -447,7 +409,7 @@ export const suppressions = pgTable(
     reason: text({ enum: ["bounce", "complaint", "manual"] }).notNull(),
     createdAt: createdAt(),
   },
-  (t) => [primaryKey({ columns: [t.orgId, t.email] })]
+  (t) => [primaryKey({ columns: [t.orgId, t.email] })],
 );
 
 // ---------- Events and webhooks ----------
@@ -472,7 +434,7 @@ export const events = pgTable(
     index("events_undispatched_idx")
       .on(t.createdAt)
       .where(sql`${t.dispatchedAt} is null`),
-  ]
+  ],
 );
 
 export const webhooks = pgTable(
@@ -493,7 +455,7 @@ export const webhooks = pgTable(
       .default("enabled"),
     createdAt: createdAt(),
   },
-  (t) => [index("webhooks_org_idx").on(t.orgId)]
+  (t) => [index("webhooks_org_idx").on(t.orgId)],
 );
 
 export const deliveries = pgTable(
@@ -525,7 +487,7 @@ export const deliveries = pgTable(
     index("deliveries_due_idx")
       .on(t.nextAttemptAt)
       .where(sql`${t.status} = 'pending'`),
-  ]
+  ],
 );
 
 // ---------- Usage ----------
@@ -542,5 +504,5 @@ export const usage = pgTable(
     received: integer().notNull().default(0),
     storageBytes: bigint({ mode: "number" }).notNull().default(0),
   },
-  (t) => [primaryKey({ columns: [t.orgId, t.period] })]
+  (t) => [primaryKey({ columns: [t.orgId, t.period] })],
 );

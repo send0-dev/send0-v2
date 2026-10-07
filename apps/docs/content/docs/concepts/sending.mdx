@@ -36,10 +36,10 @@ The original is quoted under a standard `---------- Forwarded message ---------`
 
 ## Responses
 
-| Status | Body | When |
-|---|---|---|
-| `201` | `Message` with `status: "sent"` | Sent through our mail servers |
-| `202` | `Draft` | The inbox's send policy is `approval`. See [Drafts](/concepts/drafts). |
+| Status | Body                            | When                                                                   |
+| ------ | ------------------------------- | ---------------------------------------------------------------------- |
+| `201`  | `Message` with `status: "sent"` | Sent through our mail servers                                          |
+| `202`  | `Draft`                         | The inbox's send policy is `approval`. See [Drafts](/concepts/drafts). |
 
 Delivery happens after that: `status` moves to `delivered`, `bounced` or `complained`, and you get [`message.delivered` / `message.bounced` / `message.complained`](/realtime/webhooks) events.
 
@@ -47,12 +47,12 @@ Delivery happens after that: `status` moves to `delivered`, `bounced` or `compla
 
 These protect everyone's deliverability on the shared domain. Breaking one returns an error with a clear `code`:
 
-| Rule | Error |
-|---|---|
-| Free accounts and `reply_only` inboxes may only send to addresses that have emailed that inbox | `403 recipient_not_allowed` |
-| Addresses that hard-bounced or complained are never mailed again from your account | `422 recipient_suppressed` |
-| New accounts can send 50 messages per day (UTC). The limit rises as your record builds. | `429 daily_limit_reached` |
-| Sending pauses automatically if complaints pass 0.3% or hard bounces pass 5% over 30 days. Receiving keeps working. | `403 sending_paused` |
+| Rule                                                                                                                | Error                       |
+| ------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| Free accounts and `reply_only` inboxes may only send to addresses that have emailed that inbox                      | `403 recipient_not_allowed` |
+| Addresses that hard-bounced or complained are never mailed again from your account                                  | `422 recipient_suppressed`  |
+| New accounts can send 50 messages per day (UTC). The limit rises as your record builds.                             | `429 daily_limit_reached`   |
+| Sending pauses automatically if complaints pass 0.3% or hard bounces pass 5% over 30 days. Receiving keeps working. | `403 sending_paused`        |
 
 Cold outreach, bulk mail and marketing are not allowed. See the [acceptable use policy](https://send0.dev/acceptable-use).
 

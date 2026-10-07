@@ -5,32 +5,33 @@ import { site } from "../site";
 ---
 
 <section class="section cta" id="waitlist" aria-labelledby="cta-title">
-  <div class="glow-clip" aria-hidden="true"><div class="glow"></div></div>
+  <div class="glow-clip" aria-hidden="true">
+    <div class="glow"></div>
+  </div>
   <div class="inner reveal">
     <span class="eyebrow">Early access</span>
-    <h2 id="cta-title">Your agent's inbox is <br /><span class="dim">one API call away.</span></h2>
+    <h2 id="cta-title">
+      Your agent's inbox is <br />
+      <span class="dim">one API call away.</span>
+    </h2>
     <p>
       Join the waitlist for the hosted beta. We'll email you once when it opens.
-      {
-        site.repoPublic
-          ? "Prefer to run it yourself? Star the repo and follow along."
-          : "The source code opens with it, so you can self-host from day one."
-      }
+      {site.repoPublic
+        ? "Prefer to run it yourself? Star the repo and follow along."
+        : "The source code opens with it, so you can self-host from day one."}
     </p>
     <div class="ctas">
       <WaitlistForm source="footer-cta" />
-      {
-        site.repoPublic ? (
-          <a class="btn btn-secondary gh" href={site.github} rel="noopener">
-            <GithubIcon />
-            Star on GitHub
-          </a>
-        ) : (
-          <a class="btn btn-secondary gh" href={`mailto:${site.email.hello}`}>
-            Talk to the founder
-          </a>
-        )
-      }
+      {site.repoPublic ? (
+        <a class="btn btn-secondary gh" href={site.github} rel="noopener">
+          <GithubIcon />
+          Star on GitHub
+        </a>
+      ) : (
+        <a class="btn btn-secondary gh" href={`mailto:${site.email.hello}`}>
+          Talk to the founder
+        </a>
+      )}
     </div>
   </div>
 </section>

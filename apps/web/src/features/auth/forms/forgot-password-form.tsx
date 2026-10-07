@@ -14,7 +14,9 @@ type Values = z.infer<typeof schema>;
 export function ForgotPasswordForm({ onSent }: { onSent: (email: string) => void }) {
   const forgot = useForgotPassword();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: "" } });
-  const onSubmit = form.handleSubmit((v) => forgot.mutate(v.email, { onSuccess: () => onSent(v.email), onError: (e) => applyServerError(form, e) }));
+  const onSubmit = form.handleSubmit((v) =>
+    forgot.mutate(v.email, { onSuccess: () => onSent(v.email), onError: (e) => applyServerError(form, e) }),
+  );
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="grid gap-4" noValidate>

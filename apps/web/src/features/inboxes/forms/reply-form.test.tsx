@@ -15,7 +15,7 @@ describe("ReplyForm", () => {
         keys.push(request.headers.get("idempotency-key"));
         if (fail) return HttpResponse.json({ error: { code: "send_failed", message: "SES is busy, try again." } }, { status: 502 });
         return HttpResponse.json(message({ id: "msg_2", direction: "out", status: "sent" }), { status: 201 });
-      })
+      }),
     );
     const { user } = renderApp(<ReplyForm inboxId="ibx_1" threadId="thr_1" replyTo={message()} needsApproval={false} />, { me: me() });
     await user.type(screen.getByRole("textbox"), "Thanks!");

@@ -18,16 +18,16 @@ URLs must be public `https://`. Private, local and cloud-metadata addresses are 
 
 ## Events
 
-| Type | When |
-|---|---|
-| `message.received` | A new inbound message was stored |
-| `message.sent` | An outbound message was handed to our mail servers |
-| `message.delivered` | The recipient's server accepted it |
-| `message.bounced` | It bounced. Permanent bounces also suppress the address. |
-| `message.complained` | The recipient marked it as spam. The address is suppressed. |
-| `draft.created` | A message is waiting for approval |
-| `inbox.suspended` | Sending was paused for the account (complaint or bounce rate) |
-| `webhook.test` | Sent by `POST /v1/webhooks/{id}/test` |
+| Type                 | When                                                          |
+| -------------------- | ------------------------------------------------------------- |
+| `message.received`   | A new inbound message was stored                              |
+| `message.sent`       | An outbound message was handed to our mail servers            |
+| `message.delivered`  | The recipient's server accepted it                            |
+| `message.bounced`    | It bounced. Permanent bounces also suppress the address.      |
+| `message.complained` | The recipient marked it as spam. The address is suppressed.   |
+| `draft.created`      | A message is waiting for approval                             |
+| `inbox.suspended`    | Sending was paused for the account (complaint or bounce rate) |
+| `webhook.test`       | Sent by `POST /v1/webhooks/{id}/test`                         |
 
 ## The request
 
@@ -82,6 +82,7 @@ Always verify before trusting a webhook. The scheme is the same as Stripe's: `v1
       return new Response("ok");
     }
     ```
+
   </Tab>
   <Tab value="Node (manual)">
     ```ts
@@ -94,6 +95,7 @@ Always verify before trusting a webhook. The scheme is the same as Stripe's: `v1
       return timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1 ?? ""));
     }
     ```
+
   </Tab>
   <Tab value="Python">
     ```python
@@ -106,6 +108,7 @@ Always verify before trusting a webhook. The scheme is the same as Stripe's: `v1
         expected = hmac.new(secret.encode(), f'{parts["t"]}.'.encode() + body, hashlib.sha256).hexdigest()
         return hmac.compare_digest(expected, parts.get("v1", ""))
     ```
+
   </Tab>
 </Tabs>
 

@@ -8,9 +8,9 @@ export function Checkbox({ className, ...props }: ComponentProps<typeof Checkbox
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "peer size-3.5 shrink-0 cursor-pointer rounded-[4px] border border-border-strong bg-transparent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
+        "peer size-3.5 shrink-0 cursor-pointer rounded-[4px] border border-border-strong bg-transparent transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
         "data-[state=checked]:border-brand data-[state=checked]:bg-brand data-[state=checked]:text-brand-foreground",
-        className
+        className,
       )}
       {...props}
     >

@@ -5,7 +5,12 @@ import { RelativeTime } from "@/components/relative-time";
 import { StatusBadge } from "@/components/status-badge";
 import { eventSummary } from "../event-summary";
 
-const COL = { url: "min-w-0 flex-1", events: "w-36 shrink-0 max-md:hidden", status: "w-24 shrink-0", created: "w-20 shrink-0 text-right max-sm:hidden" };
+const COL = {
+  url: "min-w-0 flex-1",
+  events: "w-36 shrink-0 max-md:hidden",
+  status: "w-24 shrink-0",
+  created: "w-20 shrink-0 text-right max-sm:hidden",
+};
 
 export function WebhooksList({ webhooks }: { webhooks: Webhook[] }) {
   const navigate = useNavigate();

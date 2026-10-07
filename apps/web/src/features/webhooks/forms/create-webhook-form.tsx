@@ -29,7 +29,10 @@ export function CreateWebhookForm({ onCreated, onCancel }: { onCreated: (w: Webh
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { url: "", allEvents: true, events: [] } });
   const allEvents = form.watch("allEvents");
   const onSubmit = form.handleSubmit((v) =>
-    create.mutate({ url: v.url, events: v.allEvents ? ["*"] : v.events }, { onSuccess: onCreated, onError: (e) => applyServerError(form, e) })
+    create.mutate(
+      { url: v.url, events: v.allEvents ? ["*"] : v.events },
+      { onSuccess: onCreated, onError: (e) => applyServerError(form, e) },
+    ),
   );
   return (
     <Form {...form}>
@@ -72,7 +75,9 @@ export function CreateWebhookForm({ onCreated, onCancel }: { onCreated: (w: Webh
                     <label key={ev.type} className="flex cursor-pointer items-center gap-2.5 px-3 py-2 hover:bg-muted/50">
                       <Checkbox
                         checked={field.value.includes(ev.type)}
-                        onCheckedChange={(c) => field.onChange(c === true ? [...field.value, ev.type] : field.value.filter((t) => t !== ev.type))}
+                        onCheckedChange={(c) =>
+                          field.onChange(c === true ? [...field.value, ev.type] : field.value.filter((t) => t !== ev.type))
+                        }
                       />
                       <span className="font-mono text-xs">{ev.type}</span>
                       <span className="ml-auto text-xs text-muted-foreground">{ev.description}</span>

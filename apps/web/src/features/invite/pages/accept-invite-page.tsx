@@ -19,7 +19,8 @@ function InviteSummary({ invite }: { invite: InvitePreview }) {
       title={`Join ${invite.workspace}`}
       description={
         <>
-          {invite.invited_by ?? "Someone"} invited <span className="font-medium text-foreground">{invite.email}</span> to join as {article(invite.role)}.
+          {invite.invited_by ?? "Someone"} invited <span className="font-medium text-foreground">{invite.email}</span> to join as{" "}
+          {article(invite.role)}.
         </>
       }
     />
@@ -71,7 +72,13 @@ export default function AcceptInvitePage() {
     return (
       <>
         <InviteSummary invite={invite} />
-        <Button variant="primary" size="lg" className="w-full" loading={accept.isPending || accept.isSuccess} onClick={() => accept.mutate(undefined, { onError: (e) => toast.error(errorMessage(e)) })}>
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full"
+          loading={accept.isPending || accept.isSuccess}
+          onClick={() => accept.mutate(undefined, { onError: (e) => toast.error(errorMessage(e)) })}
+        >
           Accept and join {invite.workspace}
         </Button>
       </>

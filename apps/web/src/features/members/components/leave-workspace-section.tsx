@@ -23,7 +23,9 @@ export function LeaveWorkspaceSection({ workspaceName }: { workspaceName: string
         description="You'll lose access right away."
         actionLabel="Leave workspace"
         pending={leave.isPending}
-        onConfirm={() => leave.mutate(undefined, { onSuccess: () => toast(`You left ${workspaceName}`), onError: (e) => toast.error(errorMessage(e)) })}
+        onConfirm={() =>
+          leave.mutate(undefined, { onSuccess: () => toast(`You left ${workspaceName}`), onError: (e) => toast.error(errorMessage(e)) })
+        }
       />
     </SettingsSection>
   );

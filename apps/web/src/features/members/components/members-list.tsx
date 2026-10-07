@@ -10,7 +10,17 @@ import { ROLE_INFO } from "../roles";
 import { RoleSelect } from "./role-select";
 
 /** Everyone in the workspace. Rows you may manage get a role picker and a remove action. */
-export function MembersList({ members, myRole, myUserId, onRemove }: { members: MemberRow[]; myRole: Role; myUserId: string; onRemove: (m: MemberRow) => void }) {
+export function MembersList({
+  members,
+  myRole,
+  myUserId,
+  onRemove,
+}: {
+  members: MemberRow[];
+  myRole: Role;
+  myUserId: string;
+  onRemove: (m: MemberRow) => void;
+}) {
   const manageable = (m: MemberRow) => m.user_id !== myUserId && canManageMember(myRole, m.role);
   return (
     <ul>
@@ -27,7 +37,9 @@ export function MembersList({ members, myRole, myUserId, onRemove }: { members: 
           <span className="w-20 shrink-0 text-right text-xs text-faint max-sm:hidden">
             <RelativeTime iso={m.joined_at} />
           </span>
-          <span className="flex w-28 shrink-0 justify-end">{manageable(m) ? <RoleSelect member={m} /> : <Badge variant="outline">{ROLE_INFO[m.role].label}</Badge>}</span>
+          <span className="flex w-28 shrink-0 justify-end">
+            {manageable(m) ? <RoleSelect member={m} /> : <Badge variant="outline">{ROLE_INFO[m.role].label}</Badge>}
+          </span>
           <span className="w-6 shrink-0">
             {manageable(m) && (
               <DropdownMenu>

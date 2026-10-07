@@ -37,10 +37,11 @@ if (msg.extracted?.otp) {
 
 - **Filter by sender.** `from: "*@example.com"` avoids picking up a welcome email or newsletter that arrives first.
 - **No race.** `wait()` also returns mail from the minute before the call, so it doesn't matter if the email lands before you start waiting.
-- **Second emails.** To wait for a *later* email (a 2FA code after sign-up), pass `since: new Date().toISOString()` just before triggering it.
+- **Second emails.** To wait for a _later_ email (a 2FA code after sign-up), pass `since: new Date().toISOString()` just before triggering it.
 - **Plus-addressing.** One inbox can serve many tasks: sign up as `agent+run42@send0.email` and filter with `msg.tag === "run42"`.
 - **Check sender authentication.** For sensitive flows, require `msg.auth.dmarc === "pass"` before trusting a link.
 
 <Callout type="warn">
-  Many services ban automated sign-ups in their terms. Only automate accounts you're allowed to create.
+  Many services ban automated sign-ups in their terms. Only automate accounts you're allowed to
+  create.
 </Callout>

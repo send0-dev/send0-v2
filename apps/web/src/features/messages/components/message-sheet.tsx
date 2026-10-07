@@ -64,7 +64,9 @@ export function MessageSheet({ messageId, onOpenChange }: { messageId: string | 
                     <TabsTrigger value="details">Details</TabsTrigger>
                   </TabsList>
                   <TabsContent value="text">
-                    <div className="rounded-lg border bg-card p-4 text-[13.5px] leading-[1.65] break-words whitespace-pre-wrap">{m.text ?? <span className="text-muted-foreground italic">No text body</span>}</div>
+                    <div className="rounded-lg border bg-card p-4 text-[13.5px] leading-[1.65] break-words whitespace-pre-wrap">
+                      {m.text ?? <span className="text-muted-foreground italic">No text body</span>}
+                    </div>
                   </TabsContent>
                   {m.html && (
                     <TabsContent value="html">

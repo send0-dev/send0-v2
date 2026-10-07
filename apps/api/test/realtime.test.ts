@@ -108,7 +108,10 @@ describe("GET /messages/wait", () => {
   });
 
   it("ignores messages older than since", async () => {
-    const r = await t.call("GET", `/v1/inboxes/${inboxId}/messages/wait?from=*@linear.app&timeout=1&since=${new Date(Date.now() + 1000).toISOString()}`);
+    const r = await t.call(
+      "GET",
+      `/v1/inboxes/${inboxId}/messages/wait?from=*@linear.app&timeout=1&since=${new Date(Date.now() + 1000).toISOString()}`,
+    );
     expect(r.body.timed_out).toBe(true);
   });
 

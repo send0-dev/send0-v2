@@ -12,8 +12,8 @@ export function TooltipContent({ className, sideOffset = 6, ...props }: Componen
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 flex items-center gap-2 rounded-md bg-elevated px-2 py-1 text-xs text-foreground shadow-elevated animate-in fade-in-0 zoom-in-[0.97] data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1",
-          className
+          "z-50 flex animate-in items-center gap-2 rounded-md bg-elevated px-2 py-1 text-xs text-foreground shadow-elevated fade-in-0 zoom-in-[0.97] data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1",
+          className,
         )}
         {...props}
       />
@@ -22,7 +22,17 @@ export function TooltipContent({ className, sideOffset = 6, ...props }: Componen
 }
 
 /** A tooltip around any element, optionally with its keyboard shortcut. */
-export function Tooltip({ content, shortcut, children, side }: { content: ReactNode; shortcut?: string; children: ReactNode; side?: "top" | "right" | "bottom" | "left" }) {
+export function Tooltip({
+  content,
+  shortcut,
+  children,
+  side,
+}: {
+  content: ReactNode;
+  shortcut?: string;
+  children: ReactNode;
+  side?: "top" | "right" | "bottom" | "left";
+}) {
   return (
     <TooltipPrimitive.Root>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>

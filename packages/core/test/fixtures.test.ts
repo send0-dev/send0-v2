@@ -4,8 +4,7 @@ import { describe, expect, it } from "vitest";
 import { parseInbound } from "../src";
 
 const dir = fileURLToPath(new URL("../../../fixtures/emails/", import.meta.url));
-const load = (name: string) =>
-  parseInbound(readFileSync(dir + name), { trustedAuthservIds: ["mx.cloudflare.net", "amazonses.com"] });
+const load = (name: string) => parseInbound(readFileSync(dir + name), { trustedAuthservIds: ["mx.cloudflare.net", "amazonses.com"] });
 
 describe("fixture corpus", () => {
   it("Gmail reply: strips the wrapped quote header and quoted history, keeps threading ids", async () => {
