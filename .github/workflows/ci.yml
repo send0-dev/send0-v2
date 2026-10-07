@@ -56,7 +56,7 @@ jobs:
         working-directory: packages/sdk-python
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - run: uv sync --locked
       - run: uv run mypy src
       - run: uv run pytest -q
