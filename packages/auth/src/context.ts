@@ -11,6 +11,8 @@ export interface AuthDeps {
   from: { name: string; email: string };
   /** Base URL for links in emails, e.g. https://app.send0.dev */
   appUrl: string;
+  /** false: sign-up works only until the first account exists; after that, people join by invite. Default true. */
+  allowSignup?: boolean;
   now?: () => Date;
 }
 

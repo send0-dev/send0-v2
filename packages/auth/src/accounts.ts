@@ -75,8 +75,18 @@ export class AccountService {
       .then((r) => r[0]);
   }
 
+  /** Whether someone can create an account without an invite. */
+  async signupOpen(): Promise<boolean> {
+    if (this.ctx.deps.allowSignup ?? true) return true;
+    const [existing] = await this.ctx.db.select({ id: users.id }).from(users).limit(1);
+    return !existing;
+  }
+
   async signUp(input: { email: string; password: string; name?: string } & SessionMeta) {
     if (input.ip) await this.ctx.rateLimit("signup:ip", input.ip, 5, 3600_000);
+    if (!(await this.signupOpen())) {
+      throw new AuthError(403, "signup_closed", "Sign-up is closed here. Ask a workspace owner to invite you.");
+    }
     const email = await this.checkNewAccount(input.email, input.password);
     const user = await this.createUser({ email, password: input.password, name: input.name });
     await this.sendVerification(user).catch(() => {});
