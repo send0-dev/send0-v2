@@ -17,6 +17,7 @@ pnpm check             # tsc / astro check in every package (also regenerates Wo
 pnpm test              # Vitest everywhere; Postgres is in-memory PGlite, no services needed
 pnpm build
 
+# Postgres-backed tests run when TEST_DATABASE_URL is set: docker run -d --name send0-test-pg -e POSTGRES_PASSWORD=send0 -p 127.0.0.1:55432:5432 postgres:17-alpine, then TEST_DATABASE_URL=postgres://postgres:send0@127.0.0.1:55432/postgres pnpm test
 pnpm --filter @send0/api test -- send.test.ts      # one package, one file
 pnpm --filter @send0/web dev:local                 # whole dashboard + API locally on :5199, in-memory DB, mail recorded
 pnpm --filter @send0/web e2e                       # Puppeteer walk-through against dev:local
