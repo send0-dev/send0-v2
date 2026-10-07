@@ -28,7 +28,11 @@ export interface Operation {
   body?: z.ZodType;
   /** status → component schema name, or a special kind */
   responses: Record<number, string | { redirect: string } | { sse: true } | { binary: string }>;
+  /** Error responses beyond the common ones: status → description */
+  errors?: Record<number, string>;
 }
+
+const EXPIRED = "The message is past its inbox's retention period (`message_expired`); its content was deleted";
 
 const P = {
   inbox: { name: "inbox_id", description: "Inbox id (ibx_…)" },
@@ -165,6 +169,7 @@ export const operations: Operation[] = [
         redirect: "Pre-signed download link for the raw message, valid 15 minutes",
       },
     },
+    errors: { 410: EXPIRED },
   },
   {
     method: "get",
@@ -207,6 +212,7 @@ export const operations: Operation[] = [
     summary: "Forward a message",
     body: forwardBody,
     responses: { 201: "Message", 202: "Draft" },
+    errors: { 410: EXPIRED },
   },
 
   // Threads
@@ -571,7 +577,7 @@ export function buildOpenApi(opts: { serverUrl?: string; version?: string } = {}
           ["404", "Not found, or not visible to this key"],
           ["429", "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached"],
         ] as const);
-    for (const [status, description] of errors) {
+    for (const [status, description] of [...errors, ...Object.entries(op.errors ?? {})]) {
       responses[status] = {
         description,
         ...(status === "429"

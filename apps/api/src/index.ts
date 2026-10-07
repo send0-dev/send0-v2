@@ -8,7 +8,7 @@ import { createApp } from "./app";
 import { bindingRateLimiter, MemoryRateLimiter } from "./rate-limit";
 import type { AppDeps, Scope } from "./types";
 import { durableHubClient } from "./realtime/client";
-import { purgeDeletedOrgs, raiseSendCaps } from "./maintenance";
+import { enforceRetention, purgeDeletedOrgs, raiseSendCaps } from "./maintenance";
 import { processQueueMessage, sweep } from "./webhooks/dispatch";
 
 export { Hub } from "./realtime/hub-do";
@@ -99,5 +99,8 @@ export default {
     if (purged) console.log(JSON.stringify({ event: "orgs_purged", count: purged }));
     // Daily caps exist only on the hosted service; raising them is pointless anywhere else.
     if (parseCoreConfig(env).limits.dailySendCap) await raiseSendCaps(db(env, 1), now);
+    // Scrub and delete old mail. No blob store here: these S3 credentials can't delete, so raw/ and att/
+    // expire through the bucket's lifecycle rule (35 days; see CLAUDE.md).
+    await enforceRetention(db(env, 1), now);
   },
 } satisfies ExportedHandler<Env, QueueMessage>;

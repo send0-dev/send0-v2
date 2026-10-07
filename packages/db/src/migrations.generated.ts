@@ -114,5 +114,16 @@ export const MIGRATIONS: BundledMigration[] = [
       "\nALTER TABLE \"sessions\" ADD CONSTRAINT \"sessions_org_id_orgs_id_fk\" FOREIGN KEY (\"org_id\") REFERENCES \"public\".\"orgs\"(\"id\") ON DELETE set null ON UPDATE no action;",
       "\nCREATE UNIQUE INDEX \"members_one_owner_idx\" ON \"members\" USING btree (\"org_id\") WHERE \"members\".\"role\" = 'owner';"
     ]
+  },
+  {
+    "tag": "0004_retention",
+    "folderMillis": 1791378909976,
+    "hash": "5cdad0219fa8e2530cc2781611c13c75b70b6ea401c4e3e815a780ca413345b4",
+    "statements": [
+      "ALTER TABLE \"messages\" ADD COLUMN \"scrubbed_at\" timestamp with time zone;",
+      "\nCREATE INDEX \"messages_org_created_idx\" ON \"messages\" USING btree (\"org_id\",\"created_at\");",
+      "\nCREATE INDEX \"messages_unscrubbed_idx\" ON \"messages\" USING btree (\"created_at\") WHERE \"messages\".\"scrubbed_at\" is null;",
+      "\nCREATE INDEX \"messages_scrubbed_idx\" ON \"messages\" USING btree (\"created_at\") WHERE \"messages\".\"scrubbed_at\" is not null;"
+    ]
   }
 ];

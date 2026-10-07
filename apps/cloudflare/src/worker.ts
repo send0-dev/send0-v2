@@ -1,4 +1,4 @@
-import { purgeDeletedOrgs, raiseSendCaps } from "@send0/api/maintenance";
+import { enforceRetention, purgeDeletedOrgs, raiseSendCaps } from "@send0/api/maintenance";
 import { processQueueMessage, sweep } from "@send0/api/webhooks/dispatch";
 import { R2BlobStore } from "@send0/adapters/blob";
 import { createDb, type Db } from "@send0/db";
@@ -91,7 +91,7 @@ export function createWorker(opts: WorkerOptions = {}) {
       await sweep(db, env.EVENTS, new Date()).catch((err: unknown) => logError("sweep.error", err));
     },
 
-    // Hourly: the outbox safety net, the purge of deleted workspaces and, with hosted limits, send-cap raises
+    // Hourly: the outbox safety net, the purge of deleted workspaces, retention and, with hosted limits, send-cap raises
     // (boot also runs here if needed).
     async scheduled(_controller, env) {
       const config = configOrThrow(env);
@@ -104,6 +104,8 @@ export function createWorker(opts: WorkerOptions = {}) {
       if (purged) console.log(JSON.stringify({ event: "orgs_purged", count: purged }));
       // Off by default here (LIMITS=none); with LIMITS=hosted, caps rise as on the hosted service.
       if (config.limits.dailySendCap) await raiseSendCaps(db, now);
+      // Scrub and delete old mail, removing its R2 blobs as it goes.
+      await enforceRetention(db, now, { blobs: new R2BlobStore(env.BLOBS) });
     },
   } satisfies ExportedHandler<Env, QueueMessage>;
 }

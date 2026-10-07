@@ -125,6 +125,17 @@ pnpm --filter @send0/api admin unsuppress <org_id> <email> [--yes]
 
 Daily caps also rise on their own (`apps/api/src/send-caps.ts`, hourly cron, hosted limits only): `daily_send_limit` doubles, up to free 200 / pro 2,000 / scale 10,000, for active, unpaused orgs older than 3 days with ≥ 20 sends in 7 days, a busiest UTC day at ≥ 80% of the cap, and < 2% hard bounces and < 0.1% complaints over 30 days. It logs `org.limit_raised`, never lowers a cap, and leaves caps set above the ceiling by hand alone.
 
+Retention (`apps/api/src/retention.ts`, the same hourly cron; also scheduled in apps/server and apps/cloudflare) keeps stored mail inside Neon's free tier without losing sending history. Once a message is older than its inbox's `retention_days` (1–30, default 7) it is **scrubbed**: text, html, extracted fields, attachment rows and `raw_key` go, `scrubbed_at` is set, and the API returns it with `"expired": true`. Direction, status, addresses, subject and threading headers stay, because auto-pause and cap raises read 30 days of outbound status and reply-only reads inbound senders. After **35 days** the row is deleted, threads left empty are deleted, and `events` and `deliveries` older than 35 days are pruned. It works oldest first in batches of 1,000 within a 20-second budget and logs one `retention` line when it changed anything.
+
+The hosted Workers' S3 credentials can't delete, so raw mail and attachments expire through a bucket lifecycle rule instead, 35 days after upload. `put-bucket-lifecycle-configuration` replaces the bucket's whole lifecycle configuration, so check for an existing one first (`aws s3api get-bucket-lifecycle-configuration --profile default --region ap-south-1 --bucket send0-raw-mail-aps1`):
+
+```sh
+aws s3api put-bucket-lifecycle-configuration --profile default --region ap-south-1 --bucket send0-raw-mail-aps1 \
+  --lifecycle-configuration '{"Rules":[
+    {"ID":"expire-raw-mail","Filter":{"Prefix":"raw/"},"Status":"Enabled","Expiration":{"Days":35}},
+    {"ID":"expire-attachments","Filter":{"Prefix":"att/"},"Status":"Enabled","Expiration":{"Days":35}}]}'
+```
+
 ## Releasing
 
 Tag `vX.Y.Z` (or `vX.Y.Z-rc.N`) on `main` and push the tag (`git tag v0.1.0 && git push origin v0.1.0`). `.github/workflows/release.yml` then publishes both self-host editions:

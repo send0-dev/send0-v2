@@ -35,6 +35,7 @@ export const message = (over: Partial<Message> = {}): Message => ({
   thread_id: "thr_1",
   direction: "in",
   status: "received",
+  expired: false,
   rfc_message_id: "<a@acme.dev>",
   in_reply_to: [],
   references: [],

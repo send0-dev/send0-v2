@@ -254,7 +254,8 @@ by hand with \`npm install && npx wrangler deploy\`. Database migrations run on 
   (messages up to 25 MiB).
 - Free-plan Workers allow 100,000 requests a day and 10 ms of CPU per request. Large webhook volumes,
   big attachments or busy inboxes may need Workers Paid ($5/month).
-- Raw mail and attachments live in R2 (10 GB free). There is no automatic retention yet.
+- Raw mail and attachments live in R2 (10 GB free). Message content is deleted after each inbox's
+  \`retention_days\` (default 7, at most 30), and messages after 35 days.
 - The hosted service's plan limits (reply-only free tier, daily send caps) are off: you own the SES
   account and its reputation.
 

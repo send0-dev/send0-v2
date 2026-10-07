@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { loadInbox, loadMessage } from "../access";
 import { requireScope } from "../auth";
-import { notFound } from "../errors";
+import { messageExpired, notFound } from "../errors";
 import { listQuery, pageOrder, pageWhere, toPage } from "../pagination";
 import type { AppEnv } from "../types";
 import { validate } from "../validation";
@@ -190,6 +190,7 @@ export const messageRoutes = new Hono<AppEnv>()
   .get("/:id/raw", async (c) => {
     requireScope(c.get("auth"), "read");
     const message = await loadMessage(c, c.req.param("id"));
+    if (message.scrubbedAt) throw messageExpired(message.id);
     if (!message.rawKey) throw notFound("raw message", message.id);
     const url = await c.get("deps").files.signedGetUrl(message.rawKey, {
       expiresIn: DOWNLOAD_TTL_SECONDS,

@@ -55,6 +55,11 @@ export const Message = reg(
     thread_id: z.string(),
     direction: z.enum(["in", "out"]),
     status: z.enum(["received", "queued", "sent", "delivered", "bounced", "complained", "failed"]),
+    expired: z
+      .boolean()
+      .describe(
+        "true once the inbox's retention period has passed: text, html, extracted_text, extracted and attachments are gone (null or empty) and the raw message can't be downloaded. Addresses, subject, status and timestamps remain until the message is deleted, 35 days after it was created.",
+      ),
     rfc_message_id: z.string().nullable(),
     in_reply_to: z.array(z.string()),
     references: z.array(z.string()),

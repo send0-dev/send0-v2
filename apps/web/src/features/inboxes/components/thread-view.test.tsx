@@ -38,6 +38,16 @@ describe("ThreadView", () => {
     expect(screen.getAllByText(/spf pass/i)[0]).toBeInTheDocument();
     expect(screen.getByText(/Possible prompt injection \(likely\)/)).toBeInTheDocument();
   });
+
+  it("says when a message's content has expired", async () => {
+    server.use(
+      http.get("*/api/v1/inboxes/ibx_1/threads/thr_1", () =>
+        HttpResponse.json(thread([message({ expired: true, text: null, extracted_text: null, extracted: null })])),
+      ),
+    );
+    renderApp(<ThreadView inbox={inbox()} threadId="thr_1" />, { me: me() });
+    expect(await screen.findByText(/past the inbox's retention period/)).toBeInTheDocument();
+  });
 });
 
 describe("ThreadComposer", () => {

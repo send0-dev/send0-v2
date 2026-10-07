@@ -34,6 +34,7 @@ Include `request_id` when you contact support. It's also in the `x-request-id` r
 | 404    | `route_not_found`         | Wrong method or path                                                                         |
 | 409    | `address_taken`           | That address is in use (or was used before; addresses are never reused)                      |
 | 409    | `idempotency_in_progress` | A request with this Idempotency-Key is still running. Retry shortly.                         |
+| 410    | `message_expired`         | The message is past its inbox's retention period: its raw download and forwarding are gone   |
 | 422    | `recipient_suppressed`    | The address bounced or complained before                                                     |
 | 422    | `idempotency_key_reused`  | The same Idempotency-Key was used with a different request                                   |
 | 429    | `daily_limit_reached`     | Daily send limit (UTC) reached                                                               |
@@ -58,14 +59,15 @@ Pass `cursor=<next_cursor>` for the next page; `next_cursor` is `null` on the la
 
 ## Limits
 
-|                             | Limit                                                                      |
-| --------------------------- | -------------------------------------------------------------------------- |
-| Inboxes (free plan)         | 5                                                                          |
-| Sends per day, new accounts | 50 (UTC day; rises with a clean record)                                    |
-| Recipients per message      | 50                                                                         |
-| Inbound message size        | 25 MiB                                                                     |
-| `wait` timeout              | 120 s per request (the SDK chains requests for longer waits)               |
-| Webhooks per account        | 20                                                                         |
-| Webhook response timeout    | 10 s                                                                       |
-| Download links              | 15 minutes                                                                 |
-| Requests per API key        | 600 a minute, 60 of them sends ([rate limits](/reference/api#rate-limits)) |
+|                             | Limit                                                                       |
+| --------------------------- | --------------------------------------------------------------------------- |
+| Inboxes (free plan)         | 5                                                                           |
+| Sends per day, new accounts | 50 (UTC day; rises with a clean record)                                     |
+| Recipients per message      | 50                                                                          |
+| Inbound message size        | 25 MiB                                                                      |
+| Message content kept        | 1 to 30 days per inbox (`retention_days`, default 7); rows go after 35 days |
+| `wait` timeout              | 120 s per request (the SDK chains requests for longer waits)                |
+| Webhooks per account        | 20                                                                          |
+| Webhook response timeout    | 10 s                                                                        |
+| Download links              | 15 minutes                                                                  |
+| Requests per API key        | 600 a minute, 60 of them sends ([rate limits](/reference/api#rate-limits))  |

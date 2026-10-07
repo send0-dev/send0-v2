@@ -10,6 +10,7 @@ const inbox = await send0.inboxes.create({
   name: "procurement-agent",          // → procurement-agent@send0.email
   display_name: "Procurement Agent",   // sender name recipients see
   send_policy: "reply_only",           // open | reply_only | approval
+  retention_days: 7,                   // keep message content 1–30 days
   metadata: { team: "ops", run: 42 },  // your own labels, up to 20 keys
 });
 ```
@@ -33,6 +34,11 @@ const inbox = await send0.inboxes.create({
       description: "Who this inbox may email.",
       type: '"open" | "reply_only" | "approval"',
       default: '"reply_only"',
+    },
+    retention_days: {
+      description: "Days to keep message content, 1 to 30. See Retention below.",
+      type: "number",
+      default: "7",
     },
     metadata: { description: "Up to 20 string/number/boolean values.", type: "object" },
     expires_at: { description: "Optional ISO timestamp.", type: "string" },
@@ -59,6 +65,22 @@ Change it any time:
 ```ts
 await send0.inboxes.update(inbox.id, { send_policy: "approval" });
 ```
+
+## Retention
+
+Each inbox keeps message content for `retention_days`: 7 by default, at most 30. After that the message **expires**:
+
+- Its `text`, `html`, `extracted_text`, `extracted` and attachments are deleted, along with the original `.eml`.
+- The message stays in lists, threads and search by subject, with `"expired": true`. Its addresses, subject, status and timestamps are kept, so reply-only sending, threading and delivery history keep working.
+- `GET /v1/messages/{id}/raw` and forwarding it answer `410 message_expired`. You can still reply to it.
+
+35 days after it arrived or was sent, the message is deleted entirely, and a thread with no messages left goes with it. Webhook events and delivery logs are kept for 35 days too.
+
+```ts
+await send0.inboxes.update(inbox.id, { retention_days: 30 });
+```
+
+Save anything you need longer, such as an attachment or a code, when it arrives: a [webhook](/realtime/webhooks) or [`wait`](/concepts/waiting) is the place to do it.
 
 ## Deleting
 

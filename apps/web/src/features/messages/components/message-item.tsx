@@ -31,7 +31,9 @@ export function MessageItem({ message: m, inboxName, defaultOpen }: { message: M
       >
         <Avatar name={who} size="md" />
         <span className="w-36 shrink-0 truncate text-[13px] font-medium">{who}</span>
-        <span className="min-w-0 flex-1 truncate text-[13px] text-faint">{body?.replace(/\s+/g, " ").slice(0, 200) || "(no text)"}</span>
+        <span className="min-w-0 flex-1 truncate text-[13px] text-faint">
+          {m.expired ? "(content expired)" : body?.replace(/\s+/g, " ").slice(0, 200) || "(no text)"}
+        </span>
         <RelativeTime iso={when} className="shrink-0 text-xs text-faint" />
       </button>
     );
@@ -73,7 +75,11 @@ export function MessageItem({ message: m, inboxName, defaultOpen }: { message: M
           </div>
         )}
         <div className="text-[13.5px] leading-[1.65] break-words whitespace-pre-wrap text-foreground/90">
-          {body ?? <span className="text-faint italic">No text body</span>}
+          {m.expired ? (
+            <span className="text-faint italic">This message is past the inbox's retention period, so its content was deleted.</span>
+          ) : (
+            (body ?? <span className="text-faint italic">No text body</span>)
+          )}
         </div>
         <AttachmentList messageId={m.id} attachments={m.attachments} />
       </div>

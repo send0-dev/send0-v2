@@ -5,7 +5,7 @@ import { Hono, type Context } from "hono";
 import { z } from "zod";
 import { loadInbox, loadMessage } from "../access";
 import { requireApprover, requireScope } from "../auth";
-import { ApiError, conflict, invalid, notFound } from "../errors";
+import { ApiError, conflict, invalid, messageExpired, notFound } from "../errors";
 import { listQuery, pageOrder, pageWhere, toPage } from "../pagination";
 import { limitSends } from "../rate-limit";
 import { send, serializeDraft, type SendPayload, type SendResult } from "../sending/service";
@@ -121,6 +121,8 @@ export const messageSendRoutes = new Hono<AppEnv>()
     const auth = c.get("auth");
     requireScope(auth, "send");
     const parent = await loadMessage(c, c.req.param("id"));
+    // Its content is gone: forwarding would send an empty shell.
+    if (parent.scrubbedAt) throw messageExpired(parent.id);
     const { inbox, domain } = await loadInbox(c, parent.inboxId);
     const b = c.req.valid("json");
 

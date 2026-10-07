@@ -337,6 +337,12 @@ export const messages = pgTable(
     error: text(),
     sentAt: timestamp({ withTimezone: true }),
     receivedAt: timestamp({ withTimezone: true }),
+    /**
+     * Set when the inbox's retention period passed: bodies, extracted fields, attachments and the raw
+     * .eml are gone. Routing and status stay (reputation, reply-only and threading need them) until the row
+     * itself is deleted.
+     */
+    scrubbedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
     tsv: tsvector().generatedAlwaysAs(
       (): SQL =>
@@ -352,6 +358,16 @@ export const messages = pgTable(
       .on(t.inboxId, t.rfcMessageId)
       .where(sql`${t.direction} = 'in' and ${t.rfcMessageId} is not null`),
     index("messages_tsv_idx").using("gin", t.tsv),
+    // Daily caps, reputation rates and cap raises count an org's messages by age.
+    index("messages_org_created_idx").on(t.orgId, t.createdAt),
+    // Retention: oldest unscrubbed messages first, then the oldest scrubbed ones to delete. Together they
+    // cover each row once, and the unscrubbed one stays small (only messages inside their retention period).
+    index("messages_unscrubbed_idx")
+      .on(t.createdAt)
+      .where(sql`${t.scrubbedAt} is null`),
+    index("messages_scrubbed_idx")
+      .on(t.createdAt)
+      .where(sql`${t.scrubbedAt} is not null`),
   ],
 );
 

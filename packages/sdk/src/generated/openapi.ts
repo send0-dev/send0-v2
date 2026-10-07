@@ -611,6 +611,8 @@ export interface components {
             direction: "in" | "out";
             /** @enum {string} */
             status: "received" | "queued" | "sent" | "delivered" | "bounced" | "complained" | "failed";
+            /** @description true once the inbox's retention period has passed: text, html, extracted_text, extracted and attachments are gone (null or empty) and the raw message can't be downloaded. Addresses, subject, status and timestamps remain until the message is deleted, 35 days after it was created. */
+            expired: boolean;
             rfc_message_id: string | null;
             in_reply_to: string[];
             references: string[];
@@ -1094,6 +1096,8 @@ export interface operations {
                     display_name?: string | null;
                     /** @enum {string} */
                     send_policy?: "open" | "reply_only" | "approval";
+                    /** @description Days to keep message content (1 to 30, default 7). After that, bodies, extracted fields, attachments and the raw message are deleted and the message reads as `expired: true`; the rest of the message is deleted after 35 days. */
+                    retention_days?: number;
                     metadata?: {
                         [key: string]: string | number | boolean | null;
                     };
@@ -1317,6 +1321,8 @@ export interface operations {
                     display_name?: string | null;
                     /** @enum {string} */
                     send_policy?: "open" | "reply_only" | "approval";
+                    /** @description Days to keep message content (1 to 30, default 7). After that, bodies, extracted fields, attachments and the raw message are deleted and the message reads as `expired: true`; the rest of the message is deleted after 35 days. */
+                    retention_days?: number;
                     metadata?: {
                         [key: string]: string | number | boolean | null;
                     };
@@ -1859,6 +1865,15 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            /** @description The message is past its inbox's retention period (`message_expired`); its content was deleted */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             /** @description Rate limit (`rate_limited`, see Retry-After) or daily send limit reached */
             429: {
                 headers: {
@@ -2201,6 +2216,15 @@ export interface operations {
             };
             /** @description Not found, or not visible to this key */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The message is past its inbox's retention period (`message_expired`); its content was deleted */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };

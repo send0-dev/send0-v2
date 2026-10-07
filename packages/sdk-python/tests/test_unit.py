@@ -15,7 +15,7 @@ BASE = "https://api.test"
 def msg(**over):
     m = {
         "object": "message", "id": "msg_1", "inbox_id": "ibx_1", "thread_id": "thr_1", "direction": "in",
-        "status": "received", "rfc_message_id": "<a@x>", "in_reply_to": [], "references": [],
+        "status": "received", "expired": False, "rfc_message_id": "<a@x>", "in_reply_to": [], "references": [],
         "from": {"name": "Acme", "email": "noreply@acme.dev"}, "to": [], "cc": [], "reply_to": [],
         "subject": "Your code", "text": "code 482913", "extracted_text": "code 482913",
         "extracted": {"otp": "482913", "links": [], "action_link": None},

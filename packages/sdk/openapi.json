@@ -101,6 +101,12 @@
                       "approval"
                     ]
                   },
+                  "retention_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 30,
+                    "description": "Days to keep message content (1 to 30, default 7). After that, bodies, extracted fields, attachments and the raw message are deleted and the message reads as `expired: true`; the rest of the message is deleted after 35 days."
+                  },
                   "metadata": {
                     "type": "object",
                     "propertyNames": {
@@ -439,6 +445,12 @@
                       "reply_only",
                       "approval"
                     ]
+                  },
+                  "retention_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 30,
+                    "description": "Days to keep message content (1 to 30, default 7). After that, bodies, extracted fields, attachments and the raw message are deleted and the message reads as `expired: true`; the rest of the message is deleted after 35 days."
                   },
                   "metadata": {
                     "type": "object",
@@ -1664,6 +1676,16 @@
               }
             }
           },
+          "410": {
+            "description": "The message is past its inbox's retention period (`message_expired`); its content was deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limit (`rate_limited`, see Retry-After) or daily send limit reached",
             "headers": {
@@ -2469,6 +2491,16 @@
           },
           "404": {
             "description": "Not found, or not visible to this key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "The message is past its inbox's retention period (`message_expired`); its content was deleted",
             "content": {
               "application/json": {
                 "schema": {
@@ -5217,6 +5249,10 @@
               "failed"
             ]
           },
+          "expired": {
+            "type": "boolean",
+            "description": "true once the inbox's retention period has passed: text, html, extracted_text, extracted and attachments are gone (null or empty) and the raw message can't be downloaded. Addresses, subject, status and timestamps remain until the message is deleted, 35 days after it was created."
+          },
           "rfc_message_id": {
             "type": [
               "string",
@@ -5432,6 +5468,7 @@
           "thread_id",
           "direction",
           "status",
+          "expired",
           "rfc_message_id",
           "in_reply_to",
           "references",
