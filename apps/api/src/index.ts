@@ -14,7 +14,7 @@ import { processQueueMessage, sweep } from "./webhooks/dispatch";
 export { Hub } from "./realtime/hub-do";
 
 /** Per-isolate counters, used only for a rule whose Rate Limiting binding is missing. */
-const fallbackLimiter = new MemoryRateLimiter();
+const localLimiter = new MemoryRateLimiter();
 
 const db = (env: Env, max = 5) => createDb(env.HYPERDRIVE.connectionString, { max });
 
@@ -44,7 +44,7 @@ function makeDeps(env: Env, ctx: ExecutionContext): AppDeps {
           })
         : undefined,
     publish: (orgId, envelope) => publish({ hub: env.HUB as never, queue: env.EVENTS }, orgId, envelope),
-    rateLimiter: bindingRateLimiter({ key: env.RL_KEY, key_send: env.RL_KEY_SEND, ip: env.RL_IP }, fallbackLimiter),
+    rateLimiter: bindingRateLimiter({ key: env.RL_KEY, key_send: env.RL_KEY_SEND, ip: env.RL_IP }, localLimiter),
     sesEvents: env.SES_EVENTS_TOKEN ? { token: env.SES_EVENTS_TOKEN, topicArn: env.SES_EVENTS_TOPIC_ARN } : undefined,
     waitUntil: (p) => ctx.waitUntil(p),
   };
