@@ -14,14 +14,11 @@
   "dependencies": {
     "@send0/adapters": "workspace:*",
     "@send0/config": "workspace:*",
-    "@send0/core": "workspace:*",
     "@send0/db": "workspace:*",
     "@send0/pipeline": "workspace:*"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
     "@types/node": "^24",
-    "drizzle-orm": "^0.45.3",
     "typescript": "^5.9.0",
     "vitest": "^5.0.3",
     "wrangler": "^4.147.0"

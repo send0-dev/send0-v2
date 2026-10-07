@@ -105,8 +105,8 @@ export const inboxRoutes = new Hono<AppEnv>()
       );
     if (!domain) throw invalid(`${domainName} isn't a domain this account can use. Add and verify it first.`, "domain");
 
-    const [org] = await db.select({ plan: orgs.plan }).from(orgs).where(eq(orgs.id, auth.orgId));
     if (limits.planInboxCap) {
+      const [org] = await db.select({ plan: orgs.plan }).from(orgs).where(eq(orgs.id, auth.orgId));
       const limit = PLAN_INBOX_LIMITS[org?.plan ?? "free"] ?? PLAN_INBOX_LIMITS.free!;
       const [{ n }] = (await db
         .select({ n: count() })

@@ -2,9 +2,14 @@ import { NO_LIMITS } from "@send0/config";
 import { schema } from "@send0/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createApp } from "../src/app";
 import { deliver, fixture, setup, type TestEnv } from "./helpers";
 
 const mailer = { sendRaw: async () => ({ providerMessageId: "relay-1" }) };
+
+it("createApp refuses an empty mail domain list", () => {
+  expect(() => createApp({ mailDomains: [] } as never)).toThrow("createApp needs at least one mail domain");
+});
 
 describe("mail domains from config", () => {
   let t: TestEnv;

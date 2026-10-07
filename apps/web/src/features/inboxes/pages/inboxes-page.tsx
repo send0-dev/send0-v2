@@ -69,7 +69,7 @@ export default function InboxesPage() {
               />
               {items.length < 6 && (
                 <ListHint title="Agents can create their own inboxes">
-                  <CodeBlock code={`await send0.inboxes.create({ name: "signup-agent" });\n// → signup-agent@${domain}`} />
+                  <CodeBlock code={`await send0.inboxes.create({ name: "signup-agent" });\n// → signup-agent@${domain ?? "your-domain"}`} />
                 </ListHint>
               )}
             </>

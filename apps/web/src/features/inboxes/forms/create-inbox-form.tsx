@@ -30,7 +30,7 @@ export function CreateInboxForm({
 }: {
   onCreated: (inbox: Inbox) => void;
   onCancel: () => void;
-  domain: string;
+  domain: string | undefined;
 }) {
   const create = useCreateInbox();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: "", displayName: "", sendPolicy: "reply_only" } });
@@ -62,7 +62,7 @@ export function CreateInboxForm({
                     className="h-8 min-w-0 flex-1 bg-transparent px-2.5 text-sm outline-none placeholder:text-muted-foreground/70"
                   />
                 </FormControl>
-                <span className="pr-2.5 font-mono text-[12.5px] text-muted-foreground">@{domain}</span>
+                {domain && <span className="pr-2.5 font-mono text-[12.5px] text-muted-foreground">@{domain}</span>}
               </div>
               <FormDescription>Leave empty for a random address.</FormDescription>
               <FormMessage />

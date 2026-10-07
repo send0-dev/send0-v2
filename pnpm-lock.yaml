@@ -26,6 +26,9 @@ importers:
       globals:
         specifier: ^17.13.0
         version: 17.13.0
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
       lint-staged:
         specifier: ^17.6.0
         version: 17.6.0
@@ -178,9 +181,6 @@ importers:
       '@send0/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@send0/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@send0/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -188,15 +188,9 @@ importers:
         specifier: workspace:*
         version: link:../../packages/pipeline
     devDependencies:
-      '@electric-sql/pglite':
-        specifier: ^0.5.8
-        version: 0.5.8
       '@types/node':
         specifier: ^24
         version: 24.19.1
-      drizzle-orm:
-        specifier: ^0.45.3
-        version: 0.45.3(@cloudflare/workers-types@5.20261005.1)(@electric-sql/pglite@0.5.8)(postgres@3.4.9)
       typescript:
         specifier: ^5.9.0
         version: 5.9.3

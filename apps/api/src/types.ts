@@ -47,7 +47,7 @@ export interface AppDeps {
   now?: () => Date;
 }
 
-/** AppDeps after createApp fills in defaults; what routes see. */
+/** AppDeps after createApp fills in defaults; what routes see. createApp takes a snapshot, so later changes to the deps object don't reach routes. */
 export type ResolvedDeps = Omit<AppDeps, "limits"> & { limits: Limits };
 
 export type AppEnv = {

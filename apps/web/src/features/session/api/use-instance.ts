@@ -8,6 +8,6 @@ export function useInstance() {
 }
 
 /** The domain new inboxes get, for labels like "@agents.acme.com". */
-export function useMailDomain(): string {
-  return useInstance().data?.mail_domains[0] ?? "…";
+export function useMailDomain(): string | undefined {
+  return useInstance().data?.mail_domains[0];
 }

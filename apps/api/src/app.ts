@@ -19,6 +19,7 @@ import { threadRoutes } from "./routes/threads";
 import type { AppDeps, AppEnv, ResolvedDeps } from "./types";
 
 export function createApp(deps: AppDeps) {
+  if (deps.mailDomains.length === 0) throw new Error("createApp needs at least one mail domain");
   const app = new Hono<AppEnv>();
   const resolved: ResolvedDeps = {
     ...deps,

@@ -60,7 +60,7 @@ export function InboxStep({ owner, onDone }: { owner: string | null; onDone: (in
                       className="h-10 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none"
                     />
                   </FormControl>
-                  <span className="pr-3 font-mono text-[12.5px] text-muted-foreground">@{domain}</span>
+                  {domain && <span className="pr-3 font-mono text-[12.5px] text-muted-foreground">@{domain}</span>}
                 </div>
                 <FormDescription>Letters, numbers, dots, dashes and underscores.</FormDescription>
                 <FormMessage />
