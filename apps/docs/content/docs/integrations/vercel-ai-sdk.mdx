@@ -1,0 +1,62 @@
+---
+title: Vercel AI SDK
+description: "@send0/ai-sdk: give an AI SDK agent its own email inbox."
+---
+
+`@send0/ai-sdk` turns send0's [tools](/integrations#tools) into [AI SDK](https://ai-sdk.dev) tools for `generateText`, `streamText` and `Agent`. It needs `ai` 7 and `zod` 4.
+
+<Callout type="info">
+  `@send0/ai-sdk` publishes to npm with the next send0 release. Until then, use it from the [send0
+  repository](https://github.com/send0-dev/send0-v2/tree/main/packages/ai-sdk).
+</Callout>
+
+## Install
+
+```sh
+npm install @send0/ai-sdk ai zod
+```
+
+## Example
+
+```ts
+import { anthropic } from "@ai-sdk/anthropic";
+import { send0Tools } from "@send0/ai-sdk";
+import { generateText, stepCountIs } from "ai";
+
+const { text } = await generateText({
+  model: anthropic("claude-opus-5-5"),
+  tools: send0Tools({ include: ["create_inbox", "wait_for_email"] }), // reads SEND0_API_KEY
+  stopWhen: stepCountIs(5),
+  prompt: "Create an inbox, wait for the verification email, and tell me the code.",
+});
+```
+
+`send0Tools()` returns a record keyed by tool name, so you can spread it next to your own tools: `tools: { ...send0Tools(), ...myTools }`. A runnable version is in [examples/ai-sdk-signup](https://github.com/send0-dev/send0-v2/tree/main/examples/ai-sdk-signup).
+
+## Options
+
+| Option            |                                                                     |
+| ----------------- | ------------------------------------------------------------------- |
+| `apiKey`          | Defaults to `SEND0_API_KEY`                                         |
+| `baseUrl`         | Your [self-hosted](/self-hosting) send0                             |
+| `client`          | A configured `Send0` client from `@send0/sdk`, instead of the above |
+| `inboxId`         | Default inbox, so the model doesn't need `inbox_id`                 |
+| `include`         | Only these tools, e.g. `["create_inbox", "wait_for_email"]`         |
+| `exclude`         | All tools but these, e.g. `["send_email", "reply"]`                 |
+| `requireApproval` | Ask before `send_email` and `reply` run                             |
+
+## Approval
+
+With `requireApproval: true`, the AI SDK doesn't run `send_email` or `reply` on its own. It returns a `tool-approval-request` part, and the call runs once you answer with a `tool-approval-response` (in `useChat`, call `addToolApprovalResponse`). The read-only tools still run straight away.
+
+You can also decide per call with the AI SDK's `toolApproval` option, using the `send0ToolApproval` preset:
+
+```ts
+import { send0ToolApproval, send0Tools } from "@send0/ai-sdk";
+
+await generateText({ model, tools: send0Tools(), toolApproval: send0ToolApproval, prompt });
+```
+
+## Untrusted content
+
+Every body the tools return sits inside `<untrusted_email>` tags with a note to treat it as data. That helps, but a model can still be talked into things. Keep the tool set to what the task needs (`include`), use a key limited to one inbox, and put sending behind approval when the agent reads mail from strangers. See [Prompt injection](/guides/prompt-injection).

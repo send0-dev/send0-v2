@@ -1,0 +1,70 @@
+---
+title: LangChain for Python
+description: "langchain-send0: a send0 toolkit for LangChain and LangGraph agents."
+---
+
+`langchain-send0` gives LangChain agents send0's [tools](/integrations#tools) as `BaseTool` classes with pydantic argument schemas. Each tool runs sync (`invoke`) and async (`ainvoke`, on send0's async client). It needs Python 3.10+ and `langchain-core` 1.x.
+
+<Callout type="info">
+  `langchain-send0` publishes to PyPI with the next send0 release. Until then, use it from the
+  [send0 repository](https://github.com/send0-dev/send0-v2/tree/main/packages/langchain-python).
+</Callout>
+
+## Install
+
+```sh
+pip install langchain-send0
+```
+
+## Example
+
+```python
+from langchain.agents import create_agent
+from langchain_send0 import Send0Toolkit
+
+tools = Send0Toolkit(exclude=["send_email", "reply"]).get_tools()  # reads SEND0_API_KEY
+agent = create_agent("anthropic:claude-opus-5-5", tools=tools)
+
+result = agent.invoke({"messages": [{"role": "user", "content": "Summarize the latest conversations in my inbox."}]})
+```
+
+A runnable version, with approval for every send, is in [examples/langchain-python-agent](https://github.com/send0-dev/send0-v2/tree/main/examples/langchain-python-agent).
+
+## Options
+
+`Send0Toolkit(client=None, api_key=None, inbox_id=None, include=None, exclude=None, *, async_client=None, base_url=None)`
+
+| Option         |                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `client`       | A configured `send0.Send0`. By default the toolkit makes one from `api_key`          |
+| `api_key`      | Defaults to `SEND0_API_KEY`                                                          |
+| `inbox_id`     | Default inbox, so the model doesn't need `inbox_id`                                  |
+| `include`      | Only these tools                                                                     |
+| `exclude`      | All tools but these                                                                  |
+| `async_client` | A configured `send0.AsyncSend0` for `ainvoke`. Without one, async calls use a thread |
+| `base_url`     | Your [self-hosted](/self-hosting) send0                                              |
+
+Each tool is also a class you can use alone, such as `WaitForEmailTool(client=Send0(), default_inbox_id="ibx_…")`.
+
+## Approval
+
+`send_email` and `reply` have `sends = True`. To have a person approve them before they run, add LangChain's human-in-the-loop middleware. It pauses the agent with an interrupt, so it needs a checkpointer:
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import HumanInTheLoopMiddleware
+from langgraph.checkpoint.memory import InMemorySaver
+
+agent = create_agent(
+    "anthropic:claude-opus-5-5",
+    tools=Send0Toolkit().get_tools(),
+    checkpointer=InMemorySaver(),
+    middleware=[HumanInTheLoopMiddleware(interrupt_on={"send_email": True, "reply": True})],
+)
+```
+
+Resume with `agent.invoke(Command(resume={"decisions": [{"type": "approve"}]}), config)`, one decision per pending call.
+
+## Untrusted content
+
+Every body the tools return sits inside `<untrusted_email>` tags with a note to treat it as data. Keep the tool set to what the task needs, use a key limited to one inbox, and put sending behind approval when the agent reads mail from strangers. See [Prompt injection](/guides/prompt-injection).
