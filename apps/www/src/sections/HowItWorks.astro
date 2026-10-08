@@ -1,0 +1,132 @@
+---
+import Steps from "../components/Steps.astro";
+import Icon from "../illustrations/Icon.astro";
+import { site } from "../site";
+
+const steps = [
+  { title: "Accept", body: "Unknown addresses refused." },
+  { title: "Store", body: "Raw message saved first." },
+  { title: "Understand", body: "Parsed, codes extracted, injection flagged." },
+  { title: "Thread", body: "Joined to its conversation." },
+  { title: "Notify", body: "Webhook, stream, waiting calls." },
+];
+
+const rules = [
+  "Free accounts can only reply.",
+  "New accounts: 50 sends a day.",
+  "Pauses at 0.3% complaints, 5% hard bounces.",
+  "No cold outreach. No bulk mail.",
+];
+---
+
+<section class="section band" id="how-it-works" aria-labelledby="how-title">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">
+        <b>04</b> How it works
+      </span>
+      <h2 id="how-title" class="h2">
+        What happens when mail arrives.
+      </h2>
+    </div>
+
+    <Steps steps={steps} />
+
+    <div class="rules">
+      <div class="post">
+        <Icon name="shield" class="sign" />
+        <div>
+          <h3>Safe by default</h3>
+          <p class="report mono">
+            Report abuse:{" "}
+            <a class="link" href={`mailto:${site.email.abuse}`}>
+              {site.email.abuse}
+            </a>
+          </p>
+        </div>
+      </div>
+      <ul>
+        {rules.map((r) => (
+          <li>{r}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .head {
+    margin-bottom: 48px;
+  }
+  .h2 {
+    max-width: 16em;
+  }
+  .rules {
+    display: grid;
+    gap: 32px;
+    margin-top: 64px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule);
+  }
+  @media (min-width: 1024px) {
+    .rules {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      gap: 64px;
+    }
+  }
+  .post {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .post :global(.sign) {
+    flex: none;
+    width: 44px;
+    height: 44px;
+  }
+  h3 {
+    font-size: 22px;
+  }
+  .report {
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  @media (min-width: 640px) {
+    ul {
+      grid-template-columns: 1fr 1fr;
+      gap: 0 32px;
+    }
+  }
+  li {
+    padding: 14px 0 14px 28px;
+    position: relative;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    border-bottom: 1px solid var(--hairline);
+  }
+  li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 20px;
+    width: 12px;
+    height: 7px;
+    border-left: 2px solid var(--ok);
+    border-bottom: 2px solid var(--ok);
+    transform: rotate(-45deg);
+  }
+  strong {
+    display: block;
+    color: var(--ink);
+    font-weight: 600;
+  }
+</style>

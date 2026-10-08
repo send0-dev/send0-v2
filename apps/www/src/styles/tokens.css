@@ -1,0 +1,133 @@
+/*
+  send0.dev design tokens.
+  White paper, ink, and one blue accent.
+  Text pairs are checked against WCAG AA in both themes (ratios noted where they matter).
+*/
+
+:root {
+  color-scheme: light;
+
+  /* Paper and ink */
+  --paper: #ffffff;
+  --paper-alt: #f7f7f5; /* alternate bands, barely there */
+  --card: #ffffff;
+  --ink: #1b1a18;
+  --muted: #5f5d58; /* 6.6:1 on white */
+  --faint: #a19e97; /* decorative only, never body text */
+  --hairline: #e9e8e4;
+  --rule: #d9d7d1;
+
+  /* Blue: the one accent */
+  --accent: #1f4bb8; /* links and highlights, 7.6:1 on white */
+  --accent-bg: #1f4bb8; /* primary buttons; white text on it is 7.6:1 */
+  --accent-press: #12307a;
+  --on-accent: #ffffff;
+  --accent-tint: #e8eefb;
+
+  /* Tints: inside illustrations only */
+  --sage: #ebf1e5;
+  --sky: #ebf0f9;
+  --butter: #faf5e2;
+
+  /* States */
+  --ok: #286934; /* 6.2:1 on white */
+  --ok-tint: #e5f0e1;
+  --danger: #b42318;
+
+  /* Code panels: neutral dark in both themes */
+  --code-bg: #1a1a1c;
+  --code-bar: #232326;
+  --code-fg: #ebe9e4;
+  --code-muted: #9c9a94;
+  --code-line: #34343a;
+  --code-key: #8db0ff;
+  --code-str: #b9d48f;
+  --code-fn: #f2d27a;
+  --code-num: #e8c9a8;
+
+  /* Depth: low and soft */
+  --shadow-sm: 0 1px 0 rgb(20 20 30 / 0.04), 0 2px 6px -2px rgb(20 20 30 / 0.1);
+  --shadow: 0 1px 0 rgb(20 20 30 / 0.04), 0 12px 32px -16px rgb(20 20 30 / 0.22);
+  --shadow-lg: 0 2px 0 rgb(20 20 30 / 0.03), 0 28px 60px -28px rgb(20 20 30 / 0.32);
+
+  /* Type: two families and a mono */
+  --font-display: "Bricolage Grotesque", "Bricolage Grotesque Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Layout and rhythm (8px base) */
+  --max: 1200px;
+  --gutter: 20px;
+  --section: 80px;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+    --section: 104px;
+  }
+}
+
+/* Night shift: same desk, lamp on. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #161514;
+    --paper-alt: #1b1a19;
+    --card: #1f1e1c;
+    --ink: #f2efe9;
+    --muted: #aaa59c;
+    --faint: #6f6b64;
+    --hairline: #2c2a28;
+    --rule: #403d39;
+    --accent: #8db0ff; /* 8.5:1 on the dark page */
+    --accent-bg: #3a68d8; /* white text 5.1:1 */
+    --accent-press: #1d3f99;
+    --on-accent: #ffffff;
+    --accent-tint: #1d2638;
+    --sage: #252c21;
+    --sky: #1e2532;
+    --butter: #2e2a1c;
+    --ok: #8fd19a;
+    --ok-tint: #1f2c20;
+    --danger: #f97066;
+    --code-bg: #111113;
+    --code-bar: #18181b;
+    --code-line: #303036;
+    --shadow-sm: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 6px -2px rgb(0 0 0 / 0.5);
+    --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 34px -16px rgb(0 0 0 / 0.7);
+    --shadow-lg: 0 2px 0 rgb(0 0 0 / 0.3), 0 30px 60px -28px rgb(0 0 0 / 0.8);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #161514;
+  --paper-alt: #1b1a19;
+  --card: #1f1e1c;
+  --ink: #f2efe9;
+  --muted: #aaa59c;
+  --faint: #6f6b64;
+  --hairline: #2c2a28;
+  --rule: #403d39;
+  --accent: #8db0ff;
+  --accent-bg: #3a68d8;
+  --accent-press: #1d3f99;
+  --on-accent: #ffffff;
+  --accent-tint: #1d2638;
+  --sage: #252c21;
+  --sky: #1e2532;
+  --butter: #2e2a1c;
+  --ok: #8fd19a;
+  --ok-tint: #1f2c20;
+  --danger: #f97066;
+  --code-bg: #111113;
+  --code-bar: #18181b;
+  --code-line: #303036;
+  --shadow-sm: 0 1px 0 rgb(0 0 0 / 0.3), 0 2px 6px -2px rgb(0 0 0 / 0.5);
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 34px -16px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 2px 0 rgb(0 0 0 / 0.3), 0 30px 60px -28px rgb(0 0 0 / 0.8);
+}

@@ -1,0 +1,24 @@
+---
+// A paper plane on a dotted flight path: one Worker on Cloudflare's network.
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<svg
+  data-draw
+  class:list={["ill", cls]}
+  viewBox="0 0 140 104"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="M4 96c18 4 32-4 40-16 4-6 6-10 12-13" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="1 5"></path>
+  <path pathLength="1" d="M60 62.5 132 14 74.6 90Z" fill="var(--paper-alt)"></path>
+  <path pathLength="1" d="M12 53.5 132 14 60 62.5Z" fill="var(--card)"></path>
+  <path pathLength="1" d="M60 62.5 66 79l8.6-1.4" fill="var(--sky)"></path>
+</svg>

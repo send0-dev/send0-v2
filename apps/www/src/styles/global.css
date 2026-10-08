@@ -1,87 +1,4 @@
-@import "@fontsource-variable/geist";
-@import "@fontsource-variable/geist-mono";
-
-:root {
-  color-scheme: light;
-  --bg: #fbfbfa;
-  --bg-subtle: #f3f3f1;
-  --surface: #ffffff;
-  --fg: #0c0c0d;
-  --fg-muted: #57575e;
-  --fg-faint: #8e8e95;
-  --border: #e6e6e3;
-  --border-strong: #d4d4d0;
-  --rail: #e6e6e3;
-  --mark: #b9b9b5;
-  --accent: #ff4f00;
-  --accent-ink: #d64200;
-  --accent-fg: #ffffff;
-  --accent-soft: #fff0e8;
-  --ok: #138a3e;
-  --ok-soft: #e7f6ec;
-  --warn: #a15c00;
-  --warn-soft: #fdf3e2;
-  --code-bg: #f6f6f4;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12);
-
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
-
-  --column: 1120px;
-  --gutter: 24px;
-  --radius: 10px;
-  --radius-sm: 6px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #09090a;
-    --bg-subtle: #111113;
-    --surface: #0f0f11;
-    --fg: #f4f4f5;
-    --fg-muted: #a3a3ab;
-    --fg-faint: #6c6c74;
-    --border: #ffffff17;
-    --border-strong: #ffffff29;
-    --rail: #ffffff14;
-    --mark: #ffffff40;
-    --accent: #ff6a26;
-    --accent-ink: #ff8a52;
-    --accent-fg: #ffffff;
-    --accent-soft: #2a1308;
-    --ok: #4ade80;
-    --ok-soft: #0f2a19;
-    --warn: #f0b85a;
-    --warn-soft: #2a2010;
-    --code-bg: #0c0c0e;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -16px rgb(0 0 0 / 0.7);
-  }
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #09090a;
-  --bg-subtle: #111113;
-  --surface: #0f0f11;
-  --fg: #f4f4f5;
-  --fg-muted: #a3a3ab;
-  --fg-faint: #6c6c74;
-  --border: #ffffff17;
-  --border-strong: #ffffff29;
-  --rail: #ffffff14;
-  --mark: #ffffff40;
-  --accent: #ff6a26;
-  --accent-ink: #ff8a52;
-  --accent-fg: #ffffff;
-  --accent-soft: #2a1308;
-  --ok: #4ade80;
-  --ok-soft: #0f2a19;
-  --warn: #f0b85a;
-  --warn-soft: #2a2010;
-  --code-bg: #0c0c0e;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -16px rgb(0 0 0 / 0.7);
-}
+@import "./tokens.css";
 
 /* ---------- Base ---------- */
 
@@ -94,19 +11,20 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  scroll-padding-top: 72px;
+  scroll-padding-top: 80px;
+  interpolate-size: allow-keywords;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--fg);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
+  font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
   overflow-x: hidden;
 }
 
@@ -126,9 +44,11 @@ h2,
 h3,
 h4 {
   margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-optical-sizing: auto;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
   text-wrap: balance;
 }
 
@@ -141,17 +61,26 @@ code,
 kbd,
 pre {
   font-family: var(--font-mono);
-  font-size: 0.875em;
+  font-size: 0.9em;
+}
+
+:not(pre) > code {
+  padding: 0.1em 0.35em;
+  border-radius: 5px;
+  background: var(--paper-alt);
+  border: 1px solid var(--hairline);
+  font-size: 0.85em;
+  white-space: nowrap;
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--accent-fg);
+  background: var(--accent-tint);
+  color: var(--ink);
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: 4px;
 }
 
@@ -165,6 +94,7 @@ pre {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }
 
@@ -180,240 +110,252 @@ pre {
   border: 0;
 }
 
-/* ---------- Layout: column with rails ---------- */
+/* ---------- Layout ---------- */
 
-.column {
-  position: relative;
+.wrap {
   width: 100%;
-  max-width: calc(var(--column) + 2px);
+  max-width: calc(var(--max) + 2 * var(--gutter));
   margin-inline: auto;
-  border-inline: 1px solid var(--rail);
+  padding-inline: var(--gutter);
 }
 
 .section {
   position: relative;
-  border-top: 1px solid var(--rail);
-  padding: 96px var(--gutter);
+  padding-block: var(--section);
 }
 
-@media (min-width: 768px) {
-  .section {
-    padding: 112px 48px;
-  }
+/* A quieter band for alternating rhythm */
+.band {
+  background: var(--paper-alt);
+  border-block: 1px solid var(--hairline);
 }
 
-/* "+" marks where a section line meets the rails */
-.section::before,
-.section::after {
-  content: "";
-  position: absolute;
-  top: -7px;
-  width: 13px;
-  height: 13px;
-  background:
-    linear-gradient(var(--mark), var(--mark)) center / 1px 100% no-repeat,
-    linear-gradient(var(--mark), var(--mark)) center / 100% 1px no-repeat;
-  z-index: 2;
-  pointer-events: none;
-}
-.section::before {
-  left: -7px;
-}
-.section::after {
-  right: -7px;
-}
+/* ---------- Type ---------- */
 
-.section-head {
-  max-width: 680px;
-  margin-bottom: 56px;
-}
-
+/* Section labels: a number and a name, like the index of a ledger. */
 .eyebrow {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+  font: 500 12px/1 var(--font-mono);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--fg-faint);
-  margin-bottom: 20px;
+  color: var(--muted);
 }
-.eyebrow::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 2px;
-  background: var(--accent);
+.eyebrow b {
+  font-weight: 500;
+  color: var(--accent);
 }
 
 .h2 {
-  font-size: clamp(32px, 4.6vw, 48px);
-}
-.h2 .dim {
-  color: var(--fg-faint);
+  font-size: clamp(32px, 3.9vw, 48px);
+  font-weight: 640;
+  line-height: 1.04;
+  letter-spacing: -0.022em;
 }
 
 .lede {
-  margin-top: 20px;
-  font-size: 18px;
+  margin-top: 18px;
+  max-width: 34em;
+  font-size: clamp(16.5px, 1.5vw, 18px);
   line-height: 1.6;
-  color: var(--fg-muted);
-  max-width: 600px;
-}
-
-/* ---------- Buttons ---------- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 42px;
-  padding: 0 18px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  font: 500 15px/1 var(--font-sans);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    transform 0.15s ease;
-}
-.btn:active {
-  transform: translateY(1px);
-}
-.btn-primary {
-  background: var(--fg);
-  color: var(--bg);
-}
-.btn-primary:hover {
-  background: color-mix(in srgb, var(--fg) 86%, var(--bg));
-}
-.btn-accent {
-  background: var(--accent);
-  color: var(--accent-fg);
-}
-.btn-accent:hover {
-  background: var(--accent-ink);
-}
-.btn-secondary {
-  background: var(--surface);
-  color: var(--fg);
-  border-color: var(--border-strong);
-}
-.btn-secondary:hover {
-  background: var(--bg-subtle);
-}
-.btn-sm {
-  height: 34px;
-  padding: 0 12px;
-  font-size: 14px;
-  border-radius: 7px;
-}
-.btn svg {
-  width: 16px;
-  height: 16px;
-  flex: none;
-}
-
-/* ---------- Small parts ---------- */
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 28px;
-  padding: 0 12px 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  font-size: 13px;
-  color: var(--fg-muted);
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--bg-subtle);
-  font: 500 11.5px/1 var(--font-mono);
-  color: var(--fg-muted);
-  white-space: nowrap;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  color: var(--muted);
 }
 
 .mono {
   font-family: var(--font-mono);
 }
 
-/* ---------- Code (Shiki dual themes) ---------- */
+/* Links draw their underline in on hover. */
+.link {
+  color: var(--ink);
+  text-decoration: none;
+  background:
+    linear-gradient(var(--accent), var(--accent)) no-repeat 0 100% / 0% 1.5px,
+    linear-gradient(var(--rule), var(--rule)) no-repeat 0 100% / 100% 1px;
+  padding-bottom: 1px;
+  transition:
+    background-size 0.3s var(--ease-out),
+    color 0.15s ease;
+}
+.link:hover {
+  color: var(--accent);
+  background-size:
+    100% 1.5px,
+    100% 1px;
+}
+
+/* A hand-drawn mark on a key word (2–3 a page). The SVG draws itself in. */
+.doodle {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+.doodle svg {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+  overflow: visible;
+  color: var(--accent);
+}
+.doodle.under svg {
+  left: -2%;
+  width: 104%;
+  bottom: -0.16em;
+  height: 0.28em;
+}
+.doodle.ring {
+  margin-inline: 0.14em;
+}
+.doodle.ring svg {
+  left: -9%;
+  top: -6%;
+  width: 118%;
+  height: 116%;
+}
+.doodle path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  --lift: 3px;
+  --shade: var(--accent-press);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 20px;
+  border-radius: 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--card);
+  color: var(--ink);
+  font: 600 15px/1 var(--font-sans);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  cursor: pointer;
+  --shade: var(--ink);
+  box-shadow: 0 var(--lift) 0 var(--shade);
+  transform: translateY(0);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.15s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 calc(var(--lift) + 1px) 0 var(--shade);
+}
+.btn:active {
+  transform: translateY(var(--lift));
+  box-shadow: 0 0 0 var(--shade);
+}
+.btn-primary {
+  --shade: var(--accent-press);
+  background: var(--accent-bg);
+  border-color: var(--accent-press);
+  color: var(--on-accent);
+}
+.btn-ink {
+  --shade: var(--accent-bg);
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-quiet {
+  border-color: var(--rule);
+  box-shadow: none;
+  background: transparent;
+}
+.btn-quiet:hover,
+.btn-quiet:active {
+  box-shadow: none;
+  border-color: var(--ink);
+  transform: none;
+}
+.btn-sm {
+  --lift: 2px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+.btn svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  transition: transform 0.2s var(--ease-out);
+}
+.btn:hover svg {
+  transform: translateX(2px);
+}
+
+/* ---------- Illustration defaults ---------- */
+
+.ill {
+  color: var(--ink);
+  overflow: visible;
+}
+.ill :is(path, circle, rect, ellipse, line, polyline, polygon) {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Code (Shiki, theme set in CodeTabs) ---------- */
 
 .astro-code {
   margin: 0;
-  padding: 20px;
+  padding: 20px 22px;
   overflow-x: auto;
   background: transparent !important;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.75;
   tab-size: 2;
 }
 .astro-code code {
   font-size: inherit;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .astro-code,
-  :root:not([data-theme="light"]) .astro-code span {
-    color: var(--shiki-dark) !important;
-    font-style: var(--shiki-dark-font-style) !important;
-    font-weight: var(--shiki-dark-font-weight) !important;
-  }
-}
-:root[data-theme="dark"] .astro-code,
-:root[data-theme="dark"] .astro-code span {
-  color: var(--shiki-dark) !important;
-  font-style: var(--shiki-dark-font-style) !important;
-  font-weight: var(--shiki-dark-font-weight) !important;
-}
+/* ---------- Motion ----------
+   Elements start hidden only when JavaScript runs and motion is welcome; the reveal script adds `.in`
+   as they enter the viewport. Without JS, or with reduced motion, everything is simply there. */
 
-/* ---------- Reveal on scroll ---------- */
-
-/* Scroll reveal: CSS-only, so content is never stuck hidden if a script fails.
-   Browsers without scroll-driven animations just show everything. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      animation: reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 35%;
-    }
-  }
-}
-
-@keyframes reveal {
-  from {
+@media (prefers-reduced-motion: no-preference) {
+  /* Fade and rise */
+  html.js [data-reveal="up"] {
     opacity: 0;
     transform: translateY(16px);
+    transition:
+      opacity 0.6s ease var(--d, 0s),
+      transform 0.7s var(--ease-out) var(--d, 0s);
+  }
+
+  html.js [data-reveal].in {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Line art draws itself in, then its fills fade up. `pathLength="1"` on each stroke makes every
+     line take the same time, whatever its length. The script staggers them with --i. */
+  html.js [data-draw] [pathLength] {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.9s cubic-bezier(0.55, 0, 0.25, 1) calc(var(--i, 0) * 45ms);
+  }
+  html.js [data-draw] [fill]:not([fill="none"]) {
+    fill-opacity: 0;
+    transition: fill-opacity 0.6s ease 0.55s;
+  }
+  html.js [data-draw].in [pathLength] {
+    stroke-dashoffset: 0;
+  }
+  html.js [data-draw].in [fill] {
+    fill-opacity: 1;
   }
 }

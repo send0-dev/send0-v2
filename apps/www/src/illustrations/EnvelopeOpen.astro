@@ -1,0 +1,99 @@
+---
+// An envelope that opens when it comes into view: the front flap folds up, the back flap lifts, and
+// the letter rises out. The default (no JS, reduced motion) is the finished, open envelope.
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<svg
+  data-in
+  class:list={["ill", "envelope-open", cls]}
+  viewBox="0 0 280 230"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <defs>
+    <clipPath id="env-open-clip">
+      <rect x="0" y="0" width="280" height="207"></rect>
+    </clipPath>
+  </defs>
+  <path class="flap-back" d="M30 104.5 140.4 34 250.6 103" fill="var(--paper-alt)"></path>
+  <path d="M30 104.5c73.6-1.8 147-2.3 220.6-1.5l1.2 105.6c-74 1.6-148 1.8-222 .4Z" fill="var(--sky)"></path>
+  <g clip-path="url(#env-open-clip)">
+    <g class="letter">
+      <g transform="rotate(-3 140 100)">
+        <path d="M62 36.5c52-1.4 104-1.4 156 .3l-1.2 132.6H63.4Z" fill="var(--card)"></path>
+        <path d="M80 58h56" stroke="var(--accent-bg)" stroke-width="3"></path>
+        <path d="M80 75h112M80 87h104M80 99h112M80 111h72" stroke="var(--muted)" stroke-width="2"></path>
+        <path d="M183.5 51h22v26h-22Z" fill="var(--butter)"></path>
+        <path d="M183.5 51h22v26h-22Z" stroke="var(--card)" stroke-width="2.6" stroke-dasharray="0 4"></path>
+        <path d="M188.5 64.5c2.6-3 5.4 3 8 0s4.6 2.6 4.6 2.6" stroke-width="1.4"></path>
+      </g>
+    </g>
+  </g>
+  <path d="M29.6 108 140 168.4l111.8-63.6 0 103.8c-74 1.6-148 1.8-222 .4Z" fill="var(--card)"></path>
+  <path d="M30 208c32-24 64-42 92-52M251.8 208.6c-32-24-64-42-91-52" stroke-width="1.5"></path>
+  <path class="flap-front" d="M29.8 104.6c73.6-1.6 147-2 221-.8L140.4 172Z" fill="var(--paper-alt)"></path>
+  <path
+    class="sparks"
+    d="M20 72 9 64M14 90H1M28 56l-4-11M262 72l11-8M268 90h12M254 56l4-11"
+    stroke="var(--accent-bg)"
+    stroke-width="2"
+  ></path>
+</svg>
+
+<style>
+  .flap-back,
+  .flap-front,
+  .letter,
+  .sparks {
+    transform-box: fill-box;
+  }
+  .flap-back {
+    transform-origin: 50% 100%;
+  }
+  .flap-front {
+    transform-origin: 50% 0%;
+    transform: scaleY(0);
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html.js) .envelope-open:not(:global(.in)) .flap-front {
+      transform: none;
+      opacity: 1;
+    }
+    :global(html.js) .envelope-open:not(:global(.in)) .flap-back {
+      transform: scaleY(0);
+    }
+    :global(html.js) .envelope-open:not(:global(.in)) .letter {
+      transform: translateY(78px);
+    }
+    :global(html.js) .envelope-open:not(:global(.in)) .sparks {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    :global(html.js) .envelope-open:global(.in) .flap-front {
+      transition:
+        transform 0.45s cubic-bezier(0.5, 0, 0.75, 0) 0.2s,
+        opacity 0.1s linear 0.6s;
+    }
+    :global(html.js) .envelope-open:global(.in) .flap-back {
+      transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1) 0.6s;
+    }
+    :global(html.js) .envelope-open:global(.in) .letter {
+      transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.1) 0.95s;
+    }
+    :global(html.js) .envelope-open:global(.in) .sparks {
+      transition:
+        opacity 0.3s ease 1.5s,
+        transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 1.5s;
+    }
+  }
+</style>

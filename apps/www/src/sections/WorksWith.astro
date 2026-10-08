@@ -1,0 +1,75 @@
+---
+// The clients send0 already works with. Add LangChain / Vercel AI SDK once they ship.
+const items = [
+  { name: "Claude", how: "MCP" },
+  { name: "Claude Code", how: "MCP" },
+  { name: "Cursor", how: "MCP" },
+  { name: "VS Code", how: "MCP" },
+  { name: "TypeScript", how: "SDK" },
+  { name: "Python", how: "SDK" },
+  { name: "Any HTTP client", how: "REST" },
+];
+---
+
+<section class="works" aria-labelledby="works-title">
+  <div class="wrap inner">
+    <h2 id="works-title" class="mono">
+      Plugs into
+    </h2>
+    <ul>
+      {items.map((t) => (
+        <li>
+          <span class="name">{t.name}</span>
+          <span class="how mono">{t.how}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .works {
+    padding-block: 24px;
+    border-block: 1px solid var(--hairline);
+  }
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 28px;
+  }
+  h2 {
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--card);
+  }
+  .name {
+    font-weight: 550;
+    font-size: 14px;
+  }
+  .how {
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+</style>

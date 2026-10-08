@@ -1,46 +1,51 @@
 ---
 import Base from "../layouts/Base.astro";
+import Envelope from "../illustrations/Envelope.astro";
 ---
 
 <Base title="Page not found" noindex>
-  <div class="column">
-    <section class="section nf">
-      <p class="code mono">550 5.1.1</p>
+  <section class="section">
+    <div class="wrap nf">
+      <Envelope class="env" />
+      <p class="code mono">550 5.1.1 · Return to sender</p>
       <h1>No such address.</h1>
-      <p class="msg">This page bounced. It may have moved, or the link was mistyped. The inbox you're looking for is probably back home.</p>
+      <p class="msg">This page bounced. It may have moved, or the link was mistyped.</p>
       <a class="btn btn-primary" href="/">
         Back to send0
       </a>
-    </section>
-  </div>
+    </div>
+  </section>
 </Base>
 
 <style>
   .nf {
-    min-height: 60vh;
+    min-height: 56vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
   }
+  .nf :global(.env) {
+    width: 200px;
+    margin-bottom: 28px;
+    transform: rotate(-6deg);
+  }
   .code {
-    font-size: 13px;
-    color: var(--accent-ink);
-    padding: 4px 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface);
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
   }
   h1 {
-    margin-top: 24px;
-    font-size: clamp(40px, 7vw, 64px);
-    letter-spacing: -0.045em;
+    margin-top: 14px;
+    font-size: clamp(42px, 7vw, 68px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
   }
   .msg {
     max-width: 440px;
-    margin: 18px 0 32px;
-    color: var(--fg-muted);
+    margin: 16px 0 32px;
+    color: var(--muted);
     font-size: 17px;
   }
 </style>

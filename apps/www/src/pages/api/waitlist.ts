@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   // Bots fill the hidden field. Pretend it worked so they move on.
   if (String(form.get("company") ?? "").trim() !== "") {
-    return reply(true, "Thanks. We'll email you when the beta opens.", 200);
+    return reply(true, "Thanks. We'll email you once, when send0 launches.", 200);
   }
 
   const email = String(form.get("email") ?? "")
@@ -46,5 +46,5 @@ export const POST: APIRoute = async ({ request }) => {
     return reply(false, "We couldn't save that right now. Try again in a minute.", 500);
   }
 
-  return reply(true, "Thanks. We'll email you when the beta opens.", 200);
+  return reply(true, "Thanks. We'll email you once, when send0 launches.", 200);
 };

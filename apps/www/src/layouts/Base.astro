@@ -2,7 +2,11 @@
 import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
+import Motion from "../components/Motion.astro";
 import { site } from "../site";
+import bricolageUrl from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2?url";
+import interUrl from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+import geistMonoUrl from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
 
 interface Props {
   title?: string;
@@ -14,6 +18,18 @@ const { title, description = site.description, noindex = false } = Astro.props;
 const fullTitle = title ? `${title} · send0` : site.title;
 const canonical = new URL(Astro.url.pathname, site.url).href;
 const ogImage = new URL("/og.png", site.url).href;
+
+// Latin subsets only. Fallbacks are metric-matched (Capsize) so the swap doesn't shift layout.
+const latin =
+  "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD";
+const fontCss = `
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;src:url(${bricolageUrl}) format("woff2");unicode-range:${latin}}
+@font-face{font-family:"Inter";font-style:normal;font-weight:400 700;font-display:swap;src:url(${interUrl}) format("woff2");unicode-range:${latin}}
+@font-face{font-family:"Geist Mono";font-style:normal;font-weight:400 600;font-display:swap;src:url(${geistMonoUrl}) format("woff2");unicode-range:${latin}}
+@font-face{font-family:"Bricolage Grotesque Fallback";src:local("Arial"),local("ArialMT");ascent-override:88.21%;descent-override:25.61%;line-gap-override:0%;size-adjust:105.43%}
+@font-face{font-family:"Inter Fallback";src:local("Arial"),local("ArialMT");ascent-override:90.44%;descent-override:22.52%;line-gap-override:0%;size-adjust:107.12%}
+@font-face{font-family:"Geist Mono Fallback";src:local("Courier New"),local("CourierNewPSMT");ascent-override:100.52%;descent-override:29.5%;size-adjust:99.98%}
+`;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -39,8 +55,13 @@ const jsonLd = {
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#09090a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#161514" media="(prefers-color-scheme: dark)" />
+
+    <!-- The headline and body faces are above the fold; both have metric-matched fallbacks. -->
+    <link rel="preload" href={bricolageUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interUrl} as="font" type="font/woff2" crossorigin />
+    <style is:inline set:html={fontCss} />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="send0" />
@@ -55,10 +76,11 @@ const jsonLd = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <script is:inline>
       (function () {
         var d = document.documentElement;
+        d.classList.add("js");
         try {
           var t = new URLSearchParams(location.search).get("theme") || localStorage.getItem("send0-theme");
           if (t === "light" || t === "dark") d.setAttribute("data-theme", t);
@@ -75,6 +97,7 @@ const jsonLd = {
       <slot />
     </main>
     <Footer />
+    <Motion />
 
     <style>
       .skip {
@@ -84,8 +107,8 @@ const jsonLd = {
         z-index: 100;
         padding: 8px 12px;
         border-radius: 6px;
-        background: var(--fg);
-        color: var(--bg);
+        background: var(--ink);
+        color: var(--paper);
         font-size: 14px;
       }
       .skip:focus {

@@ -1,0 +1,28 @@
+---
+// One observer for every entrance on the page. Adds `.in` to [data-reveal], [data-draw] and [data-in]
+// as they come into view; the CSS does the rest. With reduced motion, everything is marked in at once.
+---
+
+<script>
+  const els = document.querySelectorAll<HTMLElement | SVGElement>("[data-reveal], [data-draw], [data-in]");
+  const show = (el: Element) => {
+    if (el.hasAttribute("data-draw"))
+      el.querySelectorAll<SVGElement>("[pathLength]").forEach((p, i) => p.style.setProperty("--i", String(i)));
+    el.classList.add("in");
+  };
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+    els.forEach(show);
+  } else {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          show(e.target);
+          io.unobserve(e.target);
+        }
+      },
+      { rootMargin: "0px 0px -12% 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+  }
+</script>

@@ -1,0 +1,129 @@
+---
+import RobotHand from "../illustrations/RobotHand.astro";
+import StringThread from "../illustrations/StringThread.astro";
+import ApproveDraft from "../illustrations/ApproveDraft.astro";
+---
+
+<section class="section" id="use-cases" aria-labelledby="cando-title">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">
+        <b>01</b> What your agent can do
+      </span>
+      <h2 id="cando-title" class="h2">
+        The world still asks by email.
+      </h2>
+    </div>
+
+    <div class="cards">
+      <article class="card" data-reveal="up" style={`--d:${0}s`}>
+        <div class="pic-panel">
+          <RobotHand class="pic" />
+        </div>
+        <h3>Sign up and verify</h3>
+        <p>
+          It signs up, then <code>wait</code> returns the code.
+        </p>
+        <span class="line mono">
+          msg.extracted.otp <span class="c">// "482913"</span>
+        </span>
+      </article>
+
+      <article class="card" data-reveal="up" style={`--d:${0.12}s`}>
+        <div class="pic-panel">
+          <StringThread class="pic" />
+        </div>
+        <h3>Hold a conversation</h3>
+        <p>Replies match by Message-ID, so threads hold.</p>
+        <span class="line mono">
+          thread.messages <span class="c">// 3, in order</span>
+        </span>
+      </article>
+
+      <article class="card" data-reveal="up" style={`--d:${0.24}s`}>
+        <div class="pic-panel">
+          <ApproveDraft class="pic" />
+        </div>
+        <h3>Keep a person in the loop</h3>
+        <p>Outgoing mail waits as a draft for approval.</p>
+        <span class="line mono">
+          send_policy: <span class="s">"approval"</span>
+        </span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .head {
+    margin-bottom: 52px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 899px) {
+    .cards {
+      max-width: 520px;
+    }
+  }
+  @media (min-width: 900px) {
+    .cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 32px;
+      align-items: stretch;
+    }
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px 24px;
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    transition: border-color 0.2s ease;
+  }
+  .card:hover {
+    border-color: var(--rule);
+  }
+  .pic-panel {
+    display: grid;
+    place-items: center;
+    height: 168px;
+    margin-bottom: 20px;
+    border-radius: 9px;
+    background: var(--paper-alt);
+  }
+  .card > :not(.pic-panel) {
+    margin-inline: 16px;
+  }
+  .cards :global(.pic) {
+    width: 100%;
+    max-width: 168px;
+    max-height: 140px;
+  }
+  h3 {
+    font-size: 20px;
+  }
+  .cards p {
+    margin-top: 8px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .line {
+    display: block;
+    margin-top: auto;
+    padding-top: 9px;
+    border-top: 1px solid var(--hairline);
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .c {
+    color: var(--muted);
+  }
+  .s {
+    color: var(--accent);
+  }
+</style>
