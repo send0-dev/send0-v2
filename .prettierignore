@@ -18,6 +18,7 @@ coverage/
 
 # Not ours to format
 packages/sdk-python/
+packages/langchain-python/
 fixtures/
 apps/web/e2e/shots/
 /docs/

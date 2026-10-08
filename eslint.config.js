@@ -20,6 +20,7 @@ export default defineConfig(
     "**/next-env.d.ts",
     "packages/sdk/src/generated/",
     "packages/sdk-python/",
+    "packages/langchain-python/",
     "apps/web/e2e/shots/",
     "apps/www/shots/",
     "docs/",

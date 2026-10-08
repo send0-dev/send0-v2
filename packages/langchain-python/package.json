@@ -1,0 +1,8 @@
+{
+  "name": "@send0/langchain-python",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "uv run pytest -q"
+  }
+}

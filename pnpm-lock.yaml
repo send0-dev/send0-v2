@@ -705,6 +705,8 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
 
+  packages/langchain-python: {}
+
   packages/mcp:
     dependencies:
       '@modelcontextprotocol/sdk':

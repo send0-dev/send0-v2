@@ -42,9 +42,9 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm check
-      # The Python SDK's tests run in their own job below, with uv.
+      # The Python packages' tests run in their own jobs below, with uv.
       # Two packages at a time: each boots in-memory Postgres (PGlite), which starves a 2-core runner.
-      - run: pnpm exec turbo run test --filter=!@send0/sdk-python --concurrency=2
+      - run: pnpm exec turbo run test --filter=!@send0/sdk-python --filter=!@send0/langchain-python --concurrency=2
       - run: pnpm build
 
   python-sdk:
@@ -54,6 +54,20 @@ jobs:
     defaults:
       run:
         working-directory: packages/sdk-python
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked
+      - run: uv run mypy src
+      - run: uv run pytest -q
+
+  langchain-python:
+    name: LangChain for Python
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: packages/langchain-python
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
