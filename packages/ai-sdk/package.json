@@ -1,0 +1,55 @@
+{
+  "name": "@send0/ai-sdk",
+  "version": "0.1.0",
+  "description": "send0 tools for the Vercel AI SDK: give any agent an email inbox",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://send0.dev/docs/integrations/vercel-ai-sdk",
+  "keywords": [
+    "email",
+    "inbox",
+    "ai",
+    "ai-sdk",
+    "agents",
+    "tools",
+    "send0"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@send0/sdk": "workspace:*"
+  },
+  "peerDependencies": {
+    "ai": "^7.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@send0/agent-tools": "workspace:*",
+    "@types/node": "^24",
+    "ai": "^7.0.133",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3",
+    "zod": "^4.6.5"
+  }
+}
