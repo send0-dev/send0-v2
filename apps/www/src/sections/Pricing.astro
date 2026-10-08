@@ -1,20 +1,8 @@
 ---
 import { site } from "../site";
 
-const selfHost = [
-  "The full server, AGPL-3.0",
-  "The same API, SDKs and MCP server as the cloud",
-  "Amazon SES or any SMTP relay for sending",
-  "No limits from us on inboxes, domains or mail",
-  "Community support on GitHub",
-];
-const cloud = [
-  "Addresses on send0.email, ready in seconds",
-  "A free tier: reply-only, with webhooks and events",
-  "We run Postgres, queues, storage and sending",
-  "Suppressions and auto-pause handled for you",
-  "Email support from the people who build it",
-];
+const selfHost = ["The full server, AGPL-3.0", "Same API, SDKs and MCP", "Pay only for servers and SES"];
+const cloud = ["Addresses on send0.email", "A reply-only free tier", "Webhooks included"];
 ---
 
 <section class="section band" id="pricing" aria-labelledby="pricing-title">
@@ -26,10 +14,6 @@ const cloud = [
       <h2 id="pricing-title" class="h2">
         Free to run yourself.
       </h2>
-      <p class="lede">
-        Self-hosting costs you your servers and sending fees: Amazon SES charges about $0.10 per 1,000 emails. Cloud prices will be
-        published before launch, and every plan will include webhooks.
-      </p>
     </div>
 
     <div class="cards">

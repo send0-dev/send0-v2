@@ -6,7 +6,7 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
 ---
 
 <section class="section" id="use-cases" aria-labelledby="cando-title">
-  <div class="wrap layout">
+  <div class="wrap">
     <div class="head">
       <span class="eyebrow">
         <b>01</b> What your agent can do
@@ -14,44 +14,33 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
       <h2 id="cando-title" class="h2">
         The world still asks by email.
       </h2>
-      <p class="lede">
-        Sign-ups send codes. Suppliers reply to orders. Customers answer in threads. With its own address, your agent can take part, and you
-        decide how much it says on its own.
-      </p>
     </div>
 
     <div class="cards">
-      <Postcard tint="butter" tilt={-1.2} delay={0}>
+      <Postcard tint="butter" tilt={-1.2} delay={0} stacked>
         <RobotHand slot="picture" class="pic" />
         <h3>Sign up and verify</h3>
         <p>
-          Your agent types its own address into a sign-up form, then calls <code>wait</code>. The call returns when the email lands, with
-          the code and the verify link already pulled out.
+          It signs up, then <code>wait</code> returns the code.
         </p>
         <span class="line mono">
           msg.extracted.otp <span class="c">// "482913"</span>
         </span>
       </Postcard>
 
-      <Postcard tint="sky" tilt={0.8} delay={0.12} class="shift">
+      <Postcard tint="sky" tilt={0.8} delay={0.12} stacked class="drop">
         <StringThread slot="picture" class="pic" />
         <h3>Hold a conversation</h3>
-        <p>
-          Replies are matched by Message-ID, In-Reply-To and References, so a back-and-forth with a supplier stays one thread, even when
-          someone edits the subject.
-        </p>
+        <p>Replies match by Message-ID, so threads hold.</p>
         <span class="line mono">
           thread.messages <span class="c">// 3, in order</span>
         </span>
       </Postcard>
 
-      <Postcard tint="sage" tilt={-0.6} delay={0.24}>
+      <Postcard tint="sage" tilt={-0.6} delay={0.24} stacked>
         <RubberStamp slot="picture" class="pic" />
         <h3>Keep a person in the loop</h3>
-        <p>
-          Put an inbox in approval mode and every outgoing message waits as a draft. A person sends or rejects it from the dashboard or the
-          API.
-        </p>
+        <p>Outgoing mail waits as a draft for approval.</p>
         <span class="line mono">
           send_policy: <span class="s">"approval"</span>
         </span>
@@ -61,39 +50,37 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
 </section>
 
 <style>
-  .layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 48px;
-  }
-  @media (min-width: 1024px) {
-    .layout {
-      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
-      gap: 72px;
-      align-items: start;
-    }
-    .head {
-      position: sticky;
-      top: 120px;
-    }
+  .head {
+    margin-bottom: 52px;
   }
   .cards {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
+  @media (min-width: 720px) {
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   @media (min-width: 1024px) {
-    .shift {
-      margin-left: 48px;
-      margin-right: -16px;
+    .cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 32px;
+      align-items: start;
+    }
+    /* hand-placed: the middle card sits a little lower */
+    .cards :global(.drop) {
+      margin-top: 36px;
     }
   }
   .cards :global(.pic) {
     width: 100%;
     max-width: 168px;
-    max-height: 150px;
+    max-height: 140px;
   }
   h3 {
-    font-size: 23px;
+    font-size: 22px;
     padding-right: 48px;
   }
   .cards p {
@@ -103,7 +90,7 @@ import RubberStamp from "../illustrations/RubberStamp.astro";
   }
   .line {
     display: inline-block;
-    margin-top: 12px;
+    margin-top: 14px;
     padding-top: 9px;
     border-top: 1.5px dashed var(--hairline);
     font-size: 12.5px;

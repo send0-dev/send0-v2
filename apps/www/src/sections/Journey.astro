@@ -4,21 +4,18 @@ import Signpost from "../illustrations/Signpost.astro";
 import { site } from "../site";
 
 const stops = [
-  { title: "Accept", body: "Mail to an unknown address is refused while the sending server is still connected." },
-  { title: "Store", body: "The raw message is saved before anything else touches it, so a failed step never loses mail." },
-  {
-    title: "Understand",
-    body: "MIME parsed, quoted history stripped, codes and links pulled out, SPF, DKIM and DMARC read, injection flagged.",
-  },
-  { title: "Thread", body: "Matched to its conversation by headers first, then by subject and the people on it." },
-  { title: "Notify", body: "Your webhook fires, the event stream updates, and any waiting call wakes up." },
+  { title: "Accept", body: "Unknown addresses refused." },
+  { title: "Store", body: "Raw message saved first." },
+  { title: "Understand", body: "Parsed, codes extracted, injection flagged." },
+  { title: "Thread", body: "Joined to its conversation." },
+  { title: "Notify", body: "Webhook, stream, waiting calls." },
 ];
 
 const rules = [
-  { title: "Free accounts are reply-only.", body: "They write only to people who emailed the inbox first, and to the owner." },
-  { title: "50 sends a day, to start.", body: "New accounts begin there, and the limit rises with a clean record." },
-  { title: "Sending pauses itself.", body: "At 0.3% complaints or 5% hard bounces, with an inbox.suspended event." },
-  { title: "No cold outreach, no bulk mail.", body: "And addresses that bounce or complain are suppressed automatically." },
+  "Free accounts can only reply.",
+  "New accounts: 50 sends a day.",
+  "Pauses at 0.3% complaints, 5% hard bounces.",
+  "No cold outreach. No bulk mail.",
 ];
 ---
 
@@ -31,7 +28,6 @@ const rules = [
       <h2 id="journey-title" class="h2">
         How a letter reaches your agent.
       </h2>
-      <p class="lede">Every message takes the same route, with the same five stops.</p>
     </div>
 
     <LetterJourney stops={stops} />
@@ -41,24 +37,17 @@ const rules = [
         <Signpost class="sign" />
         <div>
           <h3>Rules of the road</h3>
-          <p>
-            A shared domain only works if nobody abuses it. These are on for every account from day one, and they're in our{" "}
-            <a class="link" href="/acceptable-use">
-              acceptable use policy
-            </a>
-            . Reports to{" "}
+          <p class="report mono">
+            Report abuse:{" "}
             <a class="link" href={`mailto:${site.email.abuse}`}>
               {site.email.abuse}
-            </a>{" "}
-            are read by a person.
+            </a>
           </p>
         </div>
       </div>
       <ul>
         {rules.map((r) => (
-          <li>
-            <strong>{r.title}</strong> {r.body}
-          </li>
+          <li>{r}</li>
         ))}
       </ul>
     </div>
@@ -81,7 +70,7 @@ const rules = [
   }
   @media (min-width: 1024px) {
     .rules {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
       gap: 64px;
     }
   }
@@ -97,9 +86,9 @@ const rules = [
   h3 {
     font-size: 26px;
   }
-  .post p {
+  .report {
     margin-top: 10px;
-    font-size: 15px;
+    font-size: 12.5px;
     color: var(--muted);
   }
   ul {
@@ -118,15 +107,16 @@ const rules = [
   li {
     padding: 14px 0 14px 28px;
     position: relative;
-    font-size: 14.5px;
-    color: var(--muted);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
     border-bottom: 1px dashed var(--rule);
   }
   li::before {
     content: "";
     position: absolute;
     left: 2px;
-    top: 21px;
+    top: 20px;
     width: 12px;
     height: 7px;
     border-left: 2px solid var(--ok);

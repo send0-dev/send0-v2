@@ -6,38 +6,38 @@ const stamps = [
   {
     glyph: "inbox",
     tint: "butter",
-    title: "An inbox in one call",
-    body: "<code>POST /v1/inboxes</code> returns a live address on send0.email. Add a +tag to the address to sort mail by task.",
+    title: "One call, one inbox",
+    body: "<code>POST /v1/inboxes</code> returns an address.",
   },
   {
     glyph: "wait",
     tint: "sky",
     title: "Wait, don't poll",
-    body: "<code>wait</code> holds one request open for up to two minutes and returns the moment a matching message lands.",
+    body: "Returns when matching mail lands.",
   },
   {
     glyph: "thread",
     tint: "sage",
     title: "Threads that hold",
-    body: "Message-ID, In-Reply-To and References first. Then subject and people, within 14 days.",
+    body: "Headers first, then subject and people.",
   },
   {
     glyph: "live",
     tint: "sage",
-    title: "Webhooks and live events",
-    body: "Signed webhooks, retried for about a day, and a server-sent event stream for every new message.",
+    title: "Webhooks and events",
+    body: "Signed, retried for about a day. SSE too.",
   },
   {
     glyph: "key",
     tint: "butter",
     title: "Keys for one inbox",
-    body: "Limit an API key to specific inboxes and to read, send or admin, so one agent can't read another's mail.",
+    body: "Scope API keys to specific inboxes.",
   },
   {
     glyph: "shield",
     tint: "sky",
-    title: "Mail is untrusted input",
-    body: "Every message carries SPF, DKIM and DMARC verdicts and a prompt-injection flag before your model sees it.",
+    title: "Untrusted by default",
+    body: "SPF, DKIM, DMARC and injection flags.",
   },
 ] as const;
 ---
@@ -45,24 +45,18 @@ const stamps = [
 <section class="section band" id="features" aria-labelledby="stamps-title">
   <div class="wrap">
     <div class="head">
-      <div>
-        <span class="eyebrow">
-          <b>02</b> The essentials
-        </span>
-        <h2 id="stamps-title" class="h2">
-          Six things every agent inbox needs.
-        </h2>
-      </div>
-      <p class="lede">
-        Email has fifty years of edge cases. send0 parses, threads and checks every message, so your agent gets clean data and a clear
-        signal about who sent it.
-      </p>
+      <span class="eyebrow">
+        <b>02</b> The essentials
+      </span>
+      <h2 id="stamps-title" class="h2">
+        Six things every agent inbox needs.
+      </h2>
     </div>
 
     <ul class="sheet">
       {stamps.map((s, i) => (
         <li data-reveal="stamp" style={`--d:${i * 0.09}s`}>
-          <Stamp tint={s.tint} value={String(i + 1).padStart(2, "0")}>
+          <Stamp tint={s.tint}>
             <StampGlyph name={s.glyph} class="glyph" />
             <h3>{s.title}</h3>
             <p set:html={s.body} />
@@ -75,19 +69,7 @@ const stamps = [
 
 <style>
   .head {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px 64px;
-    margin-bottom: 52px;
-  }
-  @media (min-width: 1024px) {
-    .head {
-      grid-template-columns: 1.2fr 1fr;
-      align-items: end;
-    }
-    .head .lede {
-      margin-bottom: 6px;
-    }
+    margin-bottom: 48px;
   }
   .h2 {
     max-width: 15em;

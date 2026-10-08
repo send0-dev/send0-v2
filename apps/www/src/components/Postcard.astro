@@ -5,12 +5,14 @@ interface Props {
   tilt?: number;
   /** Entrance delay in seconds, to stagger a stack of cards. */
   delay?: number;
+  /** Picture above the message, for narrow cards in a row. */
+  stacked?: boolean;
   class?: string;
 }
-const { tint = "sky", tilt = 0, delay = 0, class: cls } = Astro.props;
+const { tint = "sky", tilt = 0, delay = 0, stacked = false, class: cls } = Astro.props;
 ---
 
-<article class:list={["postcard", cls]} style={`--tilt:${tilt}deg;--d:${delay}s`} data-reveal="card">
+<article class:list={["postcard", { stacked }, cls]} style={`--tilt:${tilt}deg;--d:${delay}s`} data-reveal="card">
   <div class:list={["picture", tint]}>
     <slot name="picture" />
   </div>
@@ -85,5 +87,24 @@ const { tint = "sky", tilt = 0, delay = 0, class: cls } = Astro.props;
       top: 0;
       right: 20px;
     }
+  }
+  /* Stacked: picture on top, message below a ruled line */
+  @media (min-width: 640px) {
+    .stacked {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .stacked .message {
+      border-left: 0;
+      border-top: 1px solid var(--hairline);
+      margin: 0 18px;
+      padding: 18px 4px 22px;
+    }
+    .stacked .stamp-box {
+      top: 16px;
+      right: 2px;
+    }
+  }
+  .stacked .picture {
+    height: 170px;
   }
 </style>

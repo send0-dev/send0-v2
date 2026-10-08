@@ -16,9 +16,9 @@ import { site } from "../site";
           Your agent's inbox is <Doodle kind="ring">one API call</Doodle> away.
         </h2>
         <p class="lede">
-          Join the waitlist for send0 Cloud. We'll email you once, when it opens. Prefer your own servers?{" "}
+          One email at launch. Or{" "}
           <a class="link" href={site.docs.selfHost}>
-            Self-host it today
+            self-host today
           </a>
           .
         </p>
@@ -77,6 +77,9 @@ import { site } from "../site";
   }
   .h2 {
     max-width: 13em;
+  }
+  .lede :global(.link) {
+    white-space: nowrap;
   }
   .form {
     margin-top: 28px;
