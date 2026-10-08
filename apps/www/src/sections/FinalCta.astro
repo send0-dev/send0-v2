@@ -37,27 +37,8 @@ import { site } from "../site";
     gap: 32px;
     padding: 40px 24px;
     background: var(--card);
-    border-radius: 10px;
-    box-shadow: var(--shadow-lg);
-  }
-  /* an airmail border */
-  .envelope::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 9px;
-    background: repeating-linear-gradient(
-      -45deg,
-      var(--airmail-red) 0 14px,
-      var(--card) 14px 21px,
-      var(--airmail-blue) 21px 35px,
-      var(--card) 35px 42px
-    );
-    mask:
-      linear-gradient(#000 0 0) content-box exclude,
-      linear-gradient(#000 0 0);
-    pointer-events: none;
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
   }
   @media (min-width: 900px) {
     .envelope {

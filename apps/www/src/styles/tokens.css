@@ -25,7 +25,6 @@
   --on-accent: #ffffff;
   --accent-tint: #e8eefb;
   --airmail-blue: #1f4bb8;
-  --airmail-red: #c8372d; /* stripes only */
 
   /* Tints: inside illustrations and stamps only */
   --sage: #ebf1e5;
@@ -92,7 +91,6 @@
     --on-accent: #ffffff;
     --accent-tint: #1d2638;
     --airmail-blue: #7fa3f0;
-    --airmail-red: #e0675c;
     --sage: #252c21;
     --sky: #1e2532;
     --butter: #2e2a1c;
@@ -124,7 +122,6 @@
   --on-accent: #ffffff;
   --accent-tint: #1d2638;
   --airmail-blue: #7fa3f0;
-  --airmail-red: #e0675c;
   --sage: #252c21;
   --sky: #1e2532;
   --butter: #2e2a1c;

@@ -1,0 +1,53 @@
+---
+import Envelope from "../illustrations/Envelope.astro";
+import { site } from "../site";
+---
+
+<section class="section about-section" aria-labelledby="about-title">
+  <div class="wrap about">
+    <Envelope class="art" />
+    <div>
+      <h2 id="about-title" class="eyebrow">
+        <b>07</b> About send0
+      </h2>
+      <p>
+        We build send0 for teams giving software agents real email. We believe the inbox layer should be open source, ship webhooks on every
+        plan, and run on your own servers if you want. Write to us at{" "}
+        <a class="link" href={`mailto:${site.email.hello}`}>
+          {site.email.hello}
+        </a>
+        .
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about-section {
+    padding-block: calc(var(--section) * 0.7);
+  }
+  .about {
+    display: grid;
+    gap: 28px;
+    max-width: calc(860px + 2 * var(--gutter));
+  }
+  @media (min-width: 720px) {
+    .about {
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 48px;
+      align-items: center;
+    }
+  }
+  .about :global(.art) {
+    width: 120px;
+    transform: rotate(-6deg);
+  }
+  h2 {
+    margin-bottom: 14px;
+  }
+  p {
+    font: 500 clamp(18px, 1.8vw, 22px) / 1.5 var(--font-display);
+    letter-spacing: -0.012em;
+    color: var(--ink);
+  }
+</style>

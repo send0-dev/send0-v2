@@ -20,7 +20,6 @@ export const site = {
     waiting: "/docs/concepts/waiting",
     llms: "/docs/llms-full.txt",
   },
-  founderGithub: "https://github.com/kunal-dd",
   email: {
     hello: "hello@send0.dev",
     support: "support@send0.dev",
