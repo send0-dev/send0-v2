@@ -1,0 +1,55 @@
+{
+  "name": "@send0/langchain",
+  "version": "0.1.0",
+  "description": "send0 tools for LangChain.js: give any agent an email inbox",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://send0.dev/docs/integrations/langchain-js",
+  "keywords": [
+    "email",
+    "inbox",
+    "ai",
+    "langchain",
+    "agents",
+    "tools",
+    "send0"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@send0/sdk": "workspace:*"
+  },
+  "peerDependencies": {
+    "@langchain/core": "^1.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@langchain/core": "^1.2.17",
+    "@send0/agent-tools": "workspace:*",
+    "@types/node": "^24",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3",
+    "zod": "^4.6.5"
+  }
+}
