@@ -16,6 +16,7 @@ export default defineConfig(
     "**/.wrangler/",
     "**/.source/",
     "**/coverage/",
+    "**/.venv/",
     "**/worker-configuration.d.ts",
     "**/next-env.d.ts",
     "packages/sdk/src/generated/",

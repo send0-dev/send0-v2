@@ -1,0 +1,21 @@
+{
+  "name": "@send0/example-langchain-js-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@langchain/anthropic": "^1.5.12",
+    "@langchain/core": "^1.2.17",
+    "@send0/langchain": "workspace:*",
+    "langchain": "^1.5.15",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.3"
+  }
+}

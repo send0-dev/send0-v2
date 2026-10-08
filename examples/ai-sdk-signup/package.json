@@ -1,0 +1,20 @@
+{
+  "name": "@send0/example-ai-sdk-signup",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.76",
+    "@send0/ai-sdk": "workspace:*",
+    "ai": "^7.0.133",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.3"
+  }
+}
