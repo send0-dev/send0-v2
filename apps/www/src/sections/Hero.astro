@@ -1,6 +1,5 @@
 ---
-import AddressLabel from "../components/AddressLabel.astro";
-import Postmark from "../components/Postmark.astro";
+import WaitlistForm from "../components/WaitlistForm.astro";
 import HeroDemo from "../components/HeroDemo.astro";
 import Doodle from "../components/Doodle.astro";
 import { getRepoInfo } from "../lib/github";
@@ -24,18 +23,30 @@ const repo = await getRepoInfo();
       </h1>
       <p class="sub">One API call. A real inbox that receives, replies in thread, and pings your code.</p>
       <div class="form">
-        <AddressLabel source="hero" />
+        <WaitlistForm source="hero" />
       </div>
       <ul class="marks" aria-label="Licences and hosting">
-        <li>
-          <Postmark title="Open source" detail="AGPL-3.0" tone="blue" />
-        </li>
-        <li>
-          <Postmark title="SDKs and MCP" detail="MIT" />
-        </li>
-        <li>
-          <Postmark title="Self-host" detail="Docker or Cloudflare" />
-        </li>
+        {[
+          ["Open source", "AGPL-3.0"],
+          ["SDKs and MCP", "MIT"],
+          ["Self-host", "Docker or Cloudflare"],
+        ].map(([t, d]) => (
+          <li>
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m3.5 8.5 3 3 6-7" />
+            </svg>
+            <strong>{t}</strong>
+            <span class="mono">{d}</span>
+          </li>
+        ))}
       </ul>
     </div>
     <div class="stage">
@@ -125,7 +136,25 @@ const repo = await getRepoInfo();
     border-top: 1px solid var(--hairline);
     display: flex;
     flex-wrap: wrap;
-    gap: 14px 20px;
+    gap: 10px 24px;
+  }
+  .marks li {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13.5px;
+  }
+  .marks svg {
+    width: 15px;
+    height: 15px;
+    color: var(--accent);
+  }
+  .marks strong {
+    font-weight: 600;
+  }
+  .marks .mono {
+    font-size: 12px;
+    color: var(--muted);
   }
   .stage {
     min-width: 0;

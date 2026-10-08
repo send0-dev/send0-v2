@@ -336,30 +336,9 @@ pre {
       transform 0.7s var(--ease-out) var(--d, 0s);
   }
 
-  /* Postcards slide in with a little rotation, then settle at their own tilt */
-  html.js [data-reveal="card"] {
-    opacity: 0;
-    transform: translate(40px, 18px) rotate(4deg);
-    transition:
-      opacity 0.5s ease var(--d, 0s),
-      transform 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.15) var(--d, 0s);
-  }
-
-  /* Stamps: pressed onto the page, one after another */
-  html.js [data-reveal="stamp"] {
-    opacity: 0;
-    transform: scale(1.14) rotate(-5deg);
-    transition:
-      opacity 0.25s ease var(--d, 0s),
-      transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) var(--d, 0s);
-  }
-
   html.js [data-reveal].in {
     opacity: 1;
     transform: none;
-  }
-  html.js [data-reveal="card"].in {
-    transform: rotate(var(--tilt, 0deg));
   }
 
   /* Line art draws itself in, then its fills fade up. `pathLength="1"` on each stroke makes every

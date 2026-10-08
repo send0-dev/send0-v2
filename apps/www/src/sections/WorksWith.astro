@@ -1,6 +1,6 @@
 ---
-// Luggage tags for the clients send0 already plugs into. Add LangChain / Vercel AI SDK once they ship.
-const tags = [
+// The clients send0 already works with. Add LangChain / Vercel AI SDK once they ship.
+const items = [
   { name: "Claude", how: "MCP" },
   { name: "Claude Code", how: "MCP" },
   { name: "Cursor", how: "MCP" },
@@ -17,9 +17,8 @@ const tags = [
       Plugs into
     </h2>
     <ul>
-      {tags.map((t, i) => (
-        <li class="tag" style={`--tilt:${[-1.5, 1, -0.5, 1.5, -1, 0.5, -1.2][i]}deg`}>
-          <span class="hole" aria-hidden="true" />
+      {items.map((t) => (
+        <li>
           <span class="name">{t.name}</span>
           <span class="how mono">{t.how}</span>
         </li>
@@ -30,15 +29,14 @@ const tags = [
 
 <style>
   .works {
-    padding-block: 26px;
+    padding-block: 24px;
     border-block: 1px solid var(--hairline);
-    background: var(--paper-alt);
   }
   .inner {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 16px 32px;
+    gap: 14px 28px;
   }
   h2 {
     font-size: 11.5px;
@@ -53,43 +51,21 @@ const tags = [
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 12px 14px;
+    gap: 8px;
   }
-  /* a luggage tag: a stub with a punched hole, then the name */
-  .tag {
-    position: relative;
+  li {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    height: 38px;
-    padding: 0 14px 0 34px;
+    gap: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
     background: var(--card);
-    border: 1.5px solid var(--ink);
-    border-radius: 12px 7px 7px 12px;
-    transform: rotate(var(--tilt));
-  }
-  .tag::after {
-    content: "";
-    position: absolute;
-    left: 24px;
-    top: 5px;
-    bottom: 5px;
-    border-left: 1.5px dashed var(--rule);
-  }
-  .hole {
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    width: 9px;
-    height: 9px;
-    margin-top: -4.5px;
-    border-radius: 50%;
-    border: 1.5px solid var(--ink);
-    background: var(--paper-alt);
   }
   .name {
     font-weight: 550;
-    font-size: 14.5px;
+    font-size: 14px;
   }
   .how {
     font-size: 10.5px;

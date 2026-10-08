@@ -1,6 +1,6 @@
 /*
-  send0.dev design tokens: "the agents' post office".
-  White paper, ink, and airmail blue as the one accent. Red appears only in airmail stripes.
+  send0.dev design tokens.
+  White paper, ink, and one blue accent.
   Text pairs are checked against WCAG AA in both themes (ratios noted where they matter).
 */
 
@@ -11,22 +11,20 @@
   --paper: #ffffff;
   --paper-alt: #f7f7f5; /* alternate bands, barely there */
   --card: #ffffff;
-  --stamp-paper: #ffffff;
   --ink: #1b1a18;
   --muted: #5f5d58; /* 6.6:1 on white */
   --faint: #a19e97; /* decorative only, never body text */
   --hairline: #e9e8e4;
   --rule: #d9d7d1;
 
-  /* Airmail blue: the accent */
+  /* Blue: the one accent */
   --accent: #1f4bb8; /* links and highlights, 7.6:1 on white */
   --accent-bg: #1f4bb8; /* primary buttons; white text on it is 7.6:1 */
   --accent-press: #12307a;
   --on-accent: #ffffff;
   --accent-tint: #e8eefb;
-  --airmail-blue: #1f4bb8;
 
-  /* Tints: inside illustrations and stamps only */
+  /* Tints: inside illustrations only */
   --sage: #ebf1e5;
   --sky: #ebf0f9;
   --butter: #faf5e2;
@@ -34,6 +32,7 @@
   /* States */
   --ok: #286934; /* 6.2:1 on white */
   --ok-tint: #e5f0e1;
+  --danger: #b42318;
 
   /* Code panels: neutral dark in both themes */
   --code-bg: #1a1a1c;
@@ -79,7 +78,6 @@
     --paper: #161514;
     --paper-alt: #1b1a19;
     --card: #1f1e1c;
-    --stamp-paper: #34322f;
     --ink: #f2efe9;
     --muted: #aaa59c;
     --faint: #6f6b64;
@@ -90,12 +88,12 @@
     --accent-press: #1d3f99;
     --on-accent: #ffffff;
     --accent-tint: #1d2638;
-    --airmail-blue: #7fa3f0;
     --sage: #252c21;
     --sky: #1e2532;
     --butter: #2e2a1c;
     --ok: #8fd19a;
     --ok-tint: #1f2c20;
+    --danger: #f97066;
     --code-bg: #111113;
     --code-bar: #18181b;
     --code-line: #303036;
@@ -110,7 +108,6 @@
   --paper: #161514;
   --paper-alt: #1b1a19;
   --card: #1f1e1c;
-  --stamp-paper: #34322f;
   --ink: #f2efe9;
   --muted: #aaa59c;
   --faint: #6f6b64;
@@ -121,12 +118,12 @@
   --accent-press: #1d3f99;
   --on-accent: #ffffff;
   --accent-tint: #1d2638;
-  --airmail-blue: #7fa3f0;
   --sage: #252c21;
   --sky: #1e2532;
   --butter: #2e2a1c;
   --ok: #8fd19a;
   --ok-tint: #1f2c20;
+  --danger: #f97066;
   --code-bg: #111113;
   --code-bar: #18181b;
   --code-line: #303036;

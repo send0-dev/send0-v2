@@ -1,0 +1,191 @@
+---
+// The waitlist form: an email field and a button. Posts to /api/waitlist (D1); works without JavaScript too.
+// On success the button turns into a check and the result is announced through the status line.
+interface Props {
+  source: "hero" | "footer-cta" | "pricing";
+}
+const { source } = Astro.props;
+const inputId = `wl-${source}`;
+---
+
+<form class="wl" method="post" action="/api/waitlist" data-waitlist>
+  <input type="hidden" name="source" value={source} />
+  <div class="hp" aria-hidden="true">
+    <label>
+      Company <input type="text" name="company" tabindex="-1" autocomplete="off" />
+    </label>
+  </div>
+  <div class="field">
+    <label class="sr-only" for={inputId}>
+      Your email address
+    </label>
+    <input
+      id={inputId}
+      type="email"
+      name="email"
+      required
+      autocomplete="email"
+      inputmode="email"
+      placeholder="you@company.com"
+      maxlength="254"
+    />
+    <button class="btn btn-primary" type="submit">
+      <span class="btn-label">Join the waitlist</span>
+      <svg
+        class="check"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m3.5 8.5 3 3 6-7" pathLength="1"></path>
+      </svg>
+    </button>
+  </div>
+  <p class="status" role="status" aria-live="polite"></p>
+</form>
+
+<script>
+  const ok = "You're on the list. We'll email you once, when send0 launches.";
+  document.querySelectorAll<HTMLFormElement>("form[data-waitlist]").forEach((form) => {
+    const status = form.querySelector<HTMLElement>(".status")!;
+    const button = form.querySelector<HTMLButtonElement>("button")!;
+    const label = button.querySelector<HTMLElement>(".btn-label")!;
+    const input = form.querySelector<HTMLInputElement>("input[type=email]")!;
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (form.dataset.state === "loading") return;
+      form.dataset.state = "loading";
+      label.textContent = "Joining…";
+      status.textContent = "";
+      try {
+        const res = await fetch(form.action, { method: "POST", headers: { accept: "application/json" }, body: new FormData(form) });
+        const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
+        if (!res.ok || !data.ok) throw new Error(data.message || "Something went wrong. Try again.");
+        form.dataset.state = "done";
+        label.textContent = "Joined";
+        status.textContent = ok;
+        input.disabled = button.disabled = true;
+      } catch (err) {
+        form.dataset.state = "error";
+        label.textContent = "Join the waitlist";
+        status.textContent = err instanceof Error ? err.message : "Something went wrong. Try again.";
+      }
+    });
+  });
+
+  // No-JS fallback lands on /?waitlist=ok#waitlist
+  const result = new URLSearchParams(location.search).get("waitlist");
+  const target = document.querySelector<HTMLFormElement>("#waitlist form[data-waitlist]") ?? document.querySelector("form[data-waitlist]");
+  if (result && target) {
+    target.dataset.state = result === "ok" ? "done" : "error";
+    target.querySelector(".status")!.textContent = result === "ok" ? ok : "That email didn't look right. Try again.";
+  }
+</script>
+
+<style>
+  .wl {
+    width: 100%;
+    max-width: 480px;
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .field {
+    display: flex;
+    gap: 6px;
+    padding: 5px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .field:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-tint);
+  }
+  input[type="email"] {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: 400 16px/1 var(--font-sans);
+    outline: none;
+  }
+  input::placeholder {
+    color: var(--muted);
+  }
+  input:disabled {
+    opacity: 0.6;
+  }
+  /* A flat button inside the field; the shared press shadow would sit outside it. */
+  .field .btn {
+    --lift: 0px;
+    height: 44px;
+    border: 0;
+    border-radius: 8px;
+    box-shadow: none;
+    transition:
+      background-color 0.3s ease,
+      transform 0.12s ease;
+  }
+  .field .btn:hover {
+    transform: none;
+    background: var(--accent-press);
+  }
+  .field .btn:active {
+    transform: scale(0.98);
+  }
+  button:disabled {
+    cursor: default;
+  }
+  .check {
+    display: none;
+  }
+  .wl[data-state="done"] .btn {
+    background: var(--ok);
+    color: var(--paper);
+  }
+  .wl[data-state="done"] .check {
+    display: block;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: tick 0.4s ease-out 0.1s forwards;
+  }
+  @keyframes tick {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .status {
+    min-height: 22px;
+    padding: 8px 4px 0;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .wl[data-state="done"] .status {
+    color: var(--ok);
+  }
+  .wl[data-state="error"] .status {
+    color: var(--danger);
+  }
+  @media (max-width: 479px) {
+    .field {
+      flex-direction: column;
+    }
+  }
+</style>

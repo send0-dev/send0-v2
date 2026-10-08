@@ -1,9 +1,9 @@
 ---
-import LetterJourney from "../components/LetterJourney.astro";
-import Signpost from "../illustrations/Signpost.astro";
+import Steps from "../components/Steps.astro";
+import Icon from "../illustrations/Icon.astro";
 import { site } from "../site";
 
-const stops = [
+const steps = [
   { title: "Accept", body: "Unknown addresses refused." },
   { title: "Store", body: "Raw message saved first." },
   { title: "Understand", body: "Parsed, codes extracted, injection flagged." },
@@ -19,24 +19,24 @@ const rules = [
 ];
 ---
 
-<section class="section band" id="how-it-works" aria-labelledby="journey-title">
+<section class="section band" id="how-it-works" aria-labelledby="how-title">
   <div class="wrap">
     <div class="head">
       <span class="eyebrow">
-        <b>04</b> The journey of a letter
+        <b>04</b> How it works
       </span>
-      <h2 id="journey-title" class="h2">
-        How a letter reaches your agent.
+      <h2 id="how-title" class="h2">
+        What happens when mail arrives.
       </h2>
     </div>
 
-    <LetterJourney stops={stops} />
+    <Steps steps={steps} />
 
     <div class="rules">
       <div class="post">
-        <Signpost class="sign" />
+        <Icon name="shield" class="sign" />
         <div>
-          <h3>Rules of the road</h3>
+          <h3>Safe by default</h3>
           <p class="report mono">
             Report abuse:{" "}
             <a class="link" href={`mailto:${site.email.abuse}`}>
@@ -81,10 +81,11 @@ const rules = [
   }
   .post :global(.sign) {
     flex: none;
-    width: 92px;
+    width: 44px;
+    height: 44px;
   }
   h3 {
-    font-size: 26px;
+    font-size: 22px;
   }
   .report {
     margin-top: 10px;
@@ -110,7 +111,7 @@ const rules = [
     font-size: 15px;
     font-weight: 500;
     color: var(--ink);
-    border-bottom: 1px dashed var(--rule);
+    border-bottom: 1px solid var(--hairline);
   }
   li::before {
     content: "";

@@ -1,11 +1,9 @@
 ---
-import Envelope from "../illustrations/Envelope.astro";
 import { site } from "../site";
 ---
 
 <section class="section about-section" aria-labelledby="about-title">
   <div class="wrap about">
-    <Envelope class="art" />
     <div>
       <h2 id="about-title" class="eyebrow">
         <b>07</b> About send0
@@ -29,18 +27,8 @@ import { site } from "../site";
   .about {
     display: grid;
     gap: 28px;
-    max-width: calc(860px + 2 * var(--gutter));
-  }
-  @media (min-width: 720px) {
-    .about {
-      grid-template-columns: 150px minmax(0, 1fr);
-      gap: 48px;
-      align-items: center;
-    }
-  }
-  .about :global(.art) {
-    width: 120px;
-    transform: rotate(-6deg);
+    max-width: calc(760px + 2 * var(--gutter));
+    gap: 0;
   }
   h2 {
     margin-bottom: 14px;

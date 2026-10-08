@@ -1,0 +1,87 @@
+---
+import Icon from "../illustrations/Icon.astro";
+
+const items = [
+  { icon: "inbox", title: "One call, one inbox", body: "<code>POST /v1/inboxes</code> returns an address." },
+  { icon: "wait", title: "Wait, don't poll", body: "Returns when matching mail lands." },
+  { icon: "thread", title: "Threads that hold", body: "Headers first, then subject and people." },
+  { icon: "live", title: "Webhooks and events", body: "Signed, retried for about a day. SSE too." },
+  { icon: "key", title: "Keys for one inbox", body: "Scope API keys to specific inboxes." },
+  { icon: "shield", title: "Untrusted by default", body: "SPF, DKIM, DMARC and injection flags." },
+] as const;
+---
+
+<section class="section band" id="features" aria-labelledby="essentials-title">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">
+        <b>02</b> The essentials
+      </span>
+      <h2 id="essentials-title" class="h2">
+        Six things every agent inbox needs.
+      </h2>
+    </div>
+
+    <!-- One container, a 3×2 grid split by hairlines -->
+    <ul class="grid">
+      {items.map((it, i) => (
+        <li data-reveal="up" style={`--d:${i * 0.07}s`}>
+          <Icon name={it.icon} class="icon" />
+          <h3>{it.title}</h3>
+          <p set:html={it.body} />
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .head {
+    margin-bottom: 44px;
+  }
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
+    background: var(--hairline);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  li {
+    padding: 30px 30px 32px;
+    background: var(--card);
+    transition: background-color 0.2s ease;
+  }
+  li:hover {
+    background: color-mix(in srgb, var(--card) 96%, var(--accent));
+  }
+  li :global(.icon) {
+    width: 38px;
+    height: 38px;
+    margin: -4px 0 16px -4px;
+  }
+  h3 {
+    font-size: 19px;
+    line-height: 1.2;
+  }
+  p {
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+</style>
