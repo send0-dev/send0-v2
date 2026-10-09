@@ -197,9 +197,17 @@ jobs:
       - name: Check the package versions match the tag
         run: node scripts/release-version.mjs --check "$TAG"
       - uses: astral-sh/setup-uv@v7
-      - run: uv build packages/sdk-python --out-dir dist
-      - run: uv build packages/langchain-python --out-dir dist
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - run: uv build packages/sdk-python --out-dir dist/send0
+      - run: uv build packages/langchain-python --out-dir dist/langchain-send0
+      # The SDK goes first: langchain-send0 depends on it, and PyPI allows only one pending
+      # publisher per workflow, so a new project's publisher is added after the one before it ships.
+      - name: Publish send0
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/
+          packages-dir: dist/send0/
+          skip-existing: true
+      - name: Publish langchain-send0
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/langchain-send0/
           skip-existing: true
