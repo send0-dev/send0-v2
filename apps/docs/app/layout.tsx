@@ -27,6 +27,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://send0.dev"),
   title: { template: "%s · send0 docs", default: "send0 docs" },
   description: "Give any agent an email inbox in one API call. Guides, SDK, MCP and API reference for send0.",
+  // Metadata URLs don't get basePath automatically.
   icons: { icon: "/docs/favicon.svg" },
 };
 
