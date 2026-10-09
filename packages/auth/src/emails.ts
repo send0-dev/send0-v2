@@ -4,7 +4,7 @@ const hi = (name: string | null) => (name ? `Hi ${name.split(" ")[0]},` : "Hi,")
 function layout(body: string, button?: { label: string; href: string }): string {
   return `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#fbfbfa;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#0c0c0d">
 <div style="max-width:480px;margin:0 auto;background:#ffffff;border:1px solid #e6e6e3;border-radius:10px;padding:28px">
-<p style="margin:0 0 20px;font-weight:600;font-size:16px">send0</p>
+<p style="margin:0 0 20px;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:16px;letter-spacing:-0.02em">&lsaquo;0&rsaquo; send0</p>
 ${body}
 ${button ? `<p style="margin:24px 0"><a href="${esc(button.href)}" style="display:inline-block;background:#0c0c0d;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:500">${esc(button.label)}</a></p><p style="font-size:13px;color:#57575e;word-break:break-all">Or paste this link into your browser:<br>${esc(button.href)}</p>` : ""}
 </div>

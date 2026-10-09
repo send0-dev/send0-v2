@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, Outlet } from "react-router";
-import { LogoMark } from "@/components/logo";
+import { Logo } from "@/components/logo";
 
 /** Sign-in pages: one focused column on the canvas, with a soft brand glow behind it. */
 export function AuthLayout() {
@@ -13,7 +13,7 @@ export function AuthLayout() {
       />
       <main className="relative mx-auto flex w-full max-w-[380px] flex-1 flex-col justify-center px-6 py-16">
         <Link to="/" className="mb-8 w-fit" aria-label="send0">
-          <LogoMark className="size-9 drop-shadow-[0_8px_24px_rgb(242_101_34/0.35)]" />
+          <Logo className="h-6" />
         </Link>
         <Outlet />
       </main>
