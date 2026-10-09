@@ -1,162 +1,183 @@
 ---
+import Ticks from "../components/Ticks.astro";
 import WaitlistForm from "../components/WaitlistForm.astro";
-import HeroDemo from "../components/HeroDemo.astro";
-import Doodle from "../components/Doodle.astro";
+import { site } from "../site";
 import { getRepoInfo } from "../lib/github";
 
-const repo = await getRepoInfo();
+const { version, releaseUrl } = await getRepoInfo();
+
+// fig. 1 is sample data: made-up agent names and example senders, no real accounts.
+const names = ["signup-agent", "support-ai", "billing-bot", "qa-runner", "research-agent", "sched-bot", "ops-agent", "onboard-ai"];
+const events: [string, string[]][] = [
+  ["noreply@github.com", ["otp 482913"]],
+  ["invoices@stripe.com", ["link", "pdf"]],
+  ["dana@acme.com", ["thread", "replied"]],
+  ["no-reply@vercel.com", ["otp 771204"]],
+  ["alex@northwind.io", ["thread"]],
+  ["hello@linear.app", ["link"]],
+];
+
+// 168 inboxes on desktop; CSS shows the first 98 on phones. A few are mid-flight so the still frame reads as live.
+const CELLS = 168;
+const on = new Set([27, 61, 90, 140]);
+const open = new Set([8, 47, 76, 118, 153]);
+const cells = Array.from({ length: CELLS }, (_, i) =>
+  ["cell", i % 13 === 5 && "hatch", on.has(i) && "on", open.has(i) && "open"].filter(Boolean).join(" "),
+);
+
+// The still frame's log, newest first, about one event per tick.
+const pad = (n: number) => String(n).padStart(2, "0");
+const rows = Array.from({ length: 6 }, (_, i) => {
+  const s = 41 * 60 + 52 - i * 2 - (i > 2 ? 1 : 0);
+  const [from, tags] = events[(i * 5 + 2) % events.length]!;
+  return { t: `14:${pad(Math.floor(s / 60))}:${pad(s % 60)}`, to: names[(i * 3 + 1) % names.length]!, from, tags };
+});
 ---
 
 <section class="hero">
-  <div class="wrap grid">
-    <div class="copy">
-      <a class="release mono" href={repo.releaseUrl} rel="noopener">
-        <span class="dot" aria-hidden="true"></span>
-        Self-host {repo.version} is out
-        <span aria-hidden="true">→</span>
+  <div class="copy">
+    <a class="status" href={releaseUrl}>
+      <i aria-hidden="true"></i>
+      {version} · SDKs on npm and PyPI →
+    </a>
+    <h1>Email infrastructure for AI agents</h1>
+    <p class="lede">
+      One API call gives your agent a real inbox. It receives mail, replies in the same thread, and calls your code the moment something
+      arrives. Open source, self-hostable, webhooks on every plan.
+    </p>
+    <div class="ctas" id="join">
+      <WaitlistForm />
+      <a class="btn" href={site.docs.home}>
+        Read the docs
       </a>
-      <h1>
-        Give your agent{" "}
-        <span class="nb">
-          an <Doodle>email address.</Doodle>
-        </span>
-      </h1>
-      <p class="sub">One API call. A real inbox that receives, replies in thread, and pings your code.</p>
-      <div class="form">
-        <WaitlistForm source="hero" />
-      </div>
-      <ul class="marks" aria-label="Licences and hosting">
-        {[
-          ["Open source", "AGPL-3.0"],
-          ["SDKs and MCP", "MIT"],
-          ["Self-host", "Docker or Cloudflare"],
-        ].map(([t, d]) => (
-          <li>
-            <svg
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m3.5 8.5 3 3 6-7" />
-            </svg>
-            <strong>{t}</strong>
-            <span class="mono">{d}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-    <div class="stage">
-      <HeroDemo />
+      <span class="fine">
+        or self-host today: <b>docker compose up</b>
+      </span>
     </div>
   </div>
+
+  <div
+    class="fig"
+    role="img"
+    aria-label="Figure 1: a grid of agent inboxes. Mail lands in one, its agent replies, and each event is logged."
+  >
+    <div class="fig-bar">
+      <span class="sq">‹›</span>
+      <span>[ fig. 1 — agent inboxes ]</span>
+      <span class="sq">⊞</span>
+    </div>
+    <div class="fig-in">
+      <div class="f1">
+        <div class="fig-card">
+          <div class="fig-cap">
+            <span>[ fig. 1a · inboxes ]</span>
+            <span>
+              <span class="n-lg">168</span>
+              <span class="n-sm">98</span> inboxes · sample
+            </span>
+          </div>
+          <div class="grid" id="f1-grid">
+            {cells.map((c) => (
+              <i class={c}></i>
+            ))}
+          </div>
+          <div class="legend">
+            <span>
+              <i></i>idle
+            </span>
+            <span>
+              <i class="a"></i>mail arrived
+            </span>
+            <span>
+              <i class="o"></i>agent replying
+            </span>
+          </div>
+        </div>
+        <div class="fig-card">
+          <div class="fig-cap">
+            <span>[ fig. 1b · events ]</span>
+            <span>message.received</span>
+          </div>
+          <div class="log" id="f1-log" data-names={JSON.stringify(names)} data-events={JSON.stringify(events)}>
+            {rows.map((r) => (
+              <div class="row">
+                <span class="t">{r.t}</span>
+                <span class="what">
+                  <b>{r.to}@</b> ← {r.from}
+                  <br />
+                  {r.tags.map((t, i) => (
+                    <span class={i === 0 ? "tag a" : "tag"}>{t}</span>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <Ticks />
 </section>
 
-<style>
-  .hero {
-    padding-block: 48px 72px;
+<script>
+  // fig. 1: mail lands in a random inbox, the agent replies, an event is logged. About one tick every 1.3s,
+  // only while the figure is on screen and the tab is visible. Reduced motion keeps the still frame.
+  const grid = document.getElementById("f1-grid");
+  const log = document.getElementById("f1-log");
+  if (grid && log && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const names = JSON.parse(log.dataset.names ?? "[]") as string[];
+    const events = JSON.parse(log.dataset.events ?? "[]") as [string, string[]][];
+    const cells = [...grid.children] as HTMLElement[];
+    const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)]!;
+    const clock = (d: Date) => d.toTimeString().slice(0, 8);
+
+    // Start from the still frame, restamped to now.
+    cells.forEach((c) => c.classList.remove("on", "open"));
+    log.querySelectorAll<HTMLElement>(".t").forEach((t, i) => (t.textContent = clock(new Date(Date.now() - i * 1300))));
+
+    const el = (tag: string, cls: string, ...kids: (Node | string)[]) => {
+      const node = document.createElement(tag);
+      node.className = cls;
+      for (const k of kids) node.appendChild(typeof k === "string" ? document.createTextNode(k) : k);
+      return node;
+    };
+    const tick = () => {
+      const live = cells.filter((c) => c.offsetParent !== null);
+      const c = pick(live);
+      c.classList.add("on");
+      setTimeout(() => {
+        c.classList.replace("on", "open");
+        setTimeout(() => c.classList.remove("open"), 1400);
+      }, 900);
+
+      const [from, tags] = pick(events);
+      const what = el(
+        "span",
+        "what",
+        el("b", "", `${pick(names)}@`),
+        ` ← ${from}`,
+        el("br", ""),
+        ...tags.map((t, i) => el("span", i ? "tag" : "tag a", t)),
+      );
+      const row = el("div", "row new", el("span", "t", clock(new Date())), what);
+      log.insertBefore(row, log.firstChild);
+      while (log.children.length > 7) log.lastElementChild!.remove();
+    };
+
+    let timer = 0;
+    let onScreen = false;
+    const sync = () => {
+      const run = onScreen && !document.hidden;
+      if (run && !timer) timer = window.setInterval(tick, 1300);
+      if (!run && timer) {
+        clearInterval(timer);
+        timer = 0;
+      }
+    };
+    new IntersectionObserver(([entry]) => {
+      onScreen = !!entry?.isIntersecting;
+      sync();
+    }).observe(grid.closest(".fig")!);
+    document.addEventListener("visibilitychange", sync);
   }
-  @media (min-width: 768px) {
-    .hero {
-      padding-block: 52px 80px;
-    }
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 56px;
-  }
-  @media (min-width: 1180px) {
-    .grid {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 6.4fr);
-      gap: 56px;
-      align-items: center;
-    }
-  }
-  .copy {
-    max-width: 600px;
-  }
-  .release {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px 6px 10px;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    font-size: 12.5px;
-    color: var(--muted);
-    transition:
-      border-color 0.15s ease,
-      color 0.15s ease;
-  }
-  .release:hover {
-    color: var(--ink);
-    border-color: var(--ink);
-  }
-  .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--accent-bg);
-  }
-  h1 {
-    margin-top: 24px;
-    font-size: clamp(42px, 4.7vw, 64px);
-    font-weight: 650;
-    line-height: 1.02;
-    letter-spacing: -0.022em;
-    text-wrap: initial;
-  }
-  .nb {
-    white-space: nowrap;
-  }
-  .sub {
-    margin-top: 22px;
-    max-width: 30em;
-    font-size: clamp(17px, 1.6vw, 19px);
-    line-height: 1.55;
-    color: var(--muted);
-  }
-  .form {
-    margin-top: 30px;
-  }
-  .docs {
-    display: inline-block;
-    margin-top: 12px;
-    margin-left: 4px;
-    font-size: 14.5px;
-  }
-  .marks {
-    list-style: none;
-    margin: 28px 0 0;
-    padding: 22px 0 0;
-    border-top: 1px solid var(--hairline);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 24px;
-  }
-  .marks li {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 13.5px;
-  }
-  .marks svg {
-    width: 15px;
-    height: 15px;
-    color: var(--accent);
-  }
-  .marks strong {
-    font-weight: 600;
-  }
-  .marks .mono {
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .stage {
-    min-width: 0;
-  }
-</style>
+</script>

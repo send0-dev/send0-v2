@@ -1,51 +1,56 @@
 ---
 import Base from "../layouts/Base.astro";
-import Envelope from "../illustrations/Envelope.astro";
+import Guides from "../components/Guides.astro";
+import Ticks from "../components/Ticks.astro";
 ---
 
-<Base title="Page not found" noindex>
-  <section class="section">
-    <div class="wrap nf">
-      <Envelope class="env" />
-      <p class="code mono">550 5.1.1 · Return to sender</p>
-      <h1>No such address.</h1>
-      <p class="msg">This page bounced. It may have moved, or the link was mistyped.</p>
-      <a class="btn btn-primary" href="/">
-        Back to send0
-      </a>
+<Base title="Page not found" noindex sheet="404">
+  <div class="page">
+    <Guides />
+    <div class="wrap">
+      <section class="nf">
+        <div class="head">
+          <div class="eyebrow">
+            # 404 <i>[return to sender]</i>
+          </div>
+          <h1>No such address.</h1>
+          <p class="lede">This page bounced. It may have moved, or the link was mistyped.</p>
+        </div>
+        <div class="term">
+          <div class="bar">
+            <span>smtp</span>
+            <span>550 5.1.1</span>
+          </div>
+          <pre><span class="p">&gt;</span> RCPT TO:&lt;this-page@send0.dev&gt;
+<span class="p">&lt;</span> 550 5.1.1 No such address here</pre>
+        </div>
+        <div class="actions">
+          <a class="btn solid" href="/">
+            Back to send0
+          </a>
+          <a class="btn" href="/docs">
+            Read the docs
+          </a>
+        </div>
+        <Ticks />
+      </section>
     </div>
-  </section>
+  </div>
 </Base>
 
 <style>
   .nf {
-    min-height: 56vh;
+    display: grid;
+    gap: 32px;
+    min-height: 62vh;
+    align-content: center;
+  }
+  .term {
+    max-width: 560px;
+  }
+  .actions {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-  .nf :global(.env) {
-    width: 200px;
-    margin-bottom: 28px;
-    transform: rotate(-6deg);
-  }
-  .code {
-    font-size: 12.5px;
-    letter-spacing: 0.06em;
-    color: var(--accent);
-  }
-  h1 {
-    margin-top: 14px;
-    font-size: clamp(42px, 7vw, 68px);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-  }
-  .msg {
-    max-width: 440px;
-    margin: 16px 0 32px;
-    color: var(--muted);
-    font-size: 17px;
+    gap: 10px;
+    flex-wrap: wrap;
   }
 </style>

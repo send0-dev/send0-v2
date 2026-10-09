@@ -4,147 +4,45 @@ import { site } from "../site";
 const faqs = [
   {
     q: "How is it different from a transactional email API?",
-    a: `Those are built to send receipts; receiving is an add-on that forwards raw mail. send0 starts from the inbox: messages are parsed, threaded and checked, codes are extracted, and your agent replies in the same thread.`,
+    a: "Those are built to send receipts; receiving is an add-on that forwards raw mail. send0 starts from the inbox: messages are parsed, threaded and checked, codes are extracted, and your agent replies in the same thread.",
   },
   {
     q: "Will sites block send0.email addresses as disposable?",
-    a: `We work to make sure they don't. Every send0.email inbox belongs to a verified account, and we never market it as throwaway mail. Need your own domain? Self-host today; custom domains are coming to paid cloud plans.`,
+    a: "We work to make sure they don't. Every send0.email inbox belongs to a verified account, and we never market it as throwaway mail. Need your own domain? Self-host today; custom domains are coming to paid cloud plans.",
   },
   {
     q: "How do you keep agents safe from malicious email?",
-    a: `Every message carries SPF, DKIM and DMARC results and a prompt-injection flag. The MCP server hands bodies to the model as untrusted data. Approval mode puts a person before every send, and keys can be limited to one inbox.`,
+    a: "Every message carries SPF, DKIM and DMARC results and a prompt-injection flag. The MCP server hands bodies to the model as untrusted data. Approval mode puts a person before every send, and keys can be limited to one inbox.",
   },
   {
-    q: 'What does <span class="nb">AGPL-3.0</span> mean for me?',
-    a: `Calling the API puts no obligations on your code, and you can self-host commercially. Change the server and offer it to others over a network, and you share those changes. The SDKs and MCP server are MIT.`,
+    q: "What does AGPL-3.0 mean for me?",
+    a: "Calling the API puts no obligations on your code, and you can self-host commercially. Change the server and offer it to others over a network, and you share those changes. The SDKs and MCP server are MIT.",
   },
 ];
 ---
 
-<section class="section" id="faq" aria-labelledby="faq-title">
-  <div class="wrap layout">
-    <div class="head">
-      <span class="eyebrow">
-        <b>08</b> Questions
-      </span>
-      <h2 id="faq-title" class="h2">
-        What people ask us.
-      </h2>
-      <p class="lede">
-        Ask us anything:{" "}
-        <a class="link" href={`mailto:${site.email.hello}`}>
-          {site.email.hello}
-        </a>
-      </p>
+<section id="faq" aria-labelledby="faq-title">
+  <div class="head">
+    <div class="eyebrow">
+      # Questions <i aria-hidden="true">[faq]</i>
     </div>
-    <div class="list">
-      {faqs.map((f, i) => (
-        <details name="faq" open={i === 0}>
-          <summary>
-            <span set:html={f.q} />
-            <span class="plus" aria-hidden="true" />
-          </summary>
-          <div class="answer" set:html={f.a} />
-        </details>
-      ))}
-    </div>
+    <h2 id="faq-title">What people ask</h2>
+    <p class="lede">
+      Anything else: <a href={`mailto:${site.email.hello}`}>{site.email.hello}</a>
+    </p>
+  </div>
+  <div class="faq">
+    {faqs.map((f, i) => (
+      <details name="faq">
+        <summary>
+          <span class="n" aria-hidden="true">
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <span>{f.q}</span>
+          <span class="pm" aria-hidden="true" />
+        </summary>
+        <p class="answer">{f.a}</p>
+      </details>
+    ))}
   </div>
 </section>
-
-<style>
-  .layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 36px;
-  }
-  @media (min-width: 1024px) {
-    .layout {
-      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
-      gap: 72px;
-      align-items: start;
-    }
-  }
-  details {
-    border-bottom: 1px solid var(--rule);
-  }
-  details:first-child {
-    border-top: 1px solid var(--rule);
-  }
-  summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    padding: 20px 2px;
-    cursor: pointer;
-    list-style: none;
-    font: 600 19px/1.3 var(--font-display);
-    letter-spacing: -0.015em;
-    border-radius: 4px;
-  }
-  summary :global(.nb) {
-    white-space: nowrap;
-  }
-  summary span:first-child {
-    text-wrap: balance;
-  }
-  summary::-webkit-details-marker {
-    display: none;
-  }
-  summary:hover {
-    color: var(--accent);
-  }
-  .plus {
-    position: relative;
-    flex: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1.5px solid var(--ink);
-    color: var(--ink);
-    transition:
-      transform 0.25s ease,
-      background-color 0.2s ease;
-  }
-  .plus::before,
-  .plus::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 11px;
-    height: 1.75px;
-    background: currentColor;
-    transform: translate(-50%, -50%);
-  }
-  .plus::after {
-    transform: translate(-50%, -50%) rotate(90deg);
-  }
-  /* Answers open and close smoothly where the browser supports animating to height: auto. */
-  details::details-content {
-    height: 0;
-    overflow: clip;
-    transition:
-      height 0.35s var(--ease-out),
-      content-visibility 0.35s allow-discrete;
-  }
-  details[open]::details-content {
-    height: auto;
-  }
-  details[open] .plus {
-    transform: rotate(45deg);
-    background: var(--accent-tint);
-  }
-  .answer {
-    padding: 0 48px 24px 2px;
-    font-size: 16px;
-    line-height: 1.65;
-    color: var(--muted);
-  }
-  .answer :global(a) {
-    color: var(--ink);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: var(--rule);
-  }
-</style>

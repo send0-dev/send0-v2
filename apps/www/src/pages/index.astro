@@ -1,28 +1,38 @@
 ---
 import Base from "../layouts/Base.astro";
+import Guides from "../components/Guides.astro";
 import Hero from "../sections/Hero.astro";
-import WorksWith from "../sections/WorksWith.astro";
-import CanDo from "../sections/CanDo.astro";
-import Essentials from "../sections/Essentials.astro";
-import Developers from "../sections/Developers.astro";
+import SectionNav from "../sections/SectionNav.astro";
 import HowItWorks from "../sections/HowItWorks.astro";
+import Developers from "../sections/Developers.astro";
+import Safety from "../sections/Safety.astro";
 import OpenSource from "../sections/OpenSource.astro";
 import Pricing from "../sections/Pricing.astro";
-import About from "../sections/About.astro";
 import Faq from "../sections/Faq.astro";
-import FinalCta from "../sections/FinalCta.astro";
 ---
 
 <Base>
-  <Hero />
-  <WorksWith />
-  <CanDo />
-  <Essentials />
-  <Developers />
-  <HowItWorks />
+  <div class="page">
+    <Guides />
+    <div class="wrap">
+      <Hero />
+    </div>
+  </div>
+  <SectionNav />
+  <div class="page">
+    <Guides />
+    <div class="wrap">
+      <HowItWorks />
+      <Developers />
+      <Safety />
+    </div>
+  </div>
   <OpenSource />
-  <Pricing />
-  <About />
-  <Faq />
-  <FinalCta />
+  <div class="page">
+    <Guides />
+    <div class="wrap">
+      <Pricing />
+      <Faq />
+    </div>
+  </div>
 </Base>

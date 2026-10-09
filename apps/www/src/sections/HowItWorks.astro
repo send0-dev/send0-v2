@@ -1,132 +1,80 @@
 ---
-import Steps from "../components/Steps.astro";
-import Icon from "../illustrations/Icon.astro";
-import { site } from "../site";
-
+// Four steps; the selected one drives the code figure beside it. A vertical tablist, so arrow keys move between steps.
 const steps = [
-  { title: "Accept", body: "Unknown addresses refused." },
-  { title: "Store", body: "Raw message saved first." },
-  { title: "Understand", body: "Parsed, codes extracted, injection flagged." },
-  { title: "Thread", body: "Joined to its conversation." },
-  { title: "Notify", body: "Webhook, stream, waiting calls." },
-];
+  {
+    title: "Create an inbox",
+    body: "A real address on send0.email. One POST.",
+    code: `<span class="k">const</span> inbox = <span class="k">await</span> send0.inboxes.create({
+  name: <span class="s">"signup-agent"</span>,
+});
+inbox.address <span class="c">// "signup-agent@send0.email"</span>`,
+  },
+  {
+    title: "Wait, don't poll",
+    body: "wait() returns the moment matching mail lands, code and link already extracted.",
+    code: `<span class="k">const</span> msg = <span class="k">await</span> send0.inboxes.wait(inbox.id, {
+  from: <span class="s">"*@github.com"</span>, timeout: 60,
+});
+msg.extracted.otp          <span class="c">// "482913"</span>
+msg.extracted.action_link  <span class="c">// "https://github.com/…"</span>`,
+  },
+  {
+    title: "Reply in the thread",
+    body: "In-Reply-To and References set for you, so Gmail and Outlook keep one conversation.",
+    code: `<span class="k">await</span> send0.messages.reply(msg.id, {
+  text: <span class="s">"Thursday at 3 works."</span>,
+});
+<span class="c">// In-Reply-To and References set,
+// subject kept: same thread everywhere</span>`,
+  },
+  {
+    title: "Get pinged",
+    body: "Signed webhooks on every plan, plus a live event stream.",
+    code: `POST https://you.dev/hooks
+send0-signature: t=1760000000,v1=5f3a…
 
-const rules = [
-  "Free accounts can only reply.",
-  "New accounts: 50 sends a day.",
-  "Pauses at 0.3% complaints, 5% hard bounces.",
-  "No cold outreach. No bulk mail.",
+{ <span class="k">"type"</span>: <span class="s">"message.received"</span>,
+  <span class="k">"data"</span>: { <span class="k">"id"</span>: "msg_8f2k", <span class="k">"thread_id"</span>: "thr_3Lp8" } }`,
+  },
 ];
 ---
 
-<section class="section band" id="how-it-works" aria-labelledby="how-title">
-  <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">
-        <b>04</b> How it works
-      </span>
-      <h2 id="how-title" class="h2">
-        What happens when mail arrives.
-      </h2>
+<section id="how" aria-labelledby="how-title">
+  <div class="head">
+    <div class="eyebrow">
+      # How it works <i aria-hidden="true">[...]</i>
     </div>
-
-    <Steps steps={steps} />
-
-    <div class="rules">
-      <div class="post">
-        <Icon name="shield" class="sign" />
-        <div>
-          <h3>Safe by default</h3>
-          <p class="report mono">
-            Report abuse:{" "}
-            <a class="link" href={`mailto:${site.email.abuse}`}>
-              {site.email.abuse}
-            </a>
-          </p>
-        </div>
-      </div>
-      <ul>
-        {rules.map((r) => (
-          <li>{r}</li>
-        ))}
-      </ul>
+    <h2 id="how-title">From SMTP to your agent in one call</h2>
+    <p class="lede">Create an inbox, wait for mail, reply in the thread. send0 handles the parts of email nobody wants to build.</p>
+  </div>
+  <div class="split">
+    <div class="items" role="tablist" aria-label="Steps" aria-orientation="vertical" data-tabs>
+      {steps.map((s, i) => (
+        <button
+          class="item"
+          type="button"
+          role="tab"
+          id={`step-${i}`}
+          aria-controls={`step-panel-${i}`}
+          aria-selected={i === 0 ? "true" : "false"}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          <span class="n">{String(i + 1).padStart(2, "0")}</span>
+          <span>
+            <span class="h3">{s.title}</span>
+            <span class="d">{s.body}</span>
+          </span>
+        </button>
+      ))}
+    </div>
+    <div class="show stack">
+      {steps.map((s, i) => (
+        <pre id={`step-panel-${i}`} role="tabpanel" aria-labelledby={`step-${i}`} tabindex="0" hidden={i !== 0} set:html={s.code} />
+      ))}
     </div>
   </div>
 </section>
 
-<style>
-  .head {
-    margin-bottom: 48px;
-  }
-  .h2 {
-    max-width: 16em;
-  }
-  .rules {
-    display: grid;
-    gap: 32px;
-    margin-top: 64px;
-    padding-top: 40px;
-    border-top: 1px solid var(--rule);
-  }
-  @media (min-width: 1024px) {
-    .rules {
-      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
-      gap: 64px;
-    }
-  }
-  .post {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-  }
-  .post :global(.sign) {
-    flex: none;
-    width: 44px;
-    height: 44px;
-  }
-  h3 {
-    font-size: 22px;
-  }
-  .report {
-    margin-top: 10px;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 2px;
-  }
-  @media (min-width: 640px) {
-    ul {
-      grid-template-columns: 1fr 1fr;
-      gap: 0 32px;
-    }
-  }
-  li {
-    padding: 14px 0 14px 28px;
-    position: relative;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
-    border-bottom: 1px solid var(--hairline);
-  }
-  li::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 20px;
-    width: 12px;
-    height: 7px;
-    border-left: 2px solid var(--ok);
-    border-bottom: 2px solid var(--ok);
-    transform: rotate(-45deg);
-  }
-  strong {
-    display: block;
-    color: var(--ink);
-    font-weight: 600;
-  }
-</style>
+<script>
+  import "../scripts/tabs";
+</script>

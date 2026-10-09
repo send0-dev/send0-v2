@@ -1,30 +1,18 @@
 ---
-interface Props {
-  size?: number;
-  wordmark?: boolean;
-}
-const { size = 26, wordmark = true } = Astro.props;
+// The ‹0› mark: a zero between angle brackets, as in <msg_…@send0.email>. brand/build.mjs draws the same geometry.
 ---
 
-<span class="logo">
-  <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-    <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--ink)"></rect>
-    <ellipse cx="16" cy="16.5" rx="6.2" ry="8" fill="none" stroke="var(--paper)" stroke-width="3.2"></ellipse>
-    <circle cx="25.5" cy="6.5" r="5" fill="var(--accent-bg)" stroke="var(--paper)" stroke-width="2"></circle>
-  </svg>
-  {wordmark && <span class="word">send0</span>}
-</span>
-
-<style>
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    color: var(--ink);
-  }
-  .word {
-    font: 700 21px/1 var(--font-display);
-    letter-spacing: -0.04em;
-    letter-spacing: -0.02em;
-  }
-</style>
+<svg
+  viewBox="0 0 34 22"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2.4"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="M8 3.5 2.5 11 8 18.5"></path>
+  <path d="M26 3.5 31.5 11 26 18.5"></path>
+  <ellipse cx="17" cy="11" rx="4.4" ry="7"></ellipse>
+</svg>
+send0

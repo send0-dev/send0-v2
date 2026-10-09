@@ -10,7 +10,12 @@ pnpm db:migrate:local       # create the local D1 table
 pnpm preview                # build and run the real Worker locally
 ```
 
-Handy URL params when checking layouts: `?theme=light|dark` forces a theme, and `?demo=0..5` freezes the hero demo on a step.
+Handy URL param when checking layouts: `?theme=light|dark` forces a theme.
+
+```sh
+node scripts/shoot.mjs [url]   # full-page screenshots at 1440, 1024 and 390, light and dark, reduced motion
+pnpm brand                     # rebuild the logo SVGs, favicons and og.png from brand/build.mjs
+```
 
 ## Deploy (first time)
 

@@ -1,14 +1,14 @@
 export const site = {
   name: "send0",
   url: "https://send0.dev",
-  title: "send0: email inboxes for AI agents",
+  title: "send0: email infrastructure for AI agents",
   description:
     "Give any agent an email address in one API call. send0 is an open-source email API that sends, receives and threads mail, with webhooks on every plan. Self-host it or use our cloud.",
   // Shows GitHub links and "building in public" copy (the repo went public on 2026-10-07).
   repoPublic: true,
   github: "https://github.com/send0-dev/send0-v2",
   githubApi: "https://api.github.com/repos/send0-dev/send0-v2",
-  version: "v0.1.1",
+  version: "v0.2.0",
   docs: {
     home: "/docs",
     quickstart: "/docs/quickstart/typescript",
