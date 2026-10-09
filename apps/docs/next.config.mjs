@@ -9,6 +9,8 @@ const config = {
   basePath: "/docs",
   reactStrictMode: true,
   images: { unoptimized: true },
+  // next dev writes AGENTS.md and CLAUDE.md when it detects a coding agent; the repo has its own.
+  agentRules: false,
 };
 
 export default withMDX(config);
