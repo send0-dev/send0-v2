@@ -1,6 +1,6 @@
 import type { Inbox } from "@send0/sdk";
 import { useState } from "react";
-import { LogoMark } from "@/components/logo";
+import { Logo } from "@/components/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInboxes } from "@/features/inboxes/api/use-inboxes";
 import { useMe } from "@/features/session/api/use-me";
@@ -34,10 +34,7 @@ export default function OnboardingPage() {
     <div className="relative min-h-dvh overflow-hidden bg-canvas">
       <div aria-hidden className="glow pointer-events-none absolute inset-x-0 top-0 h-[480px]" />
       <header className="relative flex items-center justify-between px-6 py-5">
-        <span className="flex items-center gap-2 text-[14px] font-semibold tracking-[-0.01em]">
-          <LogoMark className="size-6" />
-          send0
-        </span>
+        <Logo className="h-5" />
         <button type="button" className="cursor-pointer text-xs text-faint hover:text-foreground" onClick={() => logOut.mutate()}>
           {user?.email} · Log out
         </button>
