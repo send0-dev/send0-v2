@@ -1,8 +1,5 @@
 name: Release
 
-# Tag vX.Y.Z on main and push the tag: this publishes the Docker image to GHCR, the Deploy to
-# Cloudflare template to send0-dev/send0-cloudflare, the npm packages and the PyPI packages.
-# Re-run a release by hand with workflow_dispatch; versions already on npm or PyPI are skipped.
 on:
   push:
     tags: ["v*"]
@@ -211,3 +208,63 @@ jobs:
         with:
           packages-dir: dist/langchain-send0/
           skip-existing: true
+
+  mcp-registry:
+    name: MCP registry listing
+    needs: npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # mcp-publisher login github-oidc: io.github.send0-dev/* without a token
+    env:
+      # Bump when the registry asks for a newer publisher ("invalid audience").
+      MCP_PUBLISHER_VERSION: v1.8.1
+      SERVER_JSON: packages/mcp/server.json
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.TAG }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Check the package versions match the tag
+        run: node scripts/release-version.mjs --check "$TAG"
+      - id: state
+        name: Check the registry and npm
+        run: |
+          name="$(jq -r .name "$SERVER_JSON")"
+          version="$(jq -r .version "$SERVER_JSON")"
+          # Versions in the registry can't be changed or published twice.
+          status="$(curl -s -o /dev/null -w '%{http_code}' "https://registry.modelcontextprotocol.io/v0.1/servers/${name/\//%2F}/versions/$version")"
+          if [ "$status" = "200" ]; then
+            echo "::notice::$name $version is already in the MCP registry."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # The registry checks mcpName on the published npm package. npm may hold a token publish
+          # until a maintainer approves it, so wait a while, then leave it for a re-run.
+          for _ in $(seq 1 20); do
+            mcp_name="$(npm view "@send0/mcp@$version" mcpName 2>/dev/null || true)"
+            [ -n "$mcp_name" ] && break
+            sleep 30
+          done
+          if [ -z "$mcp_name" ]; then
+            echo "::warning::@send0/mcp@$version is not on npm yet (awaiting approval?). Re-run this job once it is."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif [ "$mcp_name" != "$name" ]; then
+            echo "::error::@send0/mcp@$version has mcpName $mcp_name, but $SERVER_JSON is $name."
+            exit 1
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.state.outputs.publish == 'true'
+        name: Install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/$MCP_PUBLISHER_VERSION/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz -C "$RUNNER_TEMP" mcp-publisher
+      - if: steps.state.outputs.publish == 'true'
+        name: Publish to the MCP registry
+        run: |
+          "$RUNNER_TEMP/mcp-publisher" login github-oidc
+          "$RUNNER_TEMP/mcp-publisher" publish "$SERVER_JSON"
