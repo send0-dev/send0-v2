@@ -124,6 +124,17 @@ describe("retries", () => {
     });
   });
 
+  it("maps a 429 without a send0 error body to rate_limited", async () => {
+    const m = mockFetch([
+      new Response("<html>error 1015</html>", { status: 429, headers: { "content-type": "text/html", "retry-after": "10" } }),
+    ]);
+    await expect(new Send0({ apiKey: "k", fetch: m.fetch, maxRetries: 0 }).inboxes.list()).rejects.toMatchObject({
+      status: 429,
+      code: "rate_limited",
+      message: "Too many requests. Slow down and retry after 10 seconds.",
+    });
+  });
+
   it("does not retry 4xx", async () => {
     const m = mockFetch([json({ error: { code: "invalid_request", message: "bad" } }, 400)]);
     await expect(new Send0({ apiKey: "k", fetch: m.fetch }).inboxes.create({})).rejects.toMatchObject({ status: 400 });

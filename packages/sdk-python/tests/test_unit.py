@@ -88,6 +88,18 @@ def test_429_surfaces_rate_limited_after_retries(monkeypatch):
 
 
 @respx.mock
+def test_429_without_send0_body_is_rate_limited(monkeypatch):
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    respx.get(f"{BASE}/v1/inboxes").mock(
+        return_value=httpx.Response(429, headers={"retry-after": "10", "content-type": "text/html"}, text="<html>error 1015</html>")
+    )
+    with pytest.raises(Send0Error) as e:
+        Send0("s0_test_x", base_url=BASE, max_retries=0).inboxes.list()
+    assert (e.value.status, e.value.code) == (429, "rate_limited")
+    assert str(e.value) == "Too many requests. Slow down and retry after 10 seconds."
+
+
+@respx.mock
 def test_no_retry_on_4xx(client):
     route = respx.get(f"{BASE}/v1/inboxes").mock(return_value=httpx.Response(400, json={"error": {"code": "invalid_request", "message": "bad"}}))
     with pytest.raises(Send0Error):
