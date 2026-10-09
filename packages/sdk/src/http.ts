@@ -121,11 +121,23 @@ const backoff = (attempt: number) => Math.min(8000, 500 * 2 ** attempt) * (0.75 
 
 async function toError(res: Response): Promise<Send0Error> {
   const requestId = res.headers.get("x-request-id") ?? undefined;
+  const fallback = fallbackError(res);
   try {
     const body = (await res.json()) as { error?: { code?: string; message?: string; param?: string; request_id?: string } };
     const e = body.error ?? {};
-    return new Send0Error(e.message ?? `HTTP ${res.status}`, res.status, e.code ?? "http_error", e.param, e.request_id ?? requestId);
+    return new Send0Error(e.message ?? fallback.message, res.status, e.code ?? fallback.code, e.param, e.request_id ?? requestId);
   } catch {
-    return new Send0Error(`HTTP ${res.status}`, res.status, "http_error", undefined, requestId);
+    return new Send0Error(fallback.message, res.status, fallback.code, undefined, requestId);
   }
+}
+
+/**
+ * For responses without a send0 error body. A 429 from Cloudflare's rate limiting in front of the
+ * API is an HTML page, but callers should still see `rate_limited`.
+ */
+function fallbackError(res: Response): { message: string; code: string } {
+  if (res.status !== 429) return { message: `HTTP ${res.status}`, code: "http_error" };
+  const retryAfter = Number(res.headers.get("retry-after"));
+  const when = Number.isFinite(retryAfter) && retryAfter > 0 ? `after ${retryAfter} seconds` : "later";
+  return { message: `Too many requests. Slow down and retry ${when}.`, code: "rate_limited" };
 }

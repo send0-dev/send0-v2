@@ -60,16 +60,28 @@ def backoff_seconds(attempt: int, retry_after: str | None) -> float:
     return float(min(8.0, 0.5 * 2.0**attempt) * (0.75 + random.random() * 0.5))
 
 
+def _fallback_error(res: httpx.Response) -> tuple[str, str]:
+    """For responses without a send0 error body. A 429 from Cloudflare's rate limiting in front of
+    the API is an HTML page, but callers should still see `rate_limited`."""
+    if res.status_code != 429:
+        return f"HTTP {res.status_code}", "http_error"
+    retry_after = res.headers.get("retry-after", "")
+    when = f"after {retry_after} seconds" if retry_after.isdigit() and int(retry_after) > 0 else "later"
+    return f"Too many requests. Slow down and retry {when}.", "rate_limited"
+
+
 def error_from_response(res: httpx.Response) -> Send0Error:
     request_id = res.headers.get("x-request-id")
+    message, code = _fallback_error(res)
     try:
-        err = (res.json() or {}).get("error") or {}
+        body = res.json()
+        err = (body.get("error") if isinstance(body, dict) else None) or {}
     except ValueError:
         err = {}
     return Send0Error(
-        err.get("message") or f"HTTP {res.status_code}",
+        err.get("message") or message,
         status=res.status_code,
-        code=err.get("code") or "http_error",
+        code=err.get("code") or code,
         param=err.get("param"),
         request_id=err.get("request_id") or request_id,
     )
