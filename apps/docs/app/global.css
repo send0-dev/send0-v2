@@ -2,42 +2,670 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 
-/* send0 brand: monochrome with the orange signal accent from send0.dev */
+@font-face {
+  font-family: "Martian Mono Fallback";
+  src: local("Courier New"), local("CourierNewPSMT");
+  ascent-override: 85.76%;
+  descent-override: 17.15%;
+  line-gap-override: 0%;
+  size-adjust: 116.6%;
+}
+@font-face {
+  font-family: "Martian Mono Narrow Fallback";
+  src: local("Courier New"), local("CourierNewPSMT");
+  ascent-override: 92.08%;
+  descent-override: 18.42%;
+  line-gap-override: 0%;
+  size-adjust: 108.6%;
+}
+@font-face {
+  font-family: "Host Grotesk Fallback";
+  src: local("Arial"), local("ArialMT");
+  ascent-override: 96.07%;
+  descent-override: 29.81%;
+  line-gap-override: 0%;
+  size-adjust: 105.66%;
+}
+
 @theme {
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
-  --color-send0-accent: #ff4f00;
+  --font-sans: var(--font-host), "Host Grotesk Fallback", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-martian), "Martian Mono Fallback", ui-monospace, Menlo, monospace;
+
+  /* Square corners everywhere. rounded-full stays for the few true circles. */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  /* Hairlines do the separating. */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
 }
 
 :root {
-  --color-fd-primary: #0c0c0d;
-  --color-fd-ring: #ff4f00;
+  --paper: #fbfaf7;
+  --ink: #15141a;
+  --muted: #6b6973;
+  --line: #e4e2dc;
+  --line-2: #d3d0c8;
+  --dot: #dddad2;
+  --acc: #4b2eff;
+  --acc-ink: #ffffff;
+  /* Accent used as text or a focus ring. Light paper takes the accent as is. */
+  --acc-text: var(--acc);
+  --acc-soft: color-mix(in srgb, var(--acc) 11%, #fff);
+  --hi: #f4f1a8;
+  /* A step off paper, for inline code and quiet fills. */
+  --paper-2: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  --mono: var(--font-mono);
+  --sans: var(--font-sans);
+  --mono-narrow: var(--font-martian), "Martian Mono Narrow Fallback", ui-monospace, Menlo, monospace;
+
+  --color-fd-background: var(--paper);
+  --color-fd-foreground: var(--ink);
+  --color-fd-muted: var(--paper-2);
+  --color-fd-muted-foreground: var(--muted);
+  --color-fd-popover: var(--paper);
+  --color-fd-popover-foreground: var(--ink);
+  --color-fd-card: var(--paper);
+  --color-fd-card-foreground: var(--ink);
+  --color-fd-border: var(--line);
+  --color-fd-primary: var(--acc-text);
+  --color-fd-primary-foreground: var(--acc-ink);
+  --color-fd-secondary: var(--paper-2);
+  --color-fd-secondary-foreground: var(--ink);
+  --color-fd-accent: var(--acc-soft);
+  --color-fd-accent-foreground: var(--ink);
+  --color-fd-ring: var(--acc-text);
+  --color-fd-overlay: color-mix(in srgb, var(--ink) 24%, transparent);
+  --color-fd-info: var(--acc-text);
+
+  --fd-layout-width: 1400px;
+  color-scheme: light;
 }
 
 .dark {
-  --color-fd-background: #09090a;
-  --color-fd-card: #0f0f11;
-  --color-fd-popover: #0f0f11;
-  --color-fd-primary: #f4f4f5;
-  --color-fd-ring: #ff6a26;
-  --color-send0-accent: #ff6a26;
+  --paper: #121116;
+  --ink: #eeece6;
+  --muted: #9c99a3;
+  --line: #26242c;
+  --line-2: #34313b;
+  --dot: #2b2931;
+  --acc-text: color-mix(in oklab, var(--acc), #fff 45%);
+  --acc-soft: color-mix(in srgb, var(--acc) 26%, #121116);
+  --hi: #5a5620;
+  --paper-2: color-mix(in srgb, var(--ink) 5%, var(--paper));
+  /* Primary fills use the lighter accent in dark, so their text turns dark. */
+  --color-fd-primary-foreground: #121116;
+  color-scheme: dark;
 }
-
-/* Links in prose pick up the accent on hover, like the marketing site. */
-.prose a:hover {
-  text-decoration-color: var(--color-send0-accent);
-}
-
-/* Active sidebar item: a thin accent marker. */
-#nd-sidebar a[data-active="true"] {
-  box-shadow: inset 2px 0 0 var(--color-send0-accent);
+/* Fumadocs' neutral preset re-tints the sidebar in dark; keep it on paper. */
+.dark #nd-sidebar {
+  --color-fd-muted: var(--paper-2);
+  --color-fd-secondary: var(--paper-2);
+  --color-fd-muted-foreground: var(--muted);
 }
 
 html {
   scrollbar-gutter: stable;
 }
-
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
+}
+body {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible {
+  outline: 2px solid var(--acc-text);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--acc);
+  color: var(--acc-ink);
+}
+
+/* ---------- top bar ---------- */
+
+.s0-banner {
+  font: 500 12px var(--mono);
+  letter-spacing: -0.01em;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 640px) {
+  .s0-banner {
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
+  .s0-banner-tag {
+    display: none;
+  }
+}
+.s0-banner-tag {
+  margin-right: 10px;
+  padding: 1px 6px;
+  border: 1px solid var(--acc-text);
+  color: var(--acc-text);
+}
+
+#nd-subnav {
+  background: color-mix(in oklab, var(--paper) 92%, transparent);
+}
+#nd-subnav [data-header-body] {
+  border-color: var(--line);
+  gap: 20px;
+}
+.s0-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+.s0-brand svg {
+  display: block;
+}
+.s0-brand-docs {
+  font: 500 12px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-left: 10px;
+  border-left: 1px solid var(--line-2);
+  line-height: 18px;
+}
+/* Nav links: uppercase mono, as on send0.dev. */
+#nd-subnav [data-header-body] a:not(.s0-btn):not(:has(.s0-brand)) {
+  white-space: nowrap;
+  font: 500 12px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+#nd-subnav [data-header-body] a:not(.s0-btn):not(:has(.s0-brand)):hover,
+#nd-subnav [data-header-body] a[data-active="true"]:not(.s0-btn) {
+  color: var(--acc-text);
+}
+.s0-btn {
+  font: 600 12px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  height: 38px;
+  line-height: 1;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.s0-btn:hover {
+  transform: translateY(-1px);
+}
+.s0-btn-solid {
+  background: var(--ink);
+  color: var(--paper);
+}
+/* Search field and theme switch: square, hairline, mono hint. */
+#nd-subnav button[data-search-full],
+#nd-subnav [data-search-full] {
+  border-radius: 0;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  font: 400 13px var(--mono);
+  letter-spacing: -0.01em;
+  height: 38px;
+}
+#nd-subnav [data-search-full]:hover {
+  border-color: var(--ink);
+}
+#nd-subnav .rounded-full {
+  border-radius: 0;
+}
+[data-theme-toggle] {
+  border-radius: 0 !important;
+  border-color: var(--line-2);
+  height: 38px;
+  padding-inline: 6px;
+}
+[data-theme-toggle] > * {
+  border-radius: 0 !important;
+}
+[data-theme-toggle]:hover {
+  border-color: var(--ink);
+}
+kbd {
+  font-family: var(--mono);
+  border-radius: 0 !important;
+}
+
+/* ---------- sidebar ---------- */
+
+#nd-sidebar {
+  font-family: var(--sans);
+  background: var(--paper);
+  border-inline-end: 1px solid var(--line);
+}
+/* Group labels: uppercase mono with tracking, like send0.dev's footer headings. */
+#nd-sidebar-mobile {
+  border-color: var(--line);
+}
+:is(#nd-sidebar, #nd-sidebar-mobile) p,
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-separator] {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+:is(#nd-sidebar, #nd-sidebar-mobile) a {
+  font-family: var(--sans);
+  font-size: 14.5px;
+  color: color-mix(in srgb, var(--muted), var(--ink) 35%);
+  border-radius: 0;
+}
+:is(#nd-sidebar, #nd-sidebar-mobile) a:hover {
+  color: var(--ink);
+  background: var(--paper-2);
+}
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active="true"] {
+  color: var(--ink);
+  background: var(--acc-soft);
+  box-shadow: inset 2px 0 0 var(--acc-text);
+  font-weight: 500;
+}
+
+/* ---------- page ---------- */
+
+.s0-eyebrow {
+  font: 600 12px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0 0 -4px;
+}
+.s0-eyebrow span {
+  color: var(--acc-text);
+}
+#nd-page h1,
+.prose :where(h2, h3) {
+  font-family: var(--mono-narrow);
+  font-weight: 400;
+  font-variation-settings: "wdth" 88;
+  text-wrap: balance;
+  color: var(--ink);
+}
+#nd-page h1 {
+  font-size: clamp(30px, 4vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+}
+.prose :where(h2) {
+  font-size: 26px;
+  line-height: 1.15;
+  letter-spacing: -0.05em;
+}
+.prose :where(h3) {
+  font-family: var(--mono);
+  font-size: 19px;
+  line-height: 1.3;
+  letter-spacing: -0.04em;
+}
+.prose :where(h4) {
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+/* Lede under the title: muted mono, as send0.dev's section intros. */
+#nd-page h1 + p {
+  font: 400 15px/1.7 var(--mono);
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  max-width: 68ch;
+}
+
+/* Copy Markdown / Open: small square mono buttons. */
+.s0-action {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  background: transparent;
+  height: 30px;
+}
+.s0-action:hover {
+  border-color: var(--ink);
+  background: transparent;
+}
+
+.prose {
+  --tw-prose-body: color-mix(in srgb, var(--ink) 92%, var(--paper));
+  font-size: 16px;
+  line-height: 1.7;
+}
+/* Running text keeps a ~70ch measure; figures, tables and tabs use the full column. */
+.prose :where(p, ul, ol, blockquote, h2, h3, h4):not(:where(table *, .s0-card *, .s0-callout *)) {
+  max-width: 70ch;
+}
+.prose a:not([data-card]) {
+  color: var(--acc-text);
+  font-weight: 500;
+  text-decoration-color: color-mix(in srgb, var(--acc-text) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.prose a:not([data-card]):hover {
+  opacity: 1;
+  text-decoration-color: currentColor;
+}
+.prose :where(h2, h3) a {
+  color: inherit;
+  text-decoration: none;
+}
+/* Inline code: a soft fill, no frame, no radius. */
+.prose :where(code):not(:where(pre code, .s0-code code)) {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  letter-spacing: -0.02em;
+  padding: 0.12em 0.36em;
+  border: 0;
+  border-radius: 0;
+  background: var(--paper-2);
+}
+.dark .prose :where(code):not(:where(pre code, .s0-code code)) {
+  background: color-mix(in srgb, var(--ink) 9%, var(--paper));
+}
+.prose :where(a code) {
+  color: inherit;
+}
+.prose hr {
+  border-color: var(--line);
+}
+.prose blockquote {
+  border-inline-start: 2px solid var(--acc-text);
+  font-style: normal;
+}
+.prose :where(ul > li)::marker {
+  color: var(--muted);
+}
+.prose :where(ol > li)::marker {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+/* Tables: a hairline frame, mono header row. */
+.prose table {
+  border: 1px solid var(--line-2);
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.prose thead {
+  background: var(--paper-2);
+}
+.prose thead th {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+  padding: 10px 14px;
+}
+.prose tbody td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 14px;
+  vertical-align: top;
+}
+.prose :where(th, td) + :where(th, td) {
+  border-left: 1px solid var(--line);
+}
+
+/* ---------- code figures ---------- */
+
+.s0-code {
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  font-family: var(--mono);
+}
+.s0-code > div:first-child:has(figcaption) {
+  height: auto;
+  padding: 8px 6px 8px 12px;
+  border-bottom: 1px solid var(--line-2);
+  font: 500 12px var(--mono);
+  color: var(--ink);
+  background: var(--paper);
+}
+.s0-code figcaption {
+  white-space: pre;
+}
+.s0-code [role="region"] {
+  font-size: 13px;
+  line-height: 1.8;
+  padding-block: 14px;
+}
+/* The copy button: a small square, hairline. */
+.s0-code button[aria-live] {
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--muted);
+  backdrop-filter: none;
+}
+.s0-code button[aria-live]:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.s0-code button[aria-live][data-checked] {
+  color: var(--acc-text);
+  border-color: var(--acc-text);
+}
+.s0-code > div:not([role="region"]):not(:has(figcaption)) {
+  backdrop-filter: none;
+  top: 8px;
+  right: 8px;
+}
+/* Strings get the highlighter, as on send0.dev (see lib/shiki-themes.ts). */
+.shiki span[style*="--shiki-light:#15141b" i] {
+  background: var(--hi);
+}
+.shiki .highlighted {
+  background: var(--acc-soft);
+}
+.shiki .highlighted::after {
+  border-color: var(--acc-text);
+}
+.shiki .highlighted-word {
+  border-radius: 0;
+}
+
+/* ---------- tabs ---------- */
+
+.s0-tabs {
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+}
+.s0-tabs > [role="tablist"] {
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.s0-tabs > [role="tablist"] > [role="tab"] {
+  font: 500 12px var(--mono);
+  padding: 10px 14px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  color: var(--muted);
+}
+.s0-tabs > [role="tablist"] > [role="tab"]:hover {
+  color: var(--ink);
+}
+.s0-tabs > [role="tablist"] > [role="tab"][data-active] {
+  color: var(--ink);
+  background: var(--acc-soft);
+}
+.s0-tabs > [role="tablist"] > [role="tab"]:focus-visible {
+  outline-offset: -2px;
+}
+.s0-tabs > [role="tabpanel"] {
+  background: var(--paper);
+}
+.s0-tabs > [role="tabpanel"] > .s0-code:only-child {
+  border: 0;
+}
+
+/* ---------- callouts, cards, steps ---------- */
+
+.s0-callout {
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  padding: 14px 16px 14px 12px;
+  gap: 10px;
+  font-size: 15px;
+}
+.s0-callout > [role="none"] {
+  display: none;
+}
+.s0-callout-tag {
+  font: 500 12px/1.9 var(--mono);
+  color: var(--acc-text);
+  flex: none;
+}
+.s0-callout[style*="--color-fd-warning"] {
+  background: color-mix(in srgb, var(--hi) 40%, var(--paper));
+}
+.dark .s0-callout[style*="--color-fd-warning"] {
+  background: color-mix(in srgb, var(--hi) 28%, var(--paper));
+}
+.s0-callout[style*="--color-fd-warning"] .s0-callout-tag,
+.s0-callout[style*="--color-fd-error"] .s0-callout-tag {
+  color: var(--ink);
+  font-weight: 700;
+}
+.s0-callout p:first-child:not(:only-child) {
+  font: 600 12px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.s0-callout [class*="text-fd-muted-foreground"] {
+  color: color-mix(in srgb, var(--muted), var(--ink) 35%);
+}
+
+.s0-card {
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  padding: 18px 20px;
+}
+.s0-card h3 {
+  font: 500 14px var(--mono);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.s0-card h3::after {
+  content: " →";
+  color: var(--muted);
+}
+a.s0-card:hover {
+  background: var(--acc-soft);
+  border-color: var(--acc-text);
+}
+a.s0-card:hover h3::after {
+  color: var(--acc-text);
+}
+
+.fd-steps {
+  border-color: var(--line-2);
+}
+.fd-step::before {
+  border-radius: 0;
+  font: 500 12px var(--mono);
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  width: 30px;
+  height: 30px;
+  inset-inline-start: -15px;
+}
+
+/* Previous / next: hairline boxes with a mono label. */
+.s0-pager > a {
+  border: 1px solid var(--line-2);
+  padding: 16px 18px;
+}
+.s0-pager > a > :first-child {
+  font: 500 13px var(--mono);
+  letter-spacing: -0.02em;
+}
+.s0-pager > a:hover {
+  background: var(--acc-soft);
+  border-color: var(--acc-text);
+  color: var(--ink);
+}
+
+/* ---------- table of contents ---------- */
+
+#nd-toc h3,
+#nd-toc > div > p,
+#nd-toc [id="toc-title"] {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+#nd-toc a {
+  font-size: 13.5px;
+}
+#nd-toc a[data-active="true"] {
+  color: var(--acc-text);
+}
+
+/* ---------- search dialog ---------- */
+
+[role="dialog"] {
+  border-radius: 0;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+[role="dialog"] input {
+  font-family: var(--mono);
+  font-size: 14px;
+}
+/* The dialog's frame already shows focus; a second ring around the input reads as a nested box. */
+[role="dialog"] input:focus-visible {
+  outline: none;
+}
+[role="dialog"] [aria-selected="true"],
+[role="dialog"] [data-selected="true"] {
+  background: var(--acc-soft);
+}
+
+/* ---------- page margins ---------- */
+
+/* Faint guide lines at the outer edges of the layout, as on send0.dev. Desktop only. */
+@media (min-width: 1440px) {
+  #nd-notebook-layout {
+    background-image: linear-gradient(var(--line), var(--line)), linear-gradient(var(--line), var(--line));
+    background-size: 1px 100%;
+    background-repeat: no-repeat;
+    background-position:
+      calc(50% - var(--fd-layout-width) / 2) 0,
+      calc(50% + var(--fd-layout-width) / 2) 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s0-btn:hover {
+    transform: none;
+  }
 }

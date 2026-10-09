@@ -1,5 +1,8 @@
-import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
-import { appName, gitConfig, repoPublic } from "./shared";
+import type { ReactNode } from "react";
+import type { DocsLayoutProps } from "fumadocs-ui/layouts/notebook";
+import { appName, gitConfig, siteUrl } from "./shared";
+
+const githubUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}`;
 
 // The ‹0› mark and the send0 wordmark (Martian Mono, outlined). Source: apps/www/brand.
 const WORDMARK =
@@ -7,8 +10,8 @@ const WORDMARK =
 
 function Logo() {
   return (
-    <span className="inline-flex items-center gap-2">
-      <svg height="18" viewBox="0 0 107.46 22" role="img" aria-label={appName}>
+    <span className="s0-brand">
+      <svg height="20" viewBox="0 0 107.46 22" role="img" aria-label={appName}>
         <g fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
           <path d="M8 3.5 2.5 11 8 18.5" />
           <path d="M26 3.5 31.5 11 26 18.5" />
@@ -16,18 +19,41 @@ function Logo() {
         </g>
         <path fill="currentColor" transform="translate(44 18.6)" d={WORDMARK} />
       </svg>
-      <span className="font-normal text-fd-muted-foreground">docs</span>
+      <span className="s0-brand-docs">docs</span>
     </span>
   );
 }
 
-export function baseOptions(): BaseLayoutProps {
+function NavButton({ href, solid, children }: { href: string; solid?: boolean; children: ReactNode }) {
+  return (
+    <a className={solid ? "s0-btn s0-btn-solid" : "s0-btn"} href={href} rel="noopener">
+      {children}
+    </a>
+  );
+}
+
+export function baseOptions(): Omit<DocsLayoutProps, "tree"> {
   return {
-    nav: { title: <Logo />, url: "/" },
+    nav: { title: <Logo />, url: "/", mode: "top" },
     links: [
-      { text: "Home", url: "https://send0.dev", external: true },
-      { text: "API spec", url: "https://api.send0.dev/openapi.json", external: true },
+      { text: "Quickstart", url: "/quickstart/typescript", active: "nested-url", on: "nav" },
+      { text: "API", url: "/reference/api", on: "nav" },
+      { text: "Self-host", url: "/self-hosting", active: "nested-url", on: "nav" },
+      { text: "send0.dev", url: siteUrl, external: true, on: "nav" },
+      { type: "custom", on: "nav", children: <NavButton href={githubUrl}>GitHub</NavButton> },
+      {
+        type: "custom",
+        on: "nav",
+        children: (
+          <NavButton href={`${siteUrl}/#join`} solid>
+            Join waitlist
+          </NavButton>
+        ),
+      },
+      { text: "send0.dev", url: siteUrl, external: true, on: "menu" },
+      { text: "GitHub", url: githubUrl, external: true, on: "menu" },
+      { text: "Join waitlist", url: `${siteUrl}/#join`, external: true, on: "menu" },
+      { text: "API spec", url: "https://api.send0.dev/openapi.json", external: true, on: "menu" },
     ],
-    ...(repoPublic ? { githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}` } : {}),
   };
 }
