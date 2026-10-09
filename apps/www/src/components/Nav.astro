@@ -8,7 +8,7 @@ const repo = await getRepoInfo();
 const stars = repo.stars !== null && repo.stars >= 10 ? formatStars(repo.stars) : null;
 ---
 
-<header class="top">
+<header id="top" class="top">
   <div class="wrap">
     <a class="brand" href="/" aria-label="send0 home">
       <Logo />

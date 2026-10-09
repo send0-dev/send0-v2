@@ -53,7 +53,7 @@
 }
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--top) + 12px);
+  scroll-padding-top: calc(var(--secnav) + 12px);
 }
 body {
   margin: 0;
@@ -152,8 +152,7 @@ a {
 
 /* nav */
 header.top {
-  position: sticky;
-  top: env(safe-area-inset-top, 0px);
+  position: relative;
   z-index: 20;
   background: color-mix(in oklab, var(--paper) 92%, transparent);
   backdrop-filter: blur(8px);
@@ -315,7 +314,7 @@ section {
   border-bottom: 1px solid var(--line);
 }
 section[id] {
-  scroll-margin-top: calc(var(--top) + var(--secnav));
+  scroll-margin-top: var(--secnav);
 }
 .ticks {
   position: absolute;
@@ -356,7 +355,7 @@ section[id] {
   gap: 10px;
   flex-wrap: wrap;
   align-items: center;
-  scroll-margin-top: calc(var(--top) + var(--secnav) + 24px);
+  scroll-margin-top: calc(var(--secnav) + 24px);
 }
 .hero .fine {
   font: 12px var(--mono);
@@ -620,10 +619,10 @@ section[id] {
   display: none;
 }
 
-/* section nav (sticky, accent) */
+/* section nav: the only bar that stays; the top nav scrolls away with the hero */
 .secnav {
   position: sticky;
-  top: calc(env(safe-area-inset-top, 0px) + var(--top));
+  top: env(safe-area-inset-top, 0px);
   z-index: 15;
   background: var(--acc);
   color: var(--acc-ink);
@@ -651,6 +650,21 @@ section[id] {
 .secnav a:not(.btn):hover {
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+.secnav .home {
+  display: inline-flex;
+  padding-right: 18px;
+  margin-right: -4px;
+  border-right: 1px solid rgb(255 255 255 / 0.35);
+}
+.secnav .home svg {
+  width: 30px;
+  height: 20px;
+}
+.secnav a[aria-current="true"] {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 2px;
 }
 .secnav a kbd {
   font: 500 10px var(--mono);

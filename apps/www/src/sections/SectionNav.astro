@@ -11,6 +11,21 @@ const links = [
 
 <nav class="secnav" aria-label="Sections">
   <div class="wrap">
+    <a class="home" href="#top" aria-label="send0, back to top">
+      <svg
+        viewBox="0 0 34 22"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M8 3.5 2.5 11 8 18.5" />
+        <path d="M26 3.5 31.5 11 26 18.5" />
+        <ellipse cx="17" cy="11" rx="4.4" ry="7" />
+      </svg>
+    </a>
     {links.map((l) => (
       <a href={l.href} aria-keyshortcuts={l.key} data-key={l.key}>
         <kbd aria-hidden="true">{l.key}</kbd>
@@ -27,6 +42,25 @@ const links = [
   const keys = new Map(
     [...document.querySelectorAll<HTMLAnchorElement>(".secnav a[data-key]")].map((a) => [a.dataset.key!.toLowerCase(), a]),
   );
+  // Underline the link for the section in view.
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const en of entries) {
+        if (!en.isIntersecting) continue;
+        for (const a of keys.values()) {
+          const on = a.getAttribute("href") === `#${en.target.id}`;
+          a.setAttribute("aria-current", String(on));
+          // On narrow screens the bar scrolls sideways; keep the current link in view.
+          if (on) a.parentElement!.scrollTo({ left: a.offsetLeft - 64, behavior: "smooth" });
+        }
+      }
+    },
+    { rootMargin: "-40% 0px -55% 0px" },
+  );
+  for (const a of keys.values()) {
+    const el = document.querySelector(a.getAttribute("href")!);
+    if (el) spy.observe(el);
+  }
   document.addEventListener("keydown", (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.defaultPrevented) return;
     const t = e.target as HTMLElement;
