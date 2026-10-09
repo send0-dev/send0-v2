@@ -1,146 +1,40 @@
 ---
 import { site } from "../site";
-
-const plans = [
-  {
-    label: "Available today",
-    name: "Self-host",
-    price: "$0",
-    per: "forever",
-    items: ["The full server, AGPL-3.0", "Same API, SDKs and MCP", "Pay only for servers and SES"],
-    cta: { href: site.docs.selfHost, text: "Self-host send0", primary: false },
-  },
-  {
-    label: "Launching soon",
-    name: "send0 Cloud",
-    price: "Free",
-    per: "tier at launch",
-    items: ["Addresses on send0.email", "A reply-only free tier", "Webhooks included"],
-    cta: { href: "#waitlist", text: "Join the waitlist", primary: true },
-  },
-];
 ---
 
-<section class="section band" id="pricing" aria-labelledby="pricing-title">
-  <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">
-        <b>06</b> Pricing
-      </span>
-      <h2 id="pricing-title" class="h2">
-        Free to run yourself.
-      </h2>
+<section id="pricing" aria-labelledby="pricing-title">
+  <div class="head">
+    <div class="eyebrow">
+      # Pricing <i aria-hidden="true">[simple]</i>
     </div>
-
-    <div class="plans" data-reveal="up">
-      {plans.map((p) => (
-        <article class="plan">
-          <span class="label mono">{p.label}</span>
-          <h3>{p.name}</h3>
-          <p class="price">
-            <span class="amount">{p.price}</span>
-            <span class="per mono">{p.per}</span>
-          </p>
-          <ul>
-            {p.items.map((f) => (
-              <li>{f}</li>
-            ))}
-          </ul>
-          <a class:list={["btn", { "btn-primary": p.cta.primary }]} href={p.cta.href}>
-            {p.cta.text}
-          </a>
-        </article>
-      ))}
+    <h2 id="pricing-title">Free to run yourself</h2>
+  </div>
+  <div class="price">
+    <div class="plan">
+      <small>AVAILABLE TODAY</small>
+      <h3>Self-host</h3>
+      <div class="amt">$0</div>
+      <ul>
+        <li>The full server, AGPL-3.0</li>
+        <li>Same API, SDKs and MCP</li>
+        <li>Pay only for a server and mail relay</li>
+      </ul>
+      <a class="btn" href={site.docs.selfHost}>
+        Self-host send0
+      </a>
+    </div>
+    <div class="plan">
+      <small class="acc">LAUNCHING SOON</small>
+      <h3>send0 Cloud</h3>
+      <div class="amt">Free</div>
+      <ul>
+        <li>Addresses on send0.email</li>
+        <li>A reply-only free tier</li>
+        <li>Webhooks included</li>
+      </ul>
+      <a class="btn acc" href="/#join">
+        Join the waitlist
+      </a>
     </div>
   </div>
 </section>
-
-<style>
-  .head {
-    text-align: center;
-    margin: 0 auto 48px;
-    max-width: 720px;
-  }
-  /* One block, two equal columns split by a hairline; the type does the work. */
-  .plans {
-    display: grid;
-    max-width: 920px;
-    margin: 0 auto;
-    background: var(--card);
-    border: 1px solid var(--hairline);
-    border-radius: 16px;
-  }
-  @media (min-width: 768px) {
-    .plans {
-      grid-template-columns: 1fr 1fr;
-    }
-    .plan + .plan {
-      border-left: 1px solid var(--hairline);
-    }
-  }
-  @media (max-width: 767px) {
-    .plan + .plan {
-      border-top: 1px solid var(--hairline);
-    }
-  }
-  .plan {
-    display: flex;
-    flex-direction: column;
-    padding: 36px 36px 36px;
-  }
-  .label {
-    font-size: 11.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .plan:last-child .label {
-    color: var(--accent);
-  }
-  h3 {
-    margin-top: 14px;
-    font-size: 22px;
-  }
-  .price {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-top: 10px;
-  }
-  .amount {
-    font: 700 56px/1 var(--font-display);
-    letter-spacing: -0.04em;
-  }
-  .per {
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-  ul {
-    list-style: none;
-    margin: 26px 0 30px;
-    padding: 22px 0 0;
-    border-top: 1px solid var(--hairline);
-    display: grid;
-    gap: 10px;
-    flex: 1;
-  }
-  li {
-    position: relative;
-    padding-left: 24px;
-    font-size: 15px;
-  }
-  li::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 7px;
-    width: 10px;
-    height: 6px;
-    border-left: 2px solid var(--ok);
-    border-bottom: 2px solid var(--ok);
-    transform: rotate(-45deg);
-  }
-  .plan .btn {
-    width: 100%;
-  }
-</style>

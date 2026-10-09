@@ -1,0 +1,40 @@
+---
+// The sticky accent bar. Each letter is a real shortcut: press it anywhere outside a field to jump.
+const links = [
+  { key: "H", href: "#how", label: "How it works" },
+  { key: "D", href: "#dev", label: "Developers" },
+  { key: "S", href: "#safety", label: "Safety" },
+  { key: "O", href: "#oss", label: "Open source" },
+  { key: "P", href: "#pricing", label: "Pricing" },
+];
+---
+
+<nav class="secnav" aria-label="Sections">
+  <div class="wrap">
+    {links.map((l) => (
+      <a href={l.href} aria-keyshortcuts={l.key} data-key={l.key}>
+        <kbd aria-hidden="true">{l.key}</kbd>
+        {l.label}
+      </a>
+    ))}
+    <a class="btn" href="/#join">
+      Join waitlist
+    </a>
+  </div>
+</nav>
+
+<script>
+  const keys = new Map(
+    [...document.querySelectorAll<HTMLAnchorElement>(".secnav a[data-key]")].map((a) => [a.dataset.key!.toLowerCase(), a]),
+  );
+  document.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.defaultPrevented) return;
+    const t = e.target as HTMLElement;
+    if (t.closest("input, textarea, select, [contenteditable]")) return;
+    const link = keys.get(e.key.toLowerCase());
+    if (link) {
+      e.preventDefault();
+      link.click();
+    }
+  });
+</script>

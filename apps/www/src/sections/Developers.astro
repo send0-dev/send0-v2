@@ -1,170 +1,96 @@
 ---
-import CodeTabs, { type Tab } from "../components/CodeTabs.astro";
-import { site } from "../site";
-
-const tabs: Tab[] = [
+// fig. 2: the same flow in each SDK and over MCP. Tool names match packages/agent-tools.
+const files = [
   {
     id: "ts",
-    label: "TypeScript",
-    file: "agent.ts",
-    lang: "ts",
-    note: "npm install @send0/sdk",
-    code: `import { Send0 } from "@send0/sdk";
+    label: "typescript",
+    code: `<span class="k">import</span> { Send0 } <span class="k">from</span> <span class="s">"@send0/sdk"</span>;
 
-const send0 = new Send0(); // reads SEND0_API_KEY
+<span class="k">const</span> send0 = <span class="k">new</span> Send0(); <span class="c">// reads SEND0_API_KEY</span>
+<span class="k">const</span> inbox = <span class="k">await</span> send0.inboxes.create({ name: <span class="s">"signup-agent"</span> });
 
-const inbox = await send0.inboxes.create({ name: "signup-agent" });
-console.log(inbox.address); // signup-agent@send0.email
+<span class="k">const</span> msg = <span class="k">await</span> send0.inboxes.wait(inbox.id, { from: <span class="s">"*@github.com"</span> });
+console.log(msg.extracted.otp); <span class="c">// "482913"</span>
 
-const msg = await send0.inboxes.wait(inbox.id, {
-  from: "*@github.com", // exact address or wildcard
-  timeout: 60,          // seconds
-});
-if (!msg) throw new Error("No email within 60s");
-
-console.log(msg.extracted?.otp);         // "482913"
-console.log(msg.extracted?.action_link); // "https://github.com/verify?..."
-
-await send0.messages.reply(msg.id, { text: "Thanks, confirmed." });`,
+<span class="k">await</span> send0.messages.reply(msg.id, { text: <span class="s">"Thanks, confirmed."</span> });`,
   },
   {
     id: "py",
-    label: "Python",
-    file: "agent.py",
-    lang: "python",
-    note: "pip install send0",
-    code: `from send0 import Send0
+    label: "python",
+    code: `<span class="k">from</span> send0 <span class="k">import</span> Send0
 
-send0 = Send0()  # reads SEND0_API_KEY
+send0 = Send0()  <span class="c"># reads SEND0_API_KEY</span>
+inbox = send0.inboxes.create(name=<span class="s">"signup-agent"</span>)
 
-inbox = send0.inboxes.create(name="signup-agent")
-print(inbox.address)  # signup-agent@send0.email
+msg = send0.inboxes.wait(inbox.id, from_=<span class="s">"*@github.com"</span>)
+print(msg.extracted.otp)  <span class="c"># "482913"</span>
 
-msg = send0.inboxes.wait(inbox.id, from_="*@github.com", timeout=60)
-
-if msg and msg.extracted and msg.extracted.otp:
-    print(msg.extracted.otp)  # "482913"
-
-send0.messages.reply(msg.id, text="Thanks, confirmed.")`,
-  },
-  {
-    id: "curl",
-    label: "cURL",
-    file: "terminal",
-    lang: "bash",
-    note: "Any language that speaks HTTP",
-    code: `# Create an inbox
-curl https://api.send0.dev/v1/inboxes \\
-  -H "Authorization: Bearer $SEND0_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -H "Idempotency-Key: $(uuidgen)" \\
-  -d '{ "name": "research-agent" }'
-
-# Hold the request until matching mail arrives (up to 60s)
-curl "https://api.send0.dev/v1/inboxes/ibx_7Hc2…/messages/wait?from=*@acme.dev&timeout=60" \\
-  -H "Authorization: Bearer $SEND0_API_KEY"
-
-# Reply in the same thread
-curl https://api.send0.dev/v1/messages/msg_9Kd2…/reply \\
-  -H "Authorization: Bearer $SEND0_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -H "Idempotency-Key: $(uuidgen)" \\
-  -d '{ "text": "Thanks, confirmed." }'`,
+send0.messages.reply(msg.id, text=<span class="s">"Thanks, confirmed."</span>)`,
   },
   {
     id: "mcp",
-    label: "MCP",
-    file: "terminal",
-    lang: "bash",
-    note: "Remote at api.send0.dev/mcp, or local over stdio",
-    code: `# Remote: nothing to install
-claude mcp add --transport http send0 https://api.send0.dev/mcp \\
-  --header "Authorization: Bearer s0_live_…"
+    label: "mcp",
+    code: `<span class="c"># Claude Code, Cursor, any MCP client</span>
+claude mcp add send0 --env SEND0_API_KEY=s0_live_… \\
+  -- npx -y @send0/mcp
 
-# Local, over stdio
-claude mcp add send0 --env SEND0_API_KEY=s0_live_… -- npx -y @send0/mcp
-
-# Tools your agent gets:
-#   create_inbox     list_inboxes     wait_for_email
-#   search_messages  get_message      list_threads
-#   get_thread       send_email       reply
-#
-# Message bodies reach the model wrapped as untrusted data,
-# with a warning when a prompt injection is suspected.`,
+<span class="c"># tools</span>
+create_inbox · wait_for_email · reply · send_email
+search_messages · get_thread · list_threads`,
   },
-];
-
-const notes = ["Idempotency-Key", "Cursor pagination", "Signed webhooks"];
+].map((f) => ({
+  ...f,
+  lines: f.code
+    .split("\n")
+    .map((_, i) => i + 1)
+    .join("\n"),
+}));
 ---
 
-<section class="section" id="developers" aria-labelledby="dev-title">
-  <div class="wrap layout">
-    <div class="copy">
-      <span class="eyebrow">
-        <b>03</b> For developers
-      </span>
-      <h2 id="dev-title" class="h2">
-        One API, four ways in.
-      </h2>
-      <p class="lede">OpenAPI 3.1, TypeScript and Python SDKs, and MCP.</p>
-      <ul class="notes mono" aria-label="Conventions">
-        {notes.map((n) => (
-          <li>{n}</li>
-        ))}
-      </ul>
-      <p class="more">
-        <a class="link" href={site.docs.quickstart}>
-          Quickstart
-        </a>
-        <span aria-hidden="true">·</span>
-        <a class="link" href="https://api.send0.dev/openapi.json" rel="noopener">
-          openapi.json
-        </a>
-        <span aria-hidden="true">·</span>
-        <a class="link" href={site.docs.llms}>
-          Docs for LLMs
-        </a>
-      </p>
+<section id="dev" aria-labelledby="dev-title">
+  <div class="head">
+    <div class="eyebrow">
+      # Developers <i aria-hidden="true">[api · sdk · mcp]</i>
     </div>
-    <CodeTabs tabs={tabs} label="Code examples" />
+    <h2 id="dev-title">One API, four ways in</h2>
+    <p class="lede">
+      TypeScript and Python SDKs, an MCP server for Claude and Cursor, tools for the Vercel AI SDK and LangChain, or plain HTTP.
+    </p>
+  </div>
+  <div class="fig">
+    <div class="fig-bar" aria-hidden="true">
+      <span class="sq">‹›</span>
+      <span>[ fig. 2 — agent.ts ]</span>
+      <span class="sq">⊞</span>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Language" data-tabs>
+      {files.map((f, i) => (
+        <button
+          class="tab"
+          type="button"
+          role="tab"
+          id={`code-${f.id}`}
+          aria-controls={`code-panel-${f.id}`}
+          aria-selected={i === 0 ? "true" : "false"}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          {f.label}
+        </button>
+      ))}
+    </div>
+    <div class="codes">
+      {files.map((f, i) => (
+        <div class="code" id={`code-panel-${f.id}`} role="tabpanel" aria-labelledby={`code-${f.id}`} tabindex="0" hidden={i !== 0}>
+          <div class="ln" aria-hidden="true">
+            {f.lines}
+          </div>
+          <pre set:html={f.code} />
+        </div>
+      ))}
+    </div>
   </div>
 </section>
 
-<style>
-  .layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 44px;
-  }
-  @media (min-width: 1024px) {
-    .layout {
-      grid-template-columns: minmax(0, 4.2fr) minmax(0, 6.8fr);
-      gap: 64px;
-      align-items: center;
-    }
-  }
-  .notes {
-    list-style: none;
-    margin: 26px 0 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .notes li {
-    padding: 6px 10px;
-    border: 1px solid var(--rule);
-    border-radius: 7px;
-    background: var(--card);
-    font-size: 12.5px;
-    color: var(--ink);
-  }
-  .more {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 10px;
-    margin-top: 22px;
-    font-size: 14.5px;
-    color: var(--muted);
-  }
-</style>
+<script>
+  import "../scripts/tabs";
+</script>

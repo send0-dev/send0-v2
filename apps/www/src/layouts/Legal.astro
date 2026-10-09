@@ -1,5 +1,7 @@
 ---
 import Base from "./Base.astro";
+import Guides from "../components/Guides.astro";
+import Ticks from "../components/Ticks.astro";
 import { site } from "../site";
 
 interface Props {
@@ -11,30 +13,38 @@ interface Props {
 const { title, description, summary } = Astro.props;
 
 const pages = [
-  { href: "/terms", label: "Terms of Service" },
-  { href: "/privacy", label: "Privacy Policy" },
-  { href: "/acceptable-use", label: "Acceptable Use Policy" },
+  { href: "/terms", label: "Terms of Service", sheet: "terms" },
+  { href: "/privacy", label: "Privacy Policy", sheet: "privacy" },
+  { href: "/acceptable-use", label: "Acceptable Use Policy", sheet: "acceptable use" },
 ];
 const path = Astro.url.pathname.replace(/\.html$/, "");
+const current = pages.find((p) => p.href === path);
 ---
 
-<Base title={title} description={description}>
-  <section class="section legal">
+<Base title={title} description={description} sheet={current?.sheet ?? "legal"}>
+  <div class="page">
+    <Guides />
     <div class="wrap">
-      <header class="head">
-        <span class="eyebrow">Legal</span>
-        <h1>{title}</h1>
-        <p class="updated mono">Last updated {site.legalUpdated}</p>
-        <p class="summary">
-          <span class="mono tag">In short</span>
-          {summary}
-        </p>
-      </header>
-
-      <div class="layout">
+      <section class="legal-head">
+        <div class="head">
+          <div class="eyebrow">
+            # Legal <i>[updated {site.legalUpdated.toLowerCase()}]</i>
+          </div>
+          <h1>{title}</h1>
+        </div>
+        <div class="summary">
+          <div class="fig-cap">
+            <span>[ in short ]</span>
+          </div>
+          <p>{summary}</p>
+        </div>
+        <Ticks />
+      </section>
+      <section class="legal-body">
         <nav class="side" aria-label="Legal pages">
-          {pages.map((p) => (
+          {pages.map((p, i) => (
             <a href={p.href} aria-current={path === p.href ? "page" : undefined}>
+              <span class="n">{String(i + 1).padStart(2, "0")}</span>
               {p.label}
             </a>
           ))}
@@ -42,107 +52,98 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
         <article class="prose">
           <slot />
         </article>
-      </div>
+      </section>
     </div>
-  </section>
+  </div>
 </Base>
 
 <style>
-  .head {
-    max-width: 760px;
-    margin-bottom: 56px;
+  .legal-head {
+    padding-bottom: clamp(40px, 6vw, 64px);
   }
   h1 {
-    font-size: clamp(38px, 5vw, 56px);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-  }
-  .updated {
-    margin-top: 14px;
-    font-size: 12.5px;
-    color: var(--muted);
+    font-size: clamp(36px, 5vw, 60px);
   }
   .summary {
-    margin-top: 28px;
-    padding: 20px 22px;
-    background: var(--card);
-    border: 1px solid var(--hairline);
-    border-left: 3px solid var(--accent-bg);
-    border-radius: 4px 10px 10px 4px;
-    box-shadow: var(--shadow-sm);
-    font-size: 16px;
-    line-height: 1.65;
-    color: var(--ink);
+    margin-top: 32px;
+    max-width: 760px;
+    padding: 18px 20px;
+    border: 1px solid var(--ink);
+    background: var(--acc-soft);
   }
-  .tag {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 11.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent);
+  .summary .fig-cap {
+    margin-bottom: 8px;
+    color: var(--acc-text);
   }
-  .layout {
+  .summary p {
+    margin: 0;
+    font: 14px/1.7 var(--mono);
+  }
+  .legal-body {
     display: grid;
     gap: 40px;
+    border-bottom: 0;
+    padding-top: clamp(40px, 6vw, 64px);
   }
   @media (min-width: 900px) {
-    .layout {
-      grid-template-columns: 220px minmax(0, 1fr);
-      gap: 72px;
+    .legal-body {
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 64px;
     }
     .side {
       position: sticky;
-      top: 100px;
+      top: calc(var(--top) + 24px);
       align-self: start;
-      flex-direction: column;
     }
   }
   .side {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    display: grid;
+    border: 1px solid var(--line-2);
+    align-self: start;
+    background: var(--paper);
   }
   .side a {
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 14.5px;
-    color: var(--muted);
-    transition:
-      background-color 0.15s ease,
-      color 0.15s ease;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    padding: 14px 16px;
+    font: 500 12.5px var(--mono);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .side a:last-child {
+    border-bottom: 0;
   }
   .side a:hover {
-    background: var(--paper-alt);
-    color: var(--ink);
+    color: var(--acc-text);
+  }
+  .side .n {
+    color: var(--muted);
   }
   .side a[aria-current="page"] {
-    background: var(--card);
-    color: var(--ink);
-    font-weight: 600;
-    box-shadow: inset 2px 0 0 var(--accent-bg);
+    background: var(--acc-soft);
+  }
+  .side a[aria-current="page"] .n {
+    color: var(--acc-text);
   }
   .prose {
-    max-width: 700px;
+    max-width: 720px;
     font-size: 16.5px;
     line-height: 1.75;
-    color: color-mix(in srgb, var(--ink) 80%, transparent);
+    background: var(--paper);
   }
   .prose :global(h2) {
     margin: 52px 0 14px;
     font-size: 24px;
-    font-weight: 650;
-    color: var(--ink);
-    scroll-margin-top: 90px;
+    letter-spacing: -0.04em;
+    font-variation-settings: "wdth" 88;
+    scroll-margin-top: calc(var(--top) + 24px);
   }
   .prose :global(h2:first-child) {
     margin-top: 0;
   }
   .prose :global(h3) {
     margin: 30px 0 10px;
-    font-size: 19px;
-    font-weight: 500;
-    color: var(--ink);
+    font-size: 18px;
   }
   .prose :global(p),
   .prose :global(ul),
@@ -157,41 +158,39 @@ const path = Astro.url.pathname.replace(/\.html$/, "");
     margin-bottom: 8px;
   }
   .prose :global(li::marker) {
-    color: var(--accent);
+    color: var(--acc-text);
   }
   .prose :global(strong) {
-    color: var(--ink);
     font-weight: 600;
   }
   .prose :global(a) {
-    color: var(--ink);
     text-decoration: underline;
     text-underline-offset: 3px;
-    text-decoration-color: var(--rule);
+    text-decoration-color: var(--line-2);
   }
   .prose :global(a:hover) {
-    text-decoration-color: var(--accent-bg);
+    text-decoration-color: var(--acc-text);
+  }
+  .prose :global(.table-scroll) {
+    overflow-x: auto;
+    margin: 0 0 20px;
   }
   .prose :global(table) {
     width: 100%;
-    margin: 0 0 20px;
     border-collapse: collapse;
     font-size: 14.5px;
-    background: var(--card);
   }
   .prose :global(th),
   .prose :global(td) {
     padding: 10px 12px;
-    border: 1px solid var(--hairline);
+    border: 1px solid var(--line-2);
     text-align: left;
     vertical-align: top;
   }
   .prose :global(th) {
-    background: var(--paper-alt);
-    color: var(--ink);
-    font-weight: 600;
-  }
-  .prose :global(.table-scroll) {
-    overflow-x: auto;
+    font: 500 11px var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
 </style>

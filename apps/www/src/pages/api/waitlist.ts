@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
   const reply = (ok: boolean, message: string, status: number) =>
     wantsJson
       ? Response.json({ ok, message }, { status })
-      : Response.redirect(new URL(`/?waitlist=${ok ? "ok" : "error"}#waitlist`, request.url), 303);
+      : Response.redirect(new URL(`/?waitlist=${ok ? "ok" : "error"}#join`, request.url), 303);
 
   let form: FormData;
   try {

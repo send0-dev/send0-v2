@@ -95,7 +95,7 @@ export default defineConfig(
     },
   },
   {
-    files: ["apps/web/e2e/**", "apps/www/src/**/*.{js,ts}", "apps/www/scripts/**"],
+    files: ["apps/web/e2e/**", "apps/www/src/**/*.{js,ts}", "apps/www/scripts/**", "apps/www/brand/**"],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
 

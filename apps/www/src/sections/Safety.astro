@@ -1,0 +1,33 @@
+---
+// Each figure is enforced in code: apps/api/src/sending/policy.ts, ses-events.ts and send-caps.ts.
+const specs = [
+  { label: "sender checks", value: "spf · dkim · dmarc", note: "Verdicts on every inbound message." },
+  { label: "untrusted input", value: "injection flag", note: "Prompt-injection signals on every email." },
+  { label: "free tier", value: "reply-only", note: "Only people who wrote first can be emailed." },
+  { label: "new accounts", value: "50 / day", note: "Rises with a clean sending record." },
+  { label: "auto-pause", value: "0.3% · 5%", note: "Complaints or hard bounces stop sending." },
+  { label: "scoped keys", value: "per inbox", note: "Give an agent access to one inbox only." },
+];
+---
+
+<section id="safety" aria-labelledby="safety-title">
+  <div class="head">
+    <div class="eyebrow">
+      # Safety <i aria-hidden="true">[on by default]</i>
+    </div>
+    <h2 id="safety-title">Built so agents can't become spammers</h2>
+  </div>
+  <dl class="spec">
+    {specs.map((s) => (
+      <div>
+        <dt>
+          <small>{s.label}</small>
+        </dt>
+        <dd>
+          <b>{s.value}</b>
+          <span>{s.note}</span>
+        </dd>
+      </div>
+    ))}
+  </dl>
+</section>
