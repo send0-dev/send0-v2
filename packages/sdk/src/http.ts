@@ -29,7 +29,7 @@ export interface RequestOptions {
   headers?: Record<string, string>;
 }
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function uuid(): string {

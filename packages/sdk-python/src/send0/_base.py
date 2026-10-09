@@ -9,7 +9,7 @@ import httpx
 
 from ._errors import Send0Error
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 DEFAULT_BASE_URL = "https://api.send0.dev"
 DEFAULT_TIMEOUT = 60.0
 DEFAULT_MAX_RETRIES = 2

@@ -23,7 +23,7 @@ from ._tools import (
     WaitForEmailTool,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 TOOL_NAMES: tuple[str, ...] = tuple(str(cls.model_fields["name"].default) for cls in TOOL_CLASSES)
 

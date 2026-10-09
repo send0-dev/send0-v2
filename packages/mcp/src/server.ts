@@ -22,7 +22,7 @@ async function run(fn: () => Promise<string>): Promise<ToolResult> {
   }
 }
 
-export function createSend0Server({ client, defaultInboxId, version = "0.1.0" }: ServerOptions): McpServer {
+export function createSend0Server({ client, defaultInboxId, version = "0.2.0" }: ServerOptions): McpServer {
   const server = new McpServer(
     { name: "send0", version },
     {
