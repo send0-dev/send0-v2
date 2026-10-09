@@ -1,10 +1,16 @@
 {
   "name": "@send0/sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Official TypeScript SDK for send0: email inboxes for AI agents",
   "license": "MIT",
   "type": "module",
   "homepage": "https://send0.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/send0-dev/send0-v2.git",
+    "directory": "packages/sdk"
+  },
+  "bugs": "https://github.com/send0-dev/send0-v2/issues",
   "keywords": [
     "email",
     "inbox",
@@ -48,5 +54,9 @@
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

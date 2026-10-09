@@ -140,10 +140,14 @@ aws s3api put-bucket-lifecycle-configuration --profile default --region ap-south
 
 ## Releasing
 
-Tag `vX.Y.Z` (or `vX.Y.Z-rc.N`) on `main` and push the tag (`git tag v0.1.0 && git push origin v0.1.0`). `.github/workflows/release.yml` then publishes both self-host editions:
+First set every published package to the release version and commit it: `node scripts/release-version.mjs 0.2.0`, then `uv lock` in `packages/sdk-python`, `packages/langchain-python` and `examples/langchain-python-agent`. Then tag `vX.Y.Z` (or `vX.Y.Z-rc.N`) on `main` and push the tag (`git tag v0.2.0 && git push origin v0.2.0`). `.github/workflows/release.yml` then publishes:
 
 - **Docker:** `ghcr.io/send0-dev/send0` for linux/amd64 and linux/arm64, tagged `X.Y.Z`, `X.Y`, `latest` and `sha-…` (a pre-release gets only its full version).
 - **Deploy to Cloudflare template:** `apps/cloudflare/scripts/build-template.mjs` builds a self-contained folder (prebuilt Worker, dashboard, `wrangler.jsonc`, README), which is force-pushed as one commit to `main` of `send0-dev/send0-cloudflare`. Build it locally with `pnpm --filter @send0/cloudflare template /tmp/send0-cloudflare` (a relative path is relative to `apps/cloudflare`).
+- **npm:** `@send0/sdk`, `@send0/mcp`, `@send0/ai-sdk` and `@send0/langchain`, with provenance (pre-releases under the `next` dist-tag). `@send0/agent-tools` is private and bundled into the others.
+- **PyPI:** `send0` and `langchain-send0`, through trusted publishing from the `pypi` environment.
+
+Both publish jobs refuse to run unless every package version matches the tag (`release-version.mjs --check`), and skip versions the registry already has.
 
 To publish an existing tag again, run the workflow by hand (Actions > Release > Run workflow) with the tag.
 
@@ -152,6 +156,8 @@ One-time setup:
 1. Create the public repo `send0-dev/send0-cloudflare`.
 2. Make an SSH key (`ssh-keygen -t ed25519 -C send0-release -f template_deploy_key -N ""`). Add the public half to send0-cloudflare as a deploy key with write access, and the private half to send0-v2 as the Actions secret `TEMPLATE_DEPLOY_KEY`. Without the secret, the template job skips with a notice.
 3. After the first release, make the `send0` container package public (org > Packages > send0 > Package settings > Change visibility) and connect it to the send0-v2 repository.
+4. npm: the `@send0` org belongs to the npm user `dev-send0`. A granular token with read and write on the `@send0` scope (bypassing 2FA) is the Actions secret `NPM_TOKEN`; it expires after at most 90 days.
+5. PyPI: `send0` and `langchain-send0` trust this repo's `release.yml` in the GitHub environment `pypi`.
 
 ## Git
 

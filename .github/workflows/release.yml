@@ -1,7 +1,8 @@
 name: Release
 
-# Tag vX.Y.Z on main and push the tag: this publishes the Docker image to GHCR and the Deploy to
-# Cloudflare template to send0-dev/send0-cloudflare. Re-run a release by hand with workflow_dispatch.
+# Tag vX.Y.Z on main and push the tag: this publishes the Docker image to GHCR, the Deploy to
+# Cloudflare template to send0-dev/send0-cloudflare, the npm packages and the PyPI packages.
+# Re-run a release by hand with workflow_dispatch; versions already on npm or PyPI are skipped.
 on:
   push:
     tags: ["v*"]
@@ -145,3 +146,60 @@ jobs:
           git commit -q -m "send0 $VERSION from send0-dev/send0-v2@$SHA"
           git push --force git@github.com:send0-dev/send0-cloudflare.git main
           echo "::notice::Published send0 $VERSION to send0-dev/send0-cloudflare"
+
+  npm:
+    name: npm packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.TAG }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Check the package versions match the tag
+        run: node scripts/release-version.mjs --check "$TAG"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@send0/sdk --filter=@send0/mcp --filter=@send0/ai-sdk --filter=@send0/langchain
+      # Recursive publish skips versions npm already has. Pre-releases go to the "next" dist-tag.
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          dist_tag=latest
+          [[ "$TAG" == *-* ]] && dist_tag=next
+          pnpm -r --filter @send0/sdk --filter @send0/mcp --filter @send0/ai-sdk --filter @send0/langchain \
+            publish --access public --no-git-checks --tag "$dist_tag"
+
+  pypi:
+    name: PyPI packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Trusted publishing: PyPI accepts this workflow and environment, no token needed.
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.TAG }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Check the package versions match the tag
+        run: node scripts/release-version.mjs --check "$TAG"
+      - uses: astral-sh/setup-uv@v7
+      - run: uv build packages/sdk-python --out-dir dist
+      - run: uv build packages/langchain-python --out-dir dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true

@@ -1,10 +1,16 @@
 {
   "name": "@send0/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for send0: give any agent an email inbox",
   "license": "MIT",
   "type": "module",
   "homepage": "https://send0.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/send0-dev/send0-v2.git",
+    "directory": "packages/mcp"
+  },
+  "bugs": "https://github.com/send0-dev/send0-v2/issues",
   "bin": {
     "send0-mcp": "./dist/cli.js"
   },
@@ -40,5 +46,9 @@
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
