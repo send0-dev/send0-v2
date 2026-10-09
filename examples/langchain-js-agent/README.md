@@ -13,3 +13,5 @@ From the repo root, after `pnpm install` and `pnpm build`:
 cd examples/langchain-js-agent
 SEND0_API_KEY=s0_… ANTHROPIC_API_KEY=sk-ant-… pnpm start          # or: pnpm start ibx_… for a given inbox
 ```
+
+To use it in your own project: `npm install @send0/langchain @langchain/core zod`.

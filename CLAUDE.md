@@ -146,8 +146,11 @@ First set every published package to the release version and commit it: `node sc
 - **Deploy to Cloudflare template:** `apps/cloudflare/scripts/build-template.mjs` builds a self-contained folder (prebuilt Worker, dashboard, `wrangler.jsonc`, README), which is force-pushed as one commit to `main` of `send0-dev/send0-cloudflare`. Build it locally with `pnpm --filter @send0/cloudflare template /tmp/send0-cloudflare` (a relative path is relative to `apps/cloudflare`).
 - **npm:** `@send0/sdk`, `@send0/mcp`, `@send0/ai-sdk` and `@send0/langchain`, with provenance (pre-releases under the `next` dist-tag). `@send0/agent-tools` is private and bundled into the others.
 - **PyPI:** `send0` and `langchain-send0`, through trusted publishing from the `pypi` environment.
+- **MCP registry:** after the npm job, `mcp-publisher` (pinned in `release.yml`) logs in with GitHub OIDC and publishes `packages/mcp/server.json` as `io.github.send0-dev/send0`. The registry checks that `@send0/mcp` on npm has a matching `mcpName`, so the job waits up to 10 minutes for the npm version, then warns and skips (re-run the job once it's live); a version already listed is skipped.
 
-Both publish jobs refuse to run unless every package version matches the tag (`release-version.mjs --check`), and skip versions the registry already has.
+The publish jobs refuse to run unless every package version matches the tag (`release-version.mjs --check`, which covers `server.json` too), and skip versions the registry already has.
+
+npm stages publishes made with the token until a maintainer approves them on npmjs.com. Approve `@send0/sdk` first, since the others depend on it.
 
 To publish an existing tag again, run the workflow by hand (Actions > Release > Run workflow) with the tag.
 

@@ -20,6 +20,8 @@
   <a href="https://github.com/send0-dev/send0-v2/actions/workflows/ci.yml"><img src="https://github.com/send0-dev/send0-v2/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/server-AGPL--3.0-blue" alt="Server license: AGPL-3.0" /></a>
   <a href="packages/sdk/LICENSE"><img src="https://img.shields.io/badge/SDKs%20%26%20MCP-MIT-green" alt="SDK and MCP license: MIT" /></a>
+  <a href="https://www.npmjs.com/package/@send0/sdk"><img src="https://img.shields.io/npm/v/@send0/sdk?label=npm" alt="npm version" /></a>
+  <a href="https://pypi.org/project/send0/"><img src="https://img.shields.io/pypi/v/send0?label=pypi" alt="PyPI version" /></a>
 </p>
 
 ---
@@ -53,16 +55,20 @@ await send0.messages.reply(msg.id, { text: "Thanks, confirmed." }); // threads i
 - **Webhooks and live events on every plan.** Signed webhooks (`send0-signature`, Stripe-style HMAC) with automatic retries and manual redelivery, plus a Server-Sent Events stream.
 - **Built for agents, safe by default.** Inbox-scoped API keys, human approval for outgoing mail, reply-only sending on the free tier, automatic suppression of bounces and complaints, and sending that pauses itself when complaint or bounce rates spike.
 - **MCP server.** Plug inboxes into Claude, Cursor, VS Code or any MCP client, locally or at `https://api.send0.dev/mcp`.
+- **Agent framework tools.** The same tools for the Vercel AI SDK, LangChain.js and LangChain for Python, with errors returned to the model and optional approval before sending.
 - **A dashboard for the humans.** Read threads, approve drafts, manage keys, webhooks and teammates at [app.send0.dev](https://app.send0.dev).
 
 ## Use it
 
-|            |                                                                                                                                              |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| REST API   | `https://api.send0.dev`, Bearer API key, [OpenAPI 3.1 spec](https://api.send0.dev/openapi.json)                                              |
-| TypeScript | `npm install @send0/sdk`, see [packages/sdk](packages/sdk)                                                                                   |
-| Python     | `pip install send0`, see [packages/sdk-python](packages/sdk-python)                                                                          |
-| MCP        | `claude mcp add --transport http send0 https://api.send0.dev/mcp --header "Authorization: Bearer s0_live_…"`, or `npx -y @send0/mcp` locally |
+|                  |                                                                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| REST API         | `https://api.send0.dev`, Bearer API key, [OpenAPI 3.1 spec](https://api.send0.dev/openapi.json)                                              |
+| TypeScript       | `npm install @send0/sdk`, see [packages/sdk](packages/sdk)                                                                                   |
+| Python           | `pip install send0`, see [packages/sdk-python](packages/sdk-python)                                                                          |
+| MCP              | `claude mcp add --transport http send0 https://api.send0.dev/mcp --header "Authorization: Bearer s0_live_…"`, or `npx -y @send0/mcp` locally |
+| Vercel AI SDK    | `npm install @send0/ai-sdk ai zod`, see [packages/ai-sdk](packages/ai-sdk)                                                                   |
+| LangChain.js     | `npm install @send0/langchain @langchain/core zod`, see [packages/langchain](packages/langchain)                                             |
+| LangChain Python | `pip install langchain-send0`, see [packages/langchain-python](packages/langchain-python)                                                    |
 
 <details>
 <summary>The same flow with cURL</summary>
@@ -118,6 +124,9 @@ packages/auth       Dashboard accounts, sessions, workspaces, roles
 packages/sdk        @send0/sdk, the TypeScript SDK (MIT)
 packages/sdk-python send0, the Python SDK (MIT)
 packages/mcp        @send0/mcp, the MCP server (MIT)
+packages/ai-sdk     @send0/ai-sdk, Vercel AI SDK tools (MIT)
+packages/langchain  @send0/langchain, LangChain.js tools (MIT)
+packages/langchain-python langchain-send0, LangChain for Python (MIT)
 fixtures/emails     Real-world .eml corpus used by the tests
 ```
 
@@ -149,6 +158,6 @@ Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING
 ## License
 
 - The send0 server and apps are licensed under the [GNU Affero General Public License v3.0](LICENSE). If you run a modified version as a network service, you must offer its source to your users.
-- The SDKs ([`packages/sdk`](packages/sdk), [`packages/sdk-python`](packages/sdk-python)) and the MCP server ([`packages/mcp`](packages/mcp)) are [MIT](packages/sdk/LICENSE), so you can use them in any project.
+- The SDKs ([`packages/sdk`](packages/sdk), [`packages/sdk-python`](packages/sdk-python)) the MCP server ([`packages/mcp`](packages/mcp)) and the agent framework integrations ([`packages/ai-sdk`](packages/ai-sdk), [`packages/langchain`](packages/langchain), [`packages/langchain-python`](packages/langchain-python)) are [MIT](packages/sdk/LICENSE), so you can use them in any project.
 
 Copyright © 2026 Kunal Dholiya.

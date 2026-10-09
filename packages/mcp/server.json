@@ -1,0 +1,67 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.send0-dev/send0",
+  "title": "send0",
+  "description": "Email inboxes for AI agents: create an address, wait for codes and links, send and reply in threads.",
+  "websiteUrl": "https://send0.dev/docs/quickstart/mcp",
+  "repository": {
+    "url": "https://github.com/send0-dev/send0-v2",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@send0/mcp",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "SEND0_API_KEY",
+          "description": "send0 API key (s0_live_…), from https://app.send0.dev",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "SEND0_INBOX_ID",
+          "description": "Default inbox (ibx_…) for tools that take an inbox_id"
+        },
+        {
+          "name": "SEND0_BASE_URL",
+          "description": "API base URL, for a self-hosted send0",
+          "default": "https://api.send0.dev"
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.send0.dev/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Your send0 API key as a Bearer token",
+          "value": "Bearer {api_key}",
+          "isRequired": true,
+          "isSecret": true,
+          "variables": {
+            "api_key": {
+              "description": "send0 API key (s0_live_…), from https://app.send0.dev",
+              "isRequired": true,
+              "isSecret": true
+            }
+          }
+        },
+        {
+          "name": "x-send0-inbox",
+          "description": "Default inbox (ibx_…) for tools that take an inbox_id"
+        }
+      ]
+    }
+  ]
+}

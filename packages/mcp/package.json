@@ -1,6 +1,7 @@
 {
   "name": "@send0/mcp",
   "version": "0.2.0",
+  "mcpName": "io.github.send0-dev/send0",
   "description": "MCP server for send0: give any agent an email inbox",
   "license": "MIT",
   "type": "module",

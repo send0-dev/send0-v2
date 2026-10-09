@@ -15,6 +15,9 @@ const SPOTS = [
   ...["sdk", "mcp", "ai-sdk", "langchain"].map((p) => [`packages/${p}/package.json`, new RegExp(`^(  "version": ")${V}`, "m")]),
   ["packages/sdk/src/http.ts", new RegExp(`^(const VERSION = ")${V}`, "m")],
   ["packages/mcp/src/server.ts", new RegExp(`(version = ")${V}`)],
+  // The MCP registry listing: the server's version, then the npm package it points at.
+  ["packages/mcp/server.json", new RegExp(`^(  "version": ")${V}`, "m")],
+  ["packages/mcp/server.json", new RegExp(`^(      "version": ")${V}`, "m")],
   ["packages/sdk-python/pyproject.toml", new RegExp(`^(version = ")${V}`, "m")],
   ["packages/sdk-python/src/send0/_base.py", new RegExp(`^(VERSION = ")${V}`, "m")],
   ["packages/langchain-python/pyproject.toml", new RegExp(`^(version = ")${V}`, "m")],

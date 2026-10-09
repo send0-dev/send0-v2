@@ -15,3 +15,5 @@ SEND0_API_KEY=s0_… ANTHROPIC_API_KEY=sk-ant-… pnpm start
 ```
 
 When the inbox address is printed, sign up for something with it, or send it an email with a code.
+
+To use it in your own project: `npm install @send0/ai-sdk ai zod`.
