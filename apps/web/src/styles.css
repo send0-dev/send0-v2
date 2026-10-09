@@ -38,11 +38,11 @@
   --input: #dcdce2;
   --primary: #1b1b1f;
   --primary-foreground: #ffffff;
-  --brand: #f26522;
-  --brand-strong: #e0561a;
+  --brand: #4b2eff;
+  --brand-strong: #3d22e8;
   --brand-foreground: #ffffff;
-  --brand-soft: #fff0e8;
-  --ring: #f26522;
+  --brand-soft: #eeebff;
+  --ring: #4b2eff;
   --destructive: #d93c2e;
   --destructive-soft: #fdeeec;
   --success: #1a8a52;
@@ -51,7 +51,7 @@
   --warning-soft: #fdf4e3;
   --info: #3b5bdb;
   --info-soft: #edf1fd;
-  --chart-1: #f26522;
+  --chart-1: #4b2eff;
   --chart-2: #8b8d98;
   --chart-3: #1a8a52;
   --chart-4: #d93c2e;
@@ -77,10 +77,11 @@
   --input: rgb(255 255 255 / 0.09);
   --primary: #f7f8f8;
   --primary-foreground: #08090a;
-  --brand: #ff7438;
-  --brand-strong: #ff6420;
-  --brand-soft: rgb(255 116 56 / 0.12);
-  --ring: #ff7438;
+  /* Lighter than send0.dev's #4b2eff so it reads as text on the dark canvas and still carries white button text. */
+  --brand: #7360ff;
+  --brand-strong: #6450ff;
+  --brand-soft: rgb(115 96 255 / 0.14);
+  --ring: #7360ff;
   --destructive: #f2685c;
   --destructive-soft: rgb(242 104 92 / 0.12);
   --success: #4cc38a;
@@ -89,7 +90,7 @@
   --warning-soft: rgb(240 180 83 / 0.12);
   --info: #7d9bff;
   --info-soft: rgb(125 155 255 / 0.12);
-  --chart-1: #ff7438;
+  --chart-1: #7360ff;
   --chart-2: #5e626b;
   --chart-3: #4cc38a;
   --chart-4: #f2685c;
