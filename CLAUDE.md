@@ -140,7 +140,7 @@ aws s3api put-bucket-lifecycle-configuration --profile default --region ap-south
 
 ## Releasing
 
-First set every published package to the release version and commit it: `node scripts/release-version.mjs 0.2.0`, then `uv lock` in `packages/sdk-python`, `packages/langchain-python` and `examples/langchain-python-agent`. Then tag `vX.Y.Z` (or `vX.Y.Z-rc.N`) on `main` and push the tag (`git tag v0.2.0 && git push origin v0.2.0`). `.github/workflows/release.yml` then publishes:
+First set every published package to the release version and commit it: `node scripts/release-version.mjs 0.2.0`, then `uv lock` in `packages/sdk-python`, `packages/langchain-python` and `examples/langchain-python-agent`. Also bump the pinned self-host version in `selfhost/README.md`, `README.md` and `apps/docs/content/docs/self-hosting/` (`git grep -n 'v0\.2\.0'` finds them). Then tag `vX.Y.Z` (or `vX.Y.Z-rc.N`) on `main` and push the tag (`git tag v0.2.0 && git push origin v0.2.0`). `.github/workflows/release.yml` then publishes:
 
 - **Docker:** `ghcr.io/send0-dev/send0` for linux/amd64 and linux/arm64, tagged `X.Y.Z`, `X.Y`, `latest` and `sha-…` (a pre-release gets only its full version).
 - **Deploy to Cloudflare template:** `apps/cloudflare/scripts/build-template.mjs` builds a self-contained folder (prebuilt Worker, dashboard, `wrangler.jsonc`, README), which is force-pushed as one commit to `main` of `send0-dev/send0-cloudflare`. Build it locally with `pnpm --filter @send0/cloudflare template /tmp/send0-cloudflare` (a relative path is relative to `apps/cloudflare`).

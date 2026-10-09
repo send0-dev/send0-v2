@@ -13,7 +13,7 @@ docker compose pull && docker compose up -d
 
 send0 applies database migrations when it starts, before it serves anything. If several send0 processes start at once, they take turns under a lock.
 
-- **Pin a version.** Set `SEND0_VERSION=0.1.1` in `.env` to stay on one release, or `0.1` to get its patch releases. `latest` moves to every new release. To upgrade, change it and run the commands above.
+- **Pin a version.** Set `SEND0_VERSION=0.2.0` in `.env` to stay on one release, or `0.2` to get its patch releases. `latest` moves to every new release. To upgrade, change it and run the commands above.
 - **Back up first.** Migrations change the database, and there's no automatic rollback.
 - **Check the release notes** on [GitHub releases](https://github.com/send0-dev/send0-v2/releases). If `compose.yml`, `Caddyfile` or `.env.example` changed, download them again from the new tag.
 
