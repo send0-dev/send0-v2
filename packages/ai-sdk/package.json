@@ -1,13 +1,20 @@
 {
-  "name": "@send0/mcp",
+  "name": "@send0/ai-sdk",
   "version": "0.1.0",
-  "description": "MCP server for send0: give any agent an email inbox",
+  "description": "send0 tools for the Vercel AI SDK: give any agent an email inbox",
   "license": "MIT",
   "type": "module",
-  "homepage": "https://send0.dev",
-  "bin": {
-    "send0-mcp": "./dist/cli.js"
-  },
+  "homepage": "https://send0.dev/docs/integrations/vercel-ai-sdk",
+  "keywords": [
+    "email",
+    "inbox",
+    "ai",
+    "ai-sdk",
+    "agents",
+    "tools",
+    "send0"
+  ],
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -30,15 +37,19 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.1",
-    "@send0/sdk": "workspace:*",
-    "zod": "^4.6.5"
+    "@send0/sdk": "workspace:*"
+  },
+  "peerDependencies": {
+    "ai": "^7.0.0",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@send0/agent-tools": "workspace:*",
     "@types/node": "^24",
+    "ai": "^7.0.133",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "zod": "^4.6.5"
   }
 }

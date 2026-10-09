@@ -10,8 +10,7 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "ignoreDeprecations": "6.0"
+    "verbatimModuleSyntax": true
   },
-  "include": ["src", "test", "tsup.config.ts"]
+  "include": ["*.ts"]
 }

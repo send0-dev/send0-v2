@@ -1,0 +1,60 @@
+---
+title: Agent frameworks
+description: send0's tools for the Vercel AI SDK, LangChain.js, LangChain for Python and MCP.
+---
+
+send0 ships the same nine tools for each way you build an agent. Names, arguments and output text are identical everywhere, so a prompt that works with one works with all of them.
+
+<Callout type="info">
+  `@send0/ai-sdk`, `@send0/langchain` and `langchain-send0` publish to npm and PyPI with the next
+  send0 release. Until then, you can use them from the [send0
+  repository](https://github.com/send0-dev/send0-v2), where the
+  [examples](https://github.com/send0-dev/send0-v2/tree/main/examples) run against your API key.
+</Callout>
+
+<Cards>
+  <Card
+    title="Vercel AI SDK"
+    href="/integrations/vercel-ai-sdk"
+    description="@send0/ai-sdk: tools for generateText, streamText and Agent."
+  />
+  <Card
+    title="LangChain.js"
+    href="/integrations/langchain-js"
+    description="@send0/langchain: structured tools for createAgent and LangGraph."
+  />
+  <Card
+    title="LangChain for Python"
+    href="/integrations/langchain-python"
+    description="langchain-send0: a toolkit with sync and async tools."
+  />
+  <Card
+    title="MCP"
+    href="/quickstart/mcp"
+    description="@send0/mcp: Claude Code, Claude Desktop, Cursor and any MCP client."
+  />
+</Cards>
+
+## Tools
+
+| Tool              | What it does                                                                                              | Kind      |
+| ----------------- | --------------------------------------------------------------------------------------------------------- | --------- |
+| `create_inbox`    | Create an address like `signup-agent@send0.email`                                                         | Creates   |
+| `list_inboxes`    | List the inboxes the API key can use                                                                      | Read-only |
+| `wait_for_email`  | Block until a matching email arrives (or arrived in the last minute); returns the extracted code and link | Read-only |
+| `search_messages` | Full-text search, or filter by sender (`*@github.com`) and direction                                      | Read-only |
+| `get_message`     | Read one message, new text only unless `full_text`                                                        | Read-only |
+| `list_threads`    | List conversations, most recent first                                                                     | Read-only |
+| `get_thread`      | Read a whole conversation, oldest first                                                                   | Read-only |
+| `send_email`      | Send a new email, starting a thread                                                                       | Sends     |
+| `reply`           | Reply in the same thread, with the right `In-Reply-To` and `References`                                   | Sends     |
+
+Arguments are listed in the [MCP tools reference](/reference/mcp-tools#tools). Tools that take `inbox_id` fall back to the default inbox you configure.
+
+## What every integration does
+
+- **Errors become text.** An API error comes back to the model as `send0 error <code>: <message>`, for example `send0 error recipient_not_allowed: …`, so it can pick another recipient or tell you, instead of the run failing.
+- **Email is untrusted.** Tools that return mail wrap each body in `<untrusted_email>` tags with a note to treat it as data, and messages flagged for [prompt injection](/guides/prompt-injection) carry a warning. Tags inside an email are neutralized, so a sender can't close the block early.
+- **Sending can wait for a person.** Each integration can put `send_email` and `reply` behind its framework's approval flow, or leave them out entirely. An inbox with the `approval` send policy turns every send into a [draft](/concepts/drafts) on the server side too.
+
+Give an agent an API key with `read` and `send` scopes, limited to its inbox. See [API keys](/api-keys).

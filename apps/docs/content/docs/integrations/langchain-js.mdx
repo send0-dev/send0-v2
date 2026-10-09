@@ -1,0 +1,67 @@
+---
+title: LangChain.js
+description: "@send0/langchain: send0 tools for LangChain.js agents and LangGraph."
+---
+
+`@send0/langchain` turns send0's [tools](/integrations#tools) into LangChain structured tools, for `createAgent`, `model.bindTools()` and LangGraph's `ToolNode`. It needs `@langchain/core` 1.x and `zod` 4.
+
+<Callout type="info">
+  `@send0/langchain` publishes to npm with the next send0 release. Until then, use it from the
+  [send0 repository](https://github.com/send0-dev/send0-v2/tree/main/packages/langchain).
+</Callout>
+
+## Install
+
+```sh
+npm install @send0/langchain @langchain/core zod
+```
+
+## Example
+
+```ts
+import { ChatAnthropic } from "@langchain/anthropic";
+import { send0Tools } from "@send0/langchain";
+import { createAgent } from "langchain";
+
+const agent = createAgent({
+  model: new ChatAnthropic({ model: "claude-opus-5-5" }),
+  tools: send0Tools({ exclude: ["send_email", "reply"] }), // reads SEND0_API_KEY
+});
+
+const result = await agent.invoke({
+  messages: [{ role: "user", content: "Summarize the latest conversations in my inbox." }],
+});
+```
+
+`new Send0Toolkit(options).getTools()` returns the same tools as a LangChain toolkit. A runnable version is in [examples/langchain-js-agent](https://github.com/send0-dev/send0-v2/tree/main/examples/langchain-js-agent).
+
+## Options
+
+| Option    |                                                                     |
+| --------- | ------------------------------------------------------------------- |
+| `apiKey`  | Defaults to `SEND0_API_KEY`                                         |
+| `baseUrl` | Your [self-hosted](/self-hosting) send0                             |
+| `client`  | A configured `Send0` client from `@send0/sdk`, instead of the above |
+| `inboxId` | Default inbox, so the model doesn't need `inbox_id`                 |
+| `include` | Only these tools                                                    |
+| `exclude` | All tools but these                                                 |
+
+## Approval
+
+`send_email` and `reply` carry `metadata.sends = true`. To have a person approve them before they run, add LangChain's human-in-the-loop middleware. It pauses the agent with an interrupt, so it needs a checkpointer:
+
+```ts
+import { MemorySaver } from "@langchain/langgraph";
+import { createAgent, humanInTheLoopMiddleware } from "langchain";
+
+const agent = createAgent({
+  model,
+  tools: send0Tools(),
+  checkpointer: new MemorySaver(),
+  middleware: [humanInTheLoopMiddleware({ interruptOn: { send_email: true, reply: true } })],
+});
+```
+
+## Untrusted content
+
+Every body the tools return sits inside `<untrusted_email>` tags with a note to treat it as data. Keep the tool set to what the task needs, use a key limited to one inbox, and put sending behind approval when the agent reads mail from strangers. See [Prompt injection](/guides/prompt-injection).

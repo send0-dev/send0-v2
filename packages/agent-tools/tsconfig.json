@@ -13,5 +13,5 @@
     "verbatimModuleSyntax": true,
     "ignoreDeprecations": "6.0"
   },
-  "include": ["src", "test", "tsup.config.ts"]
+  "include": ["src", "test"]
 }
