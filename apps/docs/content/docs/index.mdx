@@ -10,15 +10,32 @@ You need a send0 API key. During the private beta, keys are issued to people on 
 ## Install
 
 <Tabs items={["TypeScript", "Python", "MCP (Claude, Cursor)", "Any language"]}>
-  <Tab value="TypeScript">```bash npm install @send0/sdk ```</Tab>
-  <Tab value="Python">```bash pip install send0 ```</Tab>
-  <Tab value="MCP (Claude, Cursor)">
-    ```bash claude mcp add send0 --env SEND0_API_KEY=s0_live_… -- npx -y @send0/mcp ```
-  </Tab>
-  <Tab value="Any language">
-    It's a JSON REST API at `https://api.send0.dev/v1`. Authenticate with `Authorization: Bearer
-    s0_live_…`.
-  </Tab>
+<Tab value="TypeScript">
+
+```bash
+npm install @send0/sdk
+```
+
+</Tab>
+<Tab value="Python">
+
+```bash
+pip install send0
+```
+
+</Tab>
+<Tab value="MCP (Claude, Cursor)">
+
+```bash
+claude mcp add send0 --env SEND0_API_KEY=s0_live_… -- npx -y @send0/mcp
+```
+
+</Tab>
+<Tab value="Any language">
+
+It's a JSON REST API at `https://api.send0.dev/v1`. Authenticate with `Authorization: Bearer s0_live_…`.
+
+</Tab>
 </Tabs>
 
 ## The whole idea in ten lines
