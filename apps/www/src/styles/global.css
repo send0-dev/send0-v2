@@ -19,6 +19,7 @@
   --col: 1180px;
   --top: 64px;
   --secnav: 52px;
+  --ctl: 38px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -203,7 +204,9 @@ header.top {
   font: 600 12px var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 11px 16px;
+  height: var(--ctl);
+  line-height: 1;
+  padding: 0 16px;
   border: 1px solid var(--ink);
   background: var(--paper);
   color: var(--ink);
@@ -231,7 +234,9 @@ header.top {
   border: 1px solid var(--line-2);
   background: transparent;
   color: var(--ink);
-  padding: 9px 10px;
+  width: var(--ctl);
+  height: var(--ctl);
+  padding: 0;
   cursor: pointer;
   display: inline-grid;
   place-items: center;
