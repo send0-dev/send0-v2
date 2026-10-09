@@ -87,7 +87,7 @@ jobs:
       # Builds the image from this checkout with a layer cache, as send0:smoke (the tag compose.smoke.yml
       # uses), then starts the stack with that image.
       - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/server/Dockerfile
