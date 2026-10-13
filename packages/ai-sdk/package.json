@@ -1,6 +1,6 @@
 {
   "name": "@send0/ai-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "send0 tools for the Vercel AI SDK: give any agent an email inbox",
   "license": "MIT",
   "type": "module",
