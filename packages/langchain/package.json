@@ -1,6 +1,6 @@
 {
   "name": "@send0/langchain",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "send0 tools for LangChain.js: give any agent an email inbox",
   "license": "MIT",
   "type": "module",
