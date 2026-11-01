@@ -21,17 +21,17 @@
     "@send0/db": "workspace:*",
     "@send0/pipeline": "workspace:*",
     "@send0/web": "workspace:*",
-    "drizzle-orm": "^0.45.3",
-    "hono": "^4.13.13",
-    "zod": "^4.6.5"
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.14",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite": "^0.5.13",
     "@types/node": "^24",
     "jsonc-parser": "^3.3.1",
     "postgres": "^3.4.9",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.3",
-    "wrangler": "^4.147.0"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.155.0"
   }
 }
